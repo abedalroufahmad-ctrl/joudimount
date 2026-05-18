@@ -609,6 +609,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storageReplaceContainers => 'Replace containers';
 
   @override
+  String get storageEntryLockNumbers => 'Entry lock numbers';
+
+  @override
+  String get storageOutContainerNumbers => 'Out container numbers';
+
+  @override
+  String get storageOutLockNumbers => 'Out lock numbers';
+
+  @override
   String get storageSwitchDate => 'Switch date';
 
   @override

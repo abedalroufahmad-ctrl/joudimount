@@ -49,8 +49,10 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
   final _outUnity = TextEditingController();
 
   final _sealReplace = TextEditingController();
+  final _sealEntryLock = TextEditingController();
   final _sealSwitch = TextEditingController();
   final _sealContainers = TextEditingController();
+  final _sealOutLock = TextEditingController();
   final _sealUnits = TextEditingController();
   final _sealCompany = TextEditingController();
   final _sealWages = TextEditingController();
@@ -81,8 +83,10 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
     _outCross.dispose();
     _outUnity.dispose();
     _sealReplace.dispose();
+    _sealEntryLock.dispose();
     _sealSwitch.dispose();
     _sealContainers.dispose();
+    _sealOutLock.dispose();
     _sealUnits.dispose();
     _sealCompany.dispose();
     _sealWages.dispose();
@@ -138,9 +142,11 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
         (tx['storageExitUnity'] ?? tx['storageUnity'] ?? '').toString();
 
     _sealReplace.text = (tx['storageSealReplaceContainers'] ?? '').toString();
+    _sealEntryLock.text = (tx['storageSealEntryLockNumbers'] ?? '').toString();
     _sealSwitch.text = _iso(tx['storageSealSwitchDate']);
     _sealContainers.text =
         (tx['storageSealEntryContainerNumbers'] ?? '').toString();
+    _sealOutLock.text = (tx['storageSealOutLockNumbers'] ?? '').toString();
     _sealUnits.text = _numStr(tx['storageSealUnitCount']);
     _sealCompany.text = (tx['storageSealWorkersCompany'] ?? '').toString();
     _sealWages.text = _numStr(tx['storageSealWorkersWages']);
@@ -210,8 +216,10 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
       _putStr(body, 'storageExitUnity', _outUnity);
 
       _putStr(body, 'storageSealReplaceContainers', _sealReplace);
+      _putStr(body, 'storageSealEntryLockNumbers', _sealEntryLock);
       _putStr(body, 'storageSealSwitchDate', _sealSwitch);
       _putStr(body, 'storageSealEntryContainerNumbers', _sealContainers);
+      _putStr(body, 'storageSealOutLockNumbers', _sealOutLock);
       _putNum(body, 'storageSealUnitCount', _sealUnits);
       _putStr(body, 'storageSealWorkersCompany', _sealCompany);
       _putNum(body, 'storageSealWorkersWages', _sealWages);
@@ -386,14 +394,18 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
                       const SizedBox(height: 8),
                       Text(l10n.storageSectionSeal,
                           style: Theme.of(context).textTheme.titleSmall),
-                      _field(_sealReplace, l10n.storageReplaceContainers,
+                      _field(_sealReplace, l10n.storageEntryContainerNumbers,
+                          maxLines: 3, enabled: _canEdit),
+                      _field(_sealEntryLock, l10n.storageEntryLockNumbers,
                           maxLines: 3, enabled: _canEdit),
                       ApiDateField(
                         controller: _sealSwitch,
                         label: l10n.storageSwitchDate,
                         enabled: _canEdit,
                       ),
-                      _field(_sealContainers, l10n.storageEntryContainerNumbers,
+                      _field(_sealContainers, l10n.storageOutContainerNumbers,
+                          maxLines: 3, enabled: _canEdit),
+                      _field(_sealOutLock, l10n.storageOutLockNumbers,
                           maxLines: 3, enabled: _canEdit),
                       _field(_sealUnits, l10n.storageSealUnitCount,
                           keyboard: TextInputType.number, enabled: _canEdit),

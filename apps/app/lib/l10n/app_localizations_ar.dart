@@ -609,6 +609,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageReplaceContainers => 'استبدال الحاويات';
 
   @override
+  String get storageEntryLockNumbers => 'أرقام الأقفال الداخلة';
+
+  @override
+  String get storageOutContainerNumbers => 'أرقام الحاويات الخارجة';
+
+  @override
+  String get storageOutLockNumbers => 'أرقام الأقفال الخارجة';
+
+  @override
   String get storageSwitchDate => 'تاريخ التبديل';
 
   @override

@@ -1295,6 +1295,24 @@ abstract class AppLocalizations {
   /// **'Replace containers'**
   String get storageReplaceContainers;
 
+  /// No description provided for @storageEntryLockNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry lock numbers'**
+  String get storageEntryLockNumbers;
+
+  /// No description provided for @storageOutContainerNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Out container numbers'**
+  String get storageOutContainerNumbers;
+
+  /// No description provided for @storageOutLockNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Out lock numbers'**
+  String get storageOutLockNumbers;
+
   /// No description provided for @storageSwitchDate.
   ///
   /// In en, this message translates to:
