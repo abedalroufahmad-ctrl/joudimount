@@ -320,7 +320,7 @@ export default function TransactionForm({
           documentArrivalDate: isoToDateInput(data.documentArrivalDate),
           fileNumber: data.fileNumber ?? "",
           containerNumbers: data.containerNumbers?.join(", ") ?? "",
-          unitCount: data.unitCount != null ? String(data.unitCount) : "",
+          unitCount: data.unitCount ?? "",
           unitNumber: data.unitNumber != null ? String(data.unitNumber) : "",
           isStopped: data.isStopped ? "yes" : "no",
           stopReason: data.stopReason ?? "",
@@ -457,7 +457,7 @@ export default function TransactionForm({
           .filter(Boolean);
         if (values.length) fd.append("containerNumbers", JSON.stringify(values));
       }
-      appendOptionalNumber(fd, "unitCount", form.unitCount);
+      if (form.unitCount.trim()) fd.append("unitCount", form.unitCount.trim());
       appendOptionalNumber(fd, "unitNumber", form.unitNumber);
       fd.append("isStopped", form.isStopped === "yes" ? "true" : "false");
       if (form.stopReason.trim()) fd.append("stopReason", form.stopReason.trim());

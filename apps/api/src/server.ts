@@ -237,7 +237,7 @@ function getMissingFieldsBeforeCustomsClearance(tx: Transaction): string[] {
   if (tx.goodsQuantity === undefined || tx.goodsQuantity < 0) missing.push("goodsQuantity");
   if (isBlankString(tx.goodsQuality)) missing.push("goodsQuality");
   if (isBlankString(tx.goodsUnit)) missing.push("goodsUnit");
-  if (tx.unitCount === undefined || tx.unitCount < 0) missing.push("unitCount");
+  if (isBlankString(tx.unitCount)) missing.push("unitCount");
   if (tx.isStopped === true && isBlankString(tx.stopReason)) {
     missing.push("stopReason");
   }

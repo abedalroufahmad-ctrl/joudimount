@@ -292,8 +292,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         .toList();
     if (containerNumbers.isNotEmpty)
       body['containerNumbers'] = containerNumbers;
-    final unitCount = int.tryParse(_unitCount.text.trim());
-    if (unitCount != null) body['unitCount'] = unitCount;
+    final unitCount = _unitCount.text.trim();
+    if (unitCount.isNotEmpty) body['unitCount'] = unitCount;
     body['isStopped'] = _isStopped;
     if (_stopReason.text.trim().isNotEmpty)
       body['stopReason'] = _stopReason.text.trim();

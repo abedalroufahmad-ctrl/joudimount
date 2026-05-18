@@ -97,7 +97,7 @@ interface TransactionDoc {
   documentArrivalDate?: Date;
   fileNumber?: string;
   containerNumbers?: string[];
-  unitCount?: number;
+  unitCount?: string;
   unitNumber?: number;
   isStopped?: boolean;
   holdReason?: string;
@@ -228,7 +228,7 @@ const transactionSchema = new Schema<TransactionDoc>(
     documentArrivalDate: { type: Date },
     fileNumber: { type: String },
     containerNumbers: [{ type: String }],
-    unitCount: { type: Number },
+    unitCount: { type: String },
     unitNumber: { type: Number },
     isStopped: { type: Boolean, default: false },
     holdReason: { type: String },

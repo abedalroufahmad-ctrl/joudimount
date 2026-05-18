@@ -61,7 +61,7 @@ export interface Transaction {
   documentArrivalDate?: string;
   fileNumber?: string;
   containerNumbers?: string[];
-  unitCount?: number;
+  unitCount?: string;
   unitNumber?: number;
   isStopped?: boolean;
   stopReason?: string;
