@@ -649,33 +649,6 @@ export default function TransactionForm({
             />
           </label>
           <label className="col-12 col-md-6 form-label w-100 mb-0">
-            {t("form.portOfLading")}
-            <input className="form-control mt-1"
-              disabled={transferWarehouseOnly}
-              value={form.portOfLading}
-              onChange={(e) => setForm({ ...form, portOfLading: e.target.value })}
-              required
-            />
-          </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
-            {t("form.portOfDischarge")}
-            <input className="form-control mt-1"
-              disabled={transferWarehouseOnly}
-              value={form.portOfDischarge}
-              onChange={(e) => setForm({ ...form, portOfDischarge: e.target.value })}
-              required
-            />
-          </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
-            {t("form.destination")}
-            <input className="form-control mt-1"
-              disabled={transferWarehouseOnly}
-              value={form.destination}
-              onChange={(e) => setForm({ ...form, destination: e.target.value })}
-              required
-            />
-          </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
             {t("form.goodsWeightKg")}
             <input className="form-control mt-1"
               type="number"
@@ -865,6 +838,38 @@ export default function TransactionForm({
                     </option>
                   ))}
                 </select>
+              </label>
+            </>
+          ) : null}
+
+          {true ? (
+            <>
+              <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">
+                {module === "exports" ? t("export.form.exportDetails" as MessageKey) : t("transfer.details.title" as MessageKey)}
+              </h2>
+              <label className="col-12 col-md-6 form-label w-100 mb-0">
+                {t("form.portOfLading")}
+                <input className="form-control mt-1"
+                  disabled={transferWarehouseOnly}
+                  value={form.portOfLading}
+                  onChange={(e) => setForm({ ...form, portOfLading: e.target.value })}
+                />
+              </label>
+              <label className="col-12 col-md-6 form-label w-100 mb-0">
+                {t("form.portOfDischarge")}
+                <input className="form-control mt-1"
+                  disabled={transferWarehouseOnly}
+                  value={form.portOfDischarge}
+                  onChange={(e) => setForm({ ...form, portOfDischarge: e.target.value })}
+                />
+              </label>
+              <label className="col-12 col-md-6 form-label w-100 mb-0">
+                {t("form.destination")}
+                <input className="form-control mt-1"
+                  disabled={transferWarehouseOnly}
+                  value={form.destination}
+                  onChange={(e) => setForm({ ...form, destination: e.target.value })}
+                />
               </label>
             </>
           ) : null}

@@ -284,6 +284,27 @@ export default function TransactionDetails({
             </>
           ) : null}
 
+          {(transaction.portOfLading || transaction.portOfDischarge || transaction.destination) ? (
+            <>
+              <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("transfer.details.title" as MessageKey)}</h2>
+              {transaction.portOfLading ? (
+                <p className="details-item">
+                  <strong>{t("form.portOfLading")}:</strong> {transaction.portOfLading}
+                </p>
+              ) : null}
+              {transaction.portOfDischarge ? (
+                <p className="details-item">
+                  <strong>{t("form.portOfDischarge")}:</strong> {transaction.portOfDischarge}
+                </p>
+              ) : null}
+              {transaction.destination ? (
+                <p className="details-item">
+                  <strong>{t("form.destination")}:</strong> {transaction.destination}
+                </p>
+              ) : null}
+            </>
+          ) : null}
+
           <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.shipmentCoreSection")}</h2>
           <p className="details-item">
             <strong>{t("details.airwayBill")}:</strong> {transaction.airwayBill}
