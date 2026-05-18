@@ -58,6 +58,7 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
     const path = editingId ? `/api/shipping-companies/${editingId}` : "/api/shipping-companies";
     const method = editingId ? "PUT" : "POST";
     const trimmedEmail = form.email.trim();
+    const trimmedLocation = form.location.trim();
     const body: Record<string, unknown> = {
       companyName: form.companyName,
       code: form.code,
@@ -74,6 +75,8 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
       body.latitude = null;
       body.longitude = null;
     }
+    if (trimmedLocation) body.location = trimmedLocation;
+    else if (editingId) body.location = null;
     body.dispatchFormTemplate = form.dispatchFormTemplate.trim();
     const res = await apiFetch(path, { method, body: JSON.stringify(body) });
     if (!res.ok) {
