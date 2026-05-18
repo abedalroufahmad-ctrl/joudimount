@@ -195,8 +195,8 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                     let lat = form.latitude;
                     let lng = form.longitude;
                     
-                    // Try to parse lat/lng from Google Maps link
-                    const match = val.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                    // Try to parse lat/lng from map links
+                    const match = val.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/mlat=(-?\d+\.\d+)&mlon=(-?\d+\.\d+)/);
                     if (match) {
                       lat = parseFloat(match[1]);
                       lng = parseFloat(match[2]);
@@ -213,7 +213,7 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                 onChange={(lat, lng) => {
                   let locationStr = form.location;
                   if (lat != null && lng != null) {
-                    locationStr = `https://www.google.com/maps?q=${lat},${lng}`;
+                    locationStr = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=14`;
                   } else {
                     locationStr = "";
                   }
