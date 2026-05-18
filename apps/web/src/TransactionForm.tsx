@@ -1379,6 +1379,85 @@ export default function TransactionForm({
           />
         </label>
 
+        {isEdit ? (
+          <>
+            <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("transportation.sectionTitle" as MessageKey)}</h2>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.toUpper" as MessageKey)}
+              <input className="form-control mt-1"
+                disabled={!legacyStorageEditable}
+                value={form.transportationTo}
+                onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.trachNo" as MessageKey)}
+              <input className="form-control mt-1"
+                disabled={!legacyStorageEditable}
+                value={form.trachNo}
+                onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.company" as MessageKey)}
+              <input className="form-control mt-1"
+                disabled={!legacyStorageEditable}
+                value={form.transportationCompany}
+                onChange={(e) => setForm({ ...form, transportationCompany: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.from" as MessageKey)}
+              <input className="form-control mt-1"
+                disabled={!legacyStorageEditable}
+                value={form.transportationFrom}
+                onChange={(e) => setForm({ ...form, transportationFrom: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.to" as MessageKey)}
+              <input className="form-control mt-1"
+                disabled={!legacyStorageEditable}
+                value={form.transportationToLocation}
+                onChange={(e) => setForm({ ...form, transportationToLocation: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.tripCharge" as MessageKey)}
+              <input className="form-control mt-1"
+                type="number"
+                min={0}
+                step="any"
+                disabled={!legacyStorageEditable}
+                value={form.tripCharge}
+                onChange={(e) => setForm({ ...form, tripCharge: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.waitingCharge" as MessageKey)}
+              <input className="form-control mt-1"
+                type="number"
+                min={0}
+                step="any"
+                disabled={!legacyStorageEditable}
+                value={form.waitingCharge}
+                onChange={(e) => setForm({ ...form, waitingCharge: e.target.value })}
+              />
+            </label>
+            <label className="col-12 col-md-6 form-label w-100 mb-0">
+              {t("transportation.maccrikCharge" as MessageKey)}
+              <input className="form-control mt-1"
+                type="number"
+                min={0}
+                step="any"
+                disabled={!legacyStorageEditable}
+                value={form.maccrikCharge}
+                onChange={(e) => setForm({ ...form, maccrikCharge: e.target.value })}
+              />
+            </label>
+          </>
+        ) : null}
+
         <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("form.workflowStatusSection")}</h2>
         <label className="col-12 col-md-6 form-label w-100 mb-0">
           {t("form.stopTransaction")}
