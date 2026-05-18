@@ -546,7 +546,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageNoUploadAtStage => 'لا يمكن رفع مرفقات جديدة في مرحلة التخزين.';
 
   @override
-  String get storageSectionTitle => 'التخزين (إدخال / إخراج / ختم)';
+  String get storageSectionTitle => 'التخزين (إدخال / إخراج / تبديل)';
 
   @override
   String get storageEntryDate => 'تاريخ الإدخال';
@@ -573,7 +573,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageUnity => 'الوحدة';
 
   @override
-  String get storageSealNumber => 'رقم الختم / الطابع';
+  String get storageSealNumber => 'رقم التبديل / الطابع';
 
   @override
   String get storageReadOnlyHint => 'في مرحلة التخزين استخدم بطاقة التخزين لبيانات المستودع. الحقول هنا للقراءة فقط.';
@@ -591,7 +591,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageSubOutput => 'إخراج';
 
   @override
-  String get storageSubSeal => 'ختم';
+  String get storageSubSeal => 'تبديل';
 
   @override
   String get storageSectionInput => 'أ — بيانات الإدخال';
@@ -600,7 +600,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageSectionExit => 'ب — بيانات الإخراج';
 
   @override
-  String get storageSectionSeal => 'ج — الختم';
+  String get storageSectionSeal => 'ج — التبديل';
 
   @override
   String get storageLoadingEquipmentFare => 'أجرة معدات التحميل';
@@ -627,7 +627,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageAccountantReadOnly => 'عرض فقط لدور المحاسب.';
 
   @override
-  String get storageOpenDedicatedPage => 'فتح بطاقة التخزين (إدخال / إخراج / ختم)';
+  String get storageOpenDedicatedPage => 'فتح بطاقة التخزين (إدخال / إخراج / تبديل)';
 
   @override
   String get storageLinkFromDetails => 'بطاقة التخزين';
