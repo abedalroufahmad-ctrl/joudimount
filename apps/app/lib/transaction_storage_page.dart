@@ -220,7 +220,7 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
       _putStr(body, 'storageSealSwitchDate', _sealSwitch);
       _putStr(body, 'storageSealEntryContainerNumbers', _sealContainers);
       _putStr(body, 'storageSealOutLockNumbers', _sealOutLock);
-      _putNum(body, 'storageSealUnitCount', _sealUnits);
+      _putStr(body, 'storageSealUnitCount', _sealUnits);
       _putStr(body, 'storageSealWorkersCompany', _sealCompany);
       _putNum(body, 'storageSealWorkersWages', _sealWages);
 
@@ -408,7 +408,7 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
                       _field(_sealOutLock, l10n.storageOutLockNumbers,
                           maxLines: 3, enabled: _canEdit),
                       _field(_sealUnits, l10n.storageSealUnitCount,
-                          keyboard: TextInputType.number, enabled: _canEdit),
+                          enabled: _canEdit),
                       _field(_sealCompany, l10n.storageWorkersCompany,
                           enabled: _canEdit),
                       _field(_sealWages, l10n.storageWorkersWages,

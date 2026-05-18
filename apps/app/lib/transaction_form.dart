@@ -828,7 +828,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       padding: const EdgeInsets.only(bottom: 16),
                       child: TextFormField(
                         controller: _unitCount,
-                        keyboardType: TextInputType.number,
                         enabled: storageEditable,
                         decoration:
                             InputDecoration(labelText: l10n.txNumberOfUnits),
@@ -890,7 +889,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       padding: const EdgeInsets.only(bottom: 16),
                       child: TextFormField(
                         controller: _unitCount,
-                        keyboardType: TextInputType.number,
                         enabled: storageEditable,
                         decoration:
                             InputDecoration(labelText: l10n.txNumberOfUnits),
