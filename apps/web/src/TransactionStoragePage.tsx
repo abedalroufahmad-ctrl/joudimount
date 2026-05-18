@@ -65,7 +65,7 @@ function mapTxToForm(tx: Transaction): StorageFormState {
     storageSealReplaceContainers: tx.storageSealReplaceContainers ?? "",
     storageSealSwitchDate: isoToDateInput(tx.storageSealSwitchDate),
     storageSealEntryContainerNumbers: tx.storageSealEntryContainerNumbers ?? "",
-    storageSealUnitCount: numToStr(tx.storageSealUnitCount),
+    storageSealUnitCount: tx.storageSealUnitCount ?? "",
     storageSealWorkersCompany: tx.storageSealWorkersCompany ?? "",
     storageSealWorkersWages: numToStr(tx.storageSealWorkersWages),
   };
@@ -102,6 +102,7 @@ function buildPayload(form: StorageFormState, existingIsStopped?: boolean): Reco
     ["storageSealReplaceContainers", form.storageSealReplaceContainers],
     ["storageSealEntryContainerNumbers", form.storageSealEntryContainerNumbers],
     ["storageSealWorkersCompany", form.storageSealWorkersCompany],
+    ["storageSealUnitCount", form.storageSealUnitCount],
   ];
   for (const [key, v] of strings) {
     const t = v.trim();
@@ -113,7 +114,6 @@ function buildPayload(form: StorageFormState, existingIsStopped?: boolean): Reco
   appendOptionalNumber(payload, "storageExitWorkersWages", form.storageExitWorkersWages);
   appendOptionalNumber(payload, "storageExitVolumeCbm", form.storageExitVolumeCbm);
   appendOptionalNumber(payload, "storageExitLoadingEquipmentFare", form.storageExitLoadingEquipmentFare);
-  appendOptionalNumber(payload, "storageSealUnitCount", form.storageSealUnitCount);
   appendOptionalNumber(payload, "storageSealWorkersWages", form.storageSealWorkersWages);
   return payload;
 }
@@ -444,9 +444,7 @@ export default function TransactionStoragePage({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("storagePage.unitCount" as MessageKey)}
                 <input className="form-control mt-1"
-                  type="number"
-                  min={0}
-                  step={1}
+                  type="text"
                   value={form.storageSealUnitCount}
                   disabled={!canEdit}
                   onChange={(e) => setForm({ ...form, storageSealUnitCount: e.target.value })}

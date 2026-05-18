@@ -134,7 +134,7 @@ interface TransactionDoc {
   storageSealReplaceContainers?: string;
   storageSealSwitchDate?: Date;
   storageSealEntryContainerNumbers?: string;
-  storageSealUnitCount?: number;
+  storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
@@ -271,7 +271,7 @@ const transactionSchema = new Schema<TransactionDoc>(
     storageSealReplaceContainers: { type: String },
     storageSealSwitchDate: { type: Date },
     storageSealEntryContainerNumbers: { type: String },
-    storageSealUnitCount: { type: Number },
+    storageSealUnitCount: { type: String },
     storageSealWorkersCompany: { type: String },
     storageSealWorkersWages: { type: Number },
     transactionStage: {

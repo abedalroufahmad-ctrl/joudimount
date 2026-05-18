@@ -177,7 +177,7 @@ export const createTransactionPayloadSchema = z.object({
   storageSealReplaceContainers: optionalStorageLong,
   storageSealSwitchDate: optionalDateIso,
   storageSealEntryContainerNumbers: optionalStorageLong,
-  storageSealUnitCount: optionalNonNegativeInt,
+  storageSealUnitCount: z.preprocess(emptyToUndef, z.string().optional()),
   storageSealWorkersCompany: optionalStorageMedium,
   storageSealWorkersWages: optionalNonNegativeNumber,
 });
@@ -276,7 +276,7 @@ export const updateTransactionPayloadSchema = z
     storageSealReplaceContainers: optionalStorageLong,
     storageSealSwitchDate: optionalDateIso,
     storageSealEntryContainerNumbers: optionalStorageLong,
-    storageSealUnitCount: optionalNonNegativeInt,
+    storageSealUnitCount: z.preprocess(emptyToUndef, z.string().optional()),
     storageSealWorkersCompany: optionalStorageMedium,
     storageSealWorkersWages: optionalNonNegativeNumber,
   });

@@ -97,7 +97,7 @@ export interface Transaction {
   storageSealReplaceContainers?: string;
   storageSealSwitchDate?: string;
   storageSealEntryContainerNumbers?: string;
-  storageSealUnitCount?: number;
+  storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
   transactionStage: TransactionStage;

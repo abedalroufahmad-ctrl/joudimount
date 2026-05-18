@@ -1264,10 +1264,8 @@ export default function TransactionForm({
             <label className="col-12 col-md-6 form-label w-100 mb-0">
               {t("form.numberOfUnits")}
               <input className="form-control mt-1"
-                type="number"
+                type="text"
                 disabled={!legacyStorageEditable}
-                min={0}
-                step={1}
                 value={form.unitCount}
                 onChange={(e) => setForm({ ...form, unitCount: e.target.value })}
               />
@@ -1350,10 +1348,8 @@ export default function TransactionForm({
             <label className="col-12 col-md-6 form-label w-100 mb-0">
               {t("form.numberOfUnits")}
               <input className="form-control mt-1"
-                type="number"
+                type="text"
                 disabled={!legacyStorageEditable}
-                min={0}
-                step={1}
                 value={form.unitCount}
                 onChange={(e) => setForm({ ...form, unitCount: e.target.value })}
               />
