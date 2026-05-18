@@ -296,7 +296,7 @@ export default function TransactionForm({
           portOfLading: data.portOfLading ?? "",
           portOfDischarge: data.portOfDischarge ?? "",
           destination: data.destination ?? "",
-          transportationTo: data.transportationTo ?? "",
+          transportationTo: isoToDateInput(data.transportationTo ?? ""),
           trachNo: data.trachNo ?? "",
           transportationCompany: data.transportationCompany ?? "",
           transportationFrom: data.transportationFrom ?? "",
@@ -881,6 +881,7 @@ export default function TransactionForm({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.toUpper" as MessageKey)}
                 <input className="form-control mt-1"
+                  type="date"
                   disabled={transferWarehouseOnly}
                   value={form.transportationTo}
                   onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
@@ -1382,6 +1383,7 @@ export default function TransactionForm({
             <label className="col-12 col-md-6 form-label w-100 mb-0">
               {t("transportation.toUpper" as MessageKey)}
               <input className="form-control mt-1"
+                type="date"
                 disabled={!transportationEditableEffective}
                 value={form.transportationTo}
                 onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
