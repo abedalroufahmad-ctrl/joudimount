@@ -869,7 +869,7 @@ export default function TransactionForm({
             </>
           ) : null}
 
-          {isEdit && (stage === "TRANSPORTATION" || stage === "STORAGE") ? (
+          {isEdit ? (
             <>
               <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("transportation.sectionTitle" as MessageKey)}</h2>
               <label className="col-12 col-md-6 form-label w-100 mb-0">
