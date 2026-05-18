@@ -191,15 +191,23 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                   className="form-control mt-1"
                   value={form.location}
                   onChange={(e) => {
-                    const val = e.target.value;
+                    let val = e.target.value;
                     let lat = form.latitude;
                     let lng = form.longitude;
                     
-                    // Try to parse lat/lng from map links
-                    const match = val.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/mlat=(-?\d+\.\d+)&mlon=(-?\d+\.\d+)/);
+                    // Try to parse lat/lng from map links or raw coordinates
+                    const match = 
+                      val.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || 
+                      val.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || 
+                      val.match(/mlat=(-?\d+\.\d+)&mlon=(-?\d+\.\d+)/) ||
+                      val.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+
                     if (match) {
                       lat = parseFloat(match[1]);
                       lng = parseFloat(match[2]);
+                      if (!val.startsWith("http")) {
+                        val = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=14`;
+                      }
                     }
 
                     setForm({ ...form, location: val, latitude: lat, longitude: lng });
@@ -275,6 +283,14 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                       {item.location.startsWith("http") ? (
                         <a href={item.location} target="_blank" rel="noreferrer">
                           {t("shipping.viewLocation")}
+                        </a>
+                      ) : item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/) ? (
+                        <a 
+                          href={`https://www.openstreetmap.org/?mlat=${item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/)![1]}&mlon=${item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/)![2]}&zoom=14`}
+                          target="_blank" 
+                          rel="noreferrer"
+                        >
+                          {t("shipping.viewOnMap")}
                         </a>
                       ) : (
                         item.location

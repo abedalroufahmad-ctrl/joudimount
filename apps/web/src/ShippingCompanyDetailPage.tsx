@@ -64,6 +64,14 @@ export default function ShippingCompanyDetailPage() {
                     <a href={item.location} target="_blank" rel="noreferrer">
                       {t("shipping.viewLocation")}
                     </a>
+                  ) : item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/) ? (
+                    <a 
+                      href={`https://www.openstreetmap.org/?mlat=${item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/)![1]}&mlon=${item.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/)![2]}&zoom=14`}
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      {t("shipping.viewOnMap")}
+                    </a>
                   ) : (
                     item.location
                   )}
