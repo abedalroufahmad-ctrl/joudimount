@@ -37,8 +37,10 @@ type StorageFormState = {
   storageExitCrossPackaging: string;
   storageExitUnity: string;
   storageSealReplaceContainers: string;
+  storageSealEntryLockNumbers: string;
   storageSealSwitchDate: string;
   storageSealEntryContainerNumbers: string;
+  storageSealOutLockNumbers: string;
   storageSealUnitCount: string;
   storageSealWorkersCompany: string;
   storageSealWorkersWages: string;
@@ -63,8 +65,10 @@ function mapTxToForm(tx: Transaction): StorageFormState {
     storageExitCrossPackaging: tx.storageExitCrossPackaging ?? tx.storageCrossPackaging ?? "",
     storageExitUnity: tx.storageExitUnity ?? tx.storageUnity ?? "",
     storageSealReplaceContainers: tx.storageSealReplaceContainers ?? "",
+    storageSealEntryLockNumbers: tx.storageSealEntryLockNumbers ?? "",
     storageSealSwitchDate: isoToDateInput(tx.storageSealSwitchDate),
     storageSealEntryContainerNumbers: tx.storageSealEntryContainerNumbers ?? "",
+    storageSealOutLockNumbers: tx.storageSealOutLockNumbers ?? "",
     storageSealUnitCount: tx.storageSealUnitCount ?? "",
     storageSealWorkersCompany: tx.storageSealWorkersCompany ?? "",
     storageSealWorkersWages: numToStr(tx.storageSealWorkersWages),
@@ -100,7 +104,9 @@ function buildPayload(form: StorageFormState, existingIsStopped?: boolean): Reco
     ["storageExitCrossPackaging", form.storageExitCrossPackaging],
     ["storageExitUnity", form.storageExitUnity],
     ["storageSealReplaceContainers", form.storageSealReplaceContainers],
+    ["storageSealEntryLockNumbers", form.storageSealEntryLockNumbers],
     ["storageSealEntryContainerNumbers", form.storageSealEntryContainerNumbers],
+    ["storageSealOutLockNumbers", form.storageSealOutLockNumbers],
     ["storageSealWorkersCompany", form.storageSealWorkersCompany],
     ["storageSealUnitCount", form.storageSealUnitCount],
   ];
@@ -415,11 +421,20 @@ export default function TransactionStoragePage({
             <>
               <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("storagePage.section.seal" as MessageKey)}</h2>
               <label className="col-12 form-label w-100 mb-0">
-                {t("storagePage.replaceContainers" as MessageKey)}
+                {t("storagePage.entryContainerNumbers" as MessageKey)}
                 <textarea className="form-control mt-1"
                   value={form.storageSealReplaceContainers}
                   disabled={!canEdit}
                   onChange={(e) => setForm({ ...form, storageSealReplaceContainers: e.target.value })}
+                  rows={2}
+                />
+              </label>
+              <label className="col-12 form-label w-100 mb-0">
+                {t("storagePage.entryLockNumbers" as MessageKey)}
+                <textarea className="form-control mt-1"
+                  value={form.storageSealEntryLockNumbers}
+                  disabled={!canEdit}
+                  onChange={(e) => setForm({ ...form, storageSealEntryLockNumbers: e.target.value })}
                   rows={2}
                 />
               </label>
@@ -433,11 +448,20 @@ export default function TransactionStoragePage({
                 />
               </label>
               <label className="col-12 form-label w-100 mb-0">
-                {t("storagePage.entryContainerNumbers" as MessageKey)}
+                {t("storagePage.outContainerNumbers" as MessageKey)}
                 <textarea className="form-control mt-1"
                   value={form.storageSealEntryContainerNumbers}
                   disabled={!canEdit}
                   onChange={(e) => setForm({ ...form, storageSealEntryContainerNumbers: e.target.value })}
+                  rows={2}
+                />
+              </label>
+              <label className="col-12 form-label w-100 mb-0">
+                {t("storagePage.outLockNumbers" as MessageKey)}
+                <textarea className="form-control mt-1"
+                  value={form.storageSealOutLockNumbers}
+                  disabled={!canEdit}
+                  onChange={(e) => setForm({ ...form, storageSealOutLockNumbers: e.target.value })}
                   rows={2}
                 />
               </label>

@@ -149,8 +149,10 @@ export interface Transaction {
   storageExitUnity?: string;
   /** C — Seal */
   storageSealReplaceContainers?: string;
+  storageSealEntryLockNumbers?: string;
   storageSealSwitchDate?: string;
   storageSealEntryContainerNumbers?: string;
+  storageSealOutLockNumbers?: string;
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;

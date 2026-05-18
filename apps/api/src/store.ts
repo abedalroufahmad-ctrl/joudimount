@@ -253,8 +253,10 @@ function mapTransaction(doc: any): Transaction {
     storageExitCrossPackaging: doc.storageExitCrossPackaging ?? doc.storageCrossPackaging,
     storageExitUnity: doc.storageExitUnity ?? doc.storageUnity,
     storageSealReplaceContainers: doc.storageSealReplaceContainers,
+    storageSealEntryLockNumbers: doc.storageSealEntryLockNumbers,
     storageSealSwitchDate: mapOptionalDate(doc.storageSealSwitchDate),
     storageSealEntryContainerNumbers: doc.storageSealEntryContainerNumbers,
+    storageSealOutLockNumbers: doc.storageSealOutLockNumbers,
     storageSealUnitCount: doc.storageSealUnitCount,
     storageSealWorkersCompany: doc.storageSealWorkersCompany,
     storageSealWorkersWages: doc.storageSealWorkersWages,
@@ -360,8 +362,10 @@ export const STORAGE_STAGE_EDITABLE_FIELDS = new Set<keyof Transaction>([
   "storageExitCrossPackaging",
   "storageExitUnity",
   "storageSealReplaceContainers",
+  "storageSealEntryLockNumbers",
   "storageSealSwitchDate",
   "storageSealEntryContainerNumbers",
+  "storageSealOutLockNumbers",
   "storageSealUnitCount",
   "storageSealWorkersCompany",
   "storageSealWorkersWages",
@@ -444,8 +448,10 @@ const TRANSACTION_PATCH_KEYS: (keyof Transaction)[] = [
   "storageExitCrossPackaging",
   "storageExitUnity",
   "storageSealReplaceContainers",
+  "storageSealEntryLockNumbers",
   "storageSealSwitchDate",
   "storageSealEntryContainerNumbers",
+  "storageSealOutLockNumbers",
   "storageSealUnitCount",
   "storageSealWorkersCompany",
   "storageSealWorkersWages",
@@ -699,8 +705,10 @@ type CreateTransactionFields = Pick<
       | "storageExitCrossPackaging"
       | "storageExitUnity"
       | "storageSealReplaceContainers"
+      | "storageSealEntryLockNumbers"
       | "storageSealSwitchDate"
       | "storageSealEntryContainerNumbers"
+      | "storageSealOutLockNumbers"
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
@@ -895,8 +903,10 @@ async function updateEntity(
       | "storageExitCrossPackaging"
       | "storageExitUnity"
       | "storageSealReplaceContainers"
+      | "storageSealEntryLockNumbers"
       | "storageSealSwitchDate"
       | "storageSealEntryContainerNumbers"
+      | "storageSealOutLockNumbers"
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
@@ -1101,8 +1111,10 @@ export async function updateTransaction(
       | "storageExitCrossPackaging"
       | "storageExitUnity"
       | "storageSealReplaceContainers"
+      | "storageSealEntryLockNumbers"
       | "storageSealSwitchDate"
       | "storageSealEntryContainerNumbers"
+      | "storageSealOutLockNumbers"
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
@@ -1221,8 +1233,10 @@ export async function updateTransfer(
       | "storageExitCrossPackaging"
       | "storageExitUnity"
       | "storageSealReplaceContainers"
+      | "storageSealEntryLockNumbers"
       | "storageSealSwitchDate"
       | "storageSealEntryContainerNumbers"
+      | "storageSealOutLockNumbers"
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
@@ -1347,8 +1361,10 @@ export async function updateExport(
       | "storageExitCrossPackaging"
       | "storageExitUnity"
       | "storageSealReplaceContainers"
+      | "storageSealEntryLockNumbers"
       | "storageSealSwitchDate"
       | "storageSealEntryContainerNumbers"
+      | "storageSealOutLockNumbers"
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"

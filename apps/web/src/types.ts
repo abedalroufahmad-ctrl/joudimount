@@ -95,8 +95,10 @@ export interface Transaction {
   storageExitCrossPackaging?: string;
   storageExitUnity?: string;
   storageSealReplaceContainers?: string;
+  storageSealEntryLockNumbers?: string;
   storageSealSwitchDate?: string;
   storageSealEntryContainerNumbers?: string;
+  storageSealOutLockNumbers?: string;
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;

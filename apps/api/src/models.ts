@@ -132,8 +132,10 @@ interface TransactionDoc {
   storageExitCrossPackaging?: string;
   storageExitUnity?: string;
   storageSealReplaceContainers?: string;
+  storageSealEntryLockNumbers?: string;
   storageSealSwitchDate?: Date;
   storageSealEntryContainerNumbers?: string;
+  storageSealOutLockNumbers?: string;
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
@@ -269,8 +271,10 @@ const transactionSchema = new Schema<TransactionDoc>(
     storageExitCrossPackaging: { type: String },
     storageExitUnity: { type: String },
     storageSealReplaceContainers: { type: String },
+    storageSealEntryLockNumbers: { type: String },
     storageSealSwitchDate: { type: Date },
     storageSealEntryContainerNumbers: { type: String },
+    storageSealOutLockNumbers: { type: String },
     storageSealUnitCount: { type: String },
     storageSealWorkersCompany: { type: String },
     storageSealWorkersWages: { type: Number },

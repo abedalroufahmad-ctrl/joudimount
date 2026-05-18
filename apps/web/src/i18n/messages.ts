@@ -36,6 +36,9 @@ export type MessageKey =
   | "storagePage.section.seal"
   | "storagePage.loadingEquipmentFare"
   | "storagePage.replaceContainers"
+  | "storagePage.entryLockNumbers"
+  | "storagePage.outContainerNumbers"
+  | "storagePage.outLockNumbers"
   | "storagePage.switchDate"
   | "storagePage.entryContainerNumbers"
   | "storagePage.unitCount"
@@ -405,8 +408,11 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.section.seal": "ج — التبديل",
     "storagePage.loadingEquipmentFare": "أجرة معدات التحميل",
     "storagePage.replaceContainers": "استبدال الحاويات",
+    "storagePage.entryLockNumbers": "أرقام الأقفال الداخلة",
+    "storagePage.outContainerNumbers": "أرقام الحاويات الخارجة",
+    "storagePage.outLockNumbers": "أرقام الأقفال الخارجة",
     "storagePage.switchDate": "تاريخ التبديل",
-    "storagePage.entryContainerNumbers": "أرقام حاويات الإدخال",
+    "storagePage.entryContainerNumbers": "أرقام الحاويات الداخله",
     "storagePage.unitCount": "عدد الوحدات",
     "storagePage.openCard": "بطاقة التخزين",
     "storagePage.wrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
@@ -771,6 +777,9 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.section.seal": "C — Seal",
     "storagePage.loadingEquipmentFare": "Loading equipment fare",
     "storagePage.replaceContainers": "Replace containers",
+    "storagePage.entryLockNumbers": "Entry lock numbers",
+    "storagePage.outContainerNumbers": "Out container numbers",
+    "storagePage.outLockNumbers": "Out lock numbers",
     "storagePage.switchDate": "Switch date",
     "storagePage.entryContainerNumbers": "Entry container numbers",
     "storagePage.unitCount": "Number of units",
