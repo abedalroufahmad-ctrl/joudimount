@@ -58,7 +58,17 @@ export default function ShippingCompanyDetailPage() {
             </p>
             <p className="details-item mb-0">
               <strong>{t("shipping.location")}:</strong>{" "}
-              {item.latitude != null && item.longitude != null ? (
+              {item.location ? (
+                <span className="text-break">
+                  {item.location.startsWith("http") ? (
+                    <a href={item.location} target="_blank" rel="noreferrer">
+                      {t("shipping.viewLocation")}
+                    </a>
+                  ) : (
+                    item.location
+                  )}
+                </span>
+              ) : item.latitude != null && item.longitude != null ? (
                 <a
                   href={`https://www.openstreetmap.org/?mlat=${item.latitude}&mlon=${item.longitude}&zoom=14`}
                   target="_blank"

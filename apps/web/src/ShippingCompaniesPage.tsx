@@ -14,6 +14,7 @@ type ShippingCompanyForm = {
   dispatchFormTemplate: string;
   latitude: number | null;
   longitude: number | null;
+  location: string;
   status: "active" | "inactive";
 };
 
@@ -26,6 +27,7 @@ const emptyCompany: ShippingCompanyForm = {
   dispatchFormTemplate: "",
   latitude: null,
   longitude: null,
+  location: "",
   status: "active",
 };
 
@@ -94,6 +96,7 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
       dispatchFormTemplate: item.dispatchFormTemplate ?? "",
       latitude: item.latitude ?? null,
       longitude: item.longitude ?? null,
+      location: item.location ?? "",
       status: item.status,
     });
   };
@@ -179,10 +182,40 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                 />
               </div>
               <p className="col-12 text-muted small mb-0">{t("shipping.dispatchFormTemplateHint")}</p>
+              <div className="col-12">
+                <label className="form-label mb-0">{t("shipping.location")}</label>
+                <input
+                  className="form-control mt-1"
+                  value={form.location}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    let lat = form.latitude;
+                    let lng = form.longitude;
+                    
+                    // Try to parse lat/lng from Google Maps link
+                    const match = val.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || val.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                    if (match) {
+                      lat = parseFloat(match[1]);
+                      lng = parseFloat(match[2]);
+                    }
+
+                    setForm({ ...form, location: val, latitude: lat, longitude: lng });
+                  }}
+                />
+                <p className="text-muted small mt-1 mb-0">{t("shipping.locationHint")}</p>
+              </div>
               <LocationMapPicker
                 latitude={form.latitude}
                 longitude={form.longitude}
-                onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
+                onChange={(lat, lng) => {
+                  let locationStr = form.location;
+                  if (lat != null && lng != null) {
+                    locationStr = `https://www.google.com/maps?q=${lat},${lng}`;
+                  } else {
+                    locationStr = "";
+                  }
+                  setForm({ ...form, latitude: lat, longitude: lng, location: locationStr });
+                }}
                 hint={t("shipping.mapClickHint")}
                 clearLabel={t("shipping.clearLocation")}
               />
@@ -234,7 +267,17 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
                 <td>{item.phone ?? "-"}</td>
                 <td>{item.email ?? "-"}</td>
                 <td onClick={(e) => e.stopPropagation()}>
-                  {item.latitude != null && item.longitude != null ? (
+                  {item.location ? (
+                    <div className="text-break" style={{ maxWidth: 200 }}>
+                      {item.location.startsWith("http") ? (
+                        <a href={item.location} target="_blank" rel="noreferrer">
+                          {t("shipping.viewLocation")}
+                        </a>
+                      ) : (
+                        item.location
+                      )}
+                    </div>
+                  ) : item.latitude != null && item.longitude != null ? (
                     <a
                       href={`https://www.openstreetmap.org/?mlat=${item.latitude}&mlon=${item.longitude}&zoom=14`}
                       target="_blank"

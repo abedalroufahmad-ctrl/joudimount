@@ -138,6 +138,7 @@ export interface ShippingCompany {
   dispatchFormTemplate?: string;
   latitude?: number;
   longitude?: number;
+  location?: string;
   status: "active" | "inactive";
 }
 

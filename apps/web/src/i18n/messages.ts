@@ -252,6 +252,8 @@ export type MessageKey =
   | "shipping.inactive"
   | "shipping.detailTitle"
   | "shipping.detailLoadError"
+  | "shipping.locationHint"
+  | "shipping.viewLocation"
   | "form.typeToSearch"
   | "details.shippingPaperButton"
   | "details.shippingPaperTitle"
@@ -621,6 +623,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "shipping.inactive": "غير نشط",
     "shipping.detailTitle": "تفاصيل شركة الشحن",
     "shipping.detailLoadError": "تعذر تحميل بيانات شركة الشحن.",
+    "shipping.locationHint": "يمكنك إدخال رابط خرائط جوجل أو النقر على الخريطة.",
+    "shipping.viewLocation": "عرض الموقع",
     "form.typeToSearch": "اكتب للبحث والاختيار من القائمة",
     "details.shippingPaperButton": "نموذج ورقي لشركة الشحن",
     "details.shippingPaperTitle": "نموذج إرسال لشركة الشحن",
@@ -986,6 +990,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "shipping.inactive": "inactive",
     "shipping.detailTitle": "Shipping company details",
     "shipping.detailLoadError": "Unable to load shipping company.",
+    "shipping.locationHint": "You can paste a Google Maps link or click on the map.",
+    "shipping.viewLocation": "View location",
     "form.typeToSearch": "Type to search and pick from the list",
     "details.shippingPaperButton": "Shipping company paper form",
     "details.shippingPaperTitle": "Paper form for shipping company",

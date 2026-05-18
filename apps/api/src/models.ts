@@ -44,6 +44,7 @@ interface ShippingCompanyDoc {
   dispatchFormTemplate?: string;
   latitude?: number;
   longitude?: number;
+  location?: string;
   status: "active" | "inactive";
 }
 
@@ -303,6 +304,7 @@ const shippingCompanySchema = new Schema<ShippingCompanyDoc>(
     dispatchFormTemplate: { type: String },
     latitude: { type: Number },
     longitude: { type: Number },
+    location: { type: String },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
   },
   { timestamps: true },

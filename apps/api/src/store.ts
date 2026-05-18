@@ -506,6 +506,7 @@ function mapShippingCompany(doc: any) {
     dispatchFormTemplate: doc.dispatchFormTemplate,
     latitude: doc.latitude,
     longitude: doc.longitude,
+    location: doc.location,
     status: doc.status,
   };
 }
@@ -529,6 +530,7 @@ export async function createShippingCompany(input: {
   dispatchFormTemplate?: string;
   latitude?: number;
   longitude?: number;
+  location?: string;
   status?: "active" | "inactive";
 }) {
   const created = await ShippingCompanyModel.create(input);
@@ -546,10 +548,11 @@ export async function updateShippingCompany(
     dispatchFormTemplate?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    location?: string | null;
     status: "active" | "inactive";
   }>,
 ) {
-  const { latitude, longitude, email, dispatchFormTemplate, ...rest } = input;
+  const { latitude, longitude, location, email, dispatchFormTemplate, ...rest } = input;
 
   const $set: Record<string, unknown> = { ...rest };
   const $unset: Record<string, 1> = {};
@@ -559,6 +562,9 @@ export async function updateShippingCompany(
 
   if (dispatchFormTemplate === null) $unset.dispatchFormTemplate = 1;
   else if (dispatchFormTemplate !== undefined) $set.dispatchFormTemplate = dispatchFormTemplate;
+
+  if (location === null) $unset.location = 1;
+  else if (location !== undefined) $set.location = location;
 
   if (latitude === null && longitude === null) {
     $unset.latitude = 1;

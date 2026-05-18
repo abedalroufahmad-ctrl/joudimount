@@ -494,6 +494,7 @@ app.post("/api/shipping-companies", authenticate, async (req: AuthRequest, res) 
       dispatchFormTemplate: z.string().max(8000).optional(),
       latitude: z.number().gte(-90).lte(90).optional(),
       longitude: z.number().gte(-180).lte(180).optional(),
+      location: z.string().optional(),
       status: z.enum(["active", "inactive"]).default("active"),
     })
     .refine(
@@ -525,6 +526,7 @@ app.put("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, re
       dispatchFormTemplate: z.union([z.string().max(8000), z.null()]).optional(),
       latitude: z.union([z.number().gte(-90).lte(90), z.null()]).optional(),
       longitude: z.union([z.number().gte(-180).lte(180), z.null()]).optional(),
+      location: z.union([z.string(), z.null()]).optional(),
       status: z.enum(["active", "inactive"]).optional(),
     })
     .refine((value) => Object.keys(value).length > 0, "At least one field is required")
