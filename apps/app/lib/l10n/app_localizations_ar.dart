@@ -198,7 +198,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get txDocumentPostal => 'الرقم البريدي للمستندات';
 
   @override
-  String get txGoodsQty => 'كمية البضائع (اختياري)';
+  String get txGoodsQty => 'حجم البضائع (اختياري)';
 
   @override
   String get txGoodsQuality => 'الجودة';
@@ -378,7 +378,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weightKg => 'الوزن (كجم)';
 
   @override
-  String get quantity => 'الكمية';
+  String get quantity => 'حجم البضائع';
 
   @override
   String get clientStatus => 'حالة العميل';

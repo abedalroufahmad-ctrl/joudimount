@@ -198,7 +198,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txDocumentPostal => 'Document postal number';
 
   @override
-  String get txGoodsQty => 'Quantity of goods (optional)';
+  String get txGoodsQty => 'Goods size (optional)';
 
   @override
   String get txGoodsQuality => 'Quality';
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weightKg => 'Weight (kg)';
 
   @override
-  String get quantity => 'Quantity';
+  String get quantity => 'Goods size';
 
   @override
   String get clientStatus => 'Client status';

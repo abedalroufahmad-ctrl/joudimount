@@ -476,7 +476,7 @@ abstract class AppLocalizations {
   /// No description provided for @txGoodsQty.
   ///
   /// In en, this message translates to:
-  /// **'Quantity of goods (optional)'**
+  /// **'Goods size (optional)'**
   String get txGoodsQty;
 
   /// No description provided for @txGoodsQuality.
@@ -836,7 +836,7 @@ abstract class AppLocalizations {
   /// No description provided for @quantity.
   ///
   /// In en, this message translates to:
-  /// **'Quantity'**
+  /// **'Goods size'**
   String get quantity;
 
   /// No description provided for @clientStatus.
