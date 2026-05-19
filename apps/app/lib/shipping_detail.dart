@@ -134,6 +134,11 @@ class _ShippingCompanyDetailPageState extends State<ShippingCompanyDetailPage> {
                               ),
                             ),
                           ),
+                        if ((s['location'] ?? '')
+                            .toString()
+                            .trim()
+                            .isNotEmpty)
+                          _kv(l10n.shippingLocationOptional, '${s['location']}'),
                         _kv(l10n.shippingStatus, '${s['status']}'),
                       ],
                     ),

@@ -439,8 +439,24 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     _kv(l10n.document, _docStatusLabel('${tx!['documentStatus']}', l10n)),
                     _kv(l10n.status, '${tx!['clearanceStatus']}'),
                     _kv(l10n.payment, _paymentStatusLabel('${tx!['paymentStatus']}', l10n)),
+                    if ((tx!['portOfLading'] != null && tx!['portOfLading'].toString().isNotEmpty) ||
+                        (tx!['portOfDischarge'] != null && tx!['portOfDischarge'].toString().isNotEmpty) ||
+                        (tx!['destination'] != null && tx!['destination'].toString().isNotEmpty)) ...[
+                      const SizedBox(height: 8),
+                      Text(l10n.txTransferDetailsSection,
+                          style: Theme.of(context).textTheme.titleSmall),
+                      if (tx!['portOfLading'] != null && tx!['portOfLading'].toString().isNotEmpty)
+                        _kv(l10n.txPortOfLading, '${tx!['portOfLading']}'),
+                      if (tx!['portOfDischarge'] != null && tx!['portOfDischarge'].toString().isNotEmpty)
+                        _kv(l10n.txPortOfDischarge, '${tx!['portOfDischarge']}'),
+                      if (tx!['destination'] != null && tx!['destination'].toString().isNotEmpty)
+                        _kv(l10n.txDestination, '${tx!['destination']}'),
+                      const SizedBox(height: 8),
+                    ],
                     if (tx!['containerCount'] != null)
                       _kv(l10n.txContainerCount, '${tx!['containerCount']}'),
+                    if (tx!['containerSize'] != null && tx!['containerSize'].toString().isNotEmpty)
+                      _kv(l10n.txContainerSize, '${tx!['containerSize']}'),
                     if (tx!['goodsWeightKg'] != null)
                       _kv(l10n.txGoodsWeightKg, '${tx!['goodsWeightKg']}'),
                     if (tx!['invoiceToWeightRateAedPerKg'] != null)
@@ -452,6 +468,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     if (tx!['documentArrivalDate'] != null)
                       _kv(l10n.txDocumentArrival,
                           '${tx!['documentArrivalDate']}'),
+                    if (tx!['documentPostalNumber'] != null && tx!['documentPostalNumber'].toString().isNotEmpty)
+                      _kv(l10n.txDocumentPostalNumber, '${tx!['documentPostalNumber']}'),
                     if ('${tx!['transactionStage'] ?? 'PREPARATION'}' !=
                             'PREPARATION' &&
                         tx!['fileNumber'] != null &&
@@ -466,6 +484,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                               .join(', ')),
                     if (tx!['unitCount'] != null)
                       _kv(l10n.txNumberOfUnits, '${tx!['unitCount']}'),
+                    if (tx!['unitNumber'] != null)
+                      _kv(l10n.txUnitNumber, '${tx!['unitNumber']}'),
                     _kv(l10n.stopTransaction, tx!['isStopped'] == true ? l10n.optionYes : l10n.optionNo),
                     if (tx!['isStopped'] == true &&
                         tx!['stopReason'] != null &&
@@ -479,6 +499,35 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     if (tx!['goodsUnit'] != null)
                       _kv(l10n.txGoodsUnit,
                           _unitLabel('${tx!['goodsUnit']}', l10n)),
+                    if ((tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty) ||
+                        (tx!['trachNo'] != null && tx!['trachNo'].toString().isNotEmpty) ||
+                        (tx!['transportationCompany'] != null && tx!['transportationCompany'].toString().isNotEmpty) ||
+                        (tx!['transportationFrom'] != null && tx!['transportationFrom'].toString().isNotEmpty) ||
+                        (tx!['transportationToLocation'] != null && tx!['transportationToLocation'].toString().isNotEmpty) ||
+                        (tx!['tripCharge'] != null) ||
+                        (tx!['waitingCharge'] != null) ||
+                        (tx!['maccrikCharge'] != null)) ...[
+                      const SizedBox(height: 8),
+                      Text(l10n.txTransportationSection,
+                          style: Theme.of(context).textTheme.titleSmall),
+                      if (tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty)
+                        _kv(l10n.txTransportationTo, '${tx!['transportationTo']}'),
+                      if (tx!['trachNo'] != null && tx!['trachNo'].toString().isNotEmpty)
+                        _kv(l10n.txTrachNo, '${tx!['trachNo']}'),
+                      if (tx!['transportationCompany'] != null && tx!['transportationCompany'].toString().isNotEmpty)
+                        _kv(l10n.txTransportationCompany, '${tx!['transportationCompany']}'),
+                      if (tx!['transportationFrom'] != null && tx!['transportationFrom'].toString().isNotEmpty)
+                        _kv(l10n.txTransportationFrom, '${tx!['transportationFrom']}'),
+                      if (tx!['transportationToLocation'] != null && tx!['transportationToLocation'].toString().isNotEmpty)
+                        _kv(l10n.txTransportationToLocation, '${tx!['transportationToLocation']}'),
+                      if (tx!['tripCharge'] != null)
+                        _kv(l10n.txTripCharge, '${tx!['tripCharge']}'),
+                      if (tx!['waitingCharge'] != null)
+                        _kv(l10n.txWaitingCharge, '${tx!['waitingCharge']}'),
+                      if (tx!['maccrikCharge'] != null)
+                        _kv(l10n.txMaccrikCharge, '${tx!['maccrikCharge']}'),
+                      const SizedBox(height: 8),
+                    ],
                     if (tx!['storageEntryDate'] != null &&
                         tx!['storageEntryDate'].toString().isNotEmpty)
                       _kv(l10n.storageEntryDate,

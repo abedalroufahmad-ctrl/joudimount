@@ -63,6 +63,18 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   String _declarationType = '';
   String _declarationType2 = '';
   String _portType = '';
+  final _containerSize = TextEditingController();
+  final _portOfLading = TextEditingController();
+  final _portOfDischarge = TextEditingController();
+  final _destination = TextEditingController();
+  final _transportationTo = TextEditingController();
+  final _trachNo = TextEditingController();
+  final _transportationCompany = TextEditingController();
+  final _transportationFrom = TextEditingController();
+  final _transportationToLocation = TextEditingController();
+  final _tripCharge = TextEditingController();
+  final _waitingCharge = TextEditingController();
+  final _maccrikCharge = TextEditingController();
   final _awb = TextEditingController();
   final _hs = TextEditingController();
   final _goods = TextEditingController();
@@ -75,8 +87,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   final _containerArrival = TextEditingController();
   final _documentArrival = TextEditingController();
   final _fileNumber = TextEditingController();
+  final _documentPostalNumber = TextEditingController();
   final _containerNumbers = TextEditingController();
   final _unitCount = TextEditingController();
+  final _unitNumber = TextEditingController();
   final _stopReason = TextEditingController();
   final _qty = TextEditingController();
   String? _quality;
@@ -171,6 +185,18 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       final loadedPortType = (tx['portType'] ?? '').toString();
       _portType =
           _portTypeOptions.contains(loadedPortType) ? loadedPortType : '';
+      _containerSize.text = (tx['containerSize'] ?? '').toString();
+      _portOfLading.text = (tx['portOfLading'] ?? '').toString();
+      _portOfDischarge.text = (tx['portOfDischarge'] ?? '').toString();
+      _destination.text = (tx['destination'] ?? '').toString();
+      _transportationTo.text = _isoToDateInput(tx['transportationTo']);
+      _trachNo.text = (tx['trachNo'] ?? '').toString();
+      _transportationCompany.text = (tx['transportationCompany'] ?? '').toString();
+      _transportationFrom.text = (tx['transportationFrom'] ?? '').toString();
+      _transportationToLocation.text = (tx['transportationToLocation'] ?? '').toString();
+      if (tx['tripCharge'] != null) _tripCharge.text = tx['tripCharge'].toString();
+      if (tx['waitingCharge'] != null) _waitingCharge.text = tx['waitingCharge'].toString();
+      if (tx['maccrikCharge'] != null) _maccrikCharge.text = tx['maccrikCharge'].toString();
       _awb.text = (tx['airwayBill'] ?? '').toString();
       _hs.text = (tx['hsCode'] ?? '').toString();
       _goods.text = (tx['goodsDescription'] ?? '').toString();
@@ -193,11 +219,13 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _containerArrival.text = _isoToDateInput(tx['containerArrivalDate']);
       _documentArrival.text = _isoToDateInput(tx['documentArrivalDate']);
       _fileNumber.text = (tx['fileNumber'] ?? '').toString();
+      _documentPostalNumber.text = (tx['documentPostalNumber'] ?? '').toString();
       final nums = tx['containerNumbers'];
       if (nums is List) {
         _containerNumbers.text = nums.map((e) => e.toString()).join(', ');
       }
       if (tx['unitCount'] != null) _unitCount.text = tx['unitCount'].toString();
+      if (tx['unitNumber'] != null) _unitNumber.text = tx['unitNumber'].toString();
       _isStopped = tx['isStopped'] == true;
       _stopReason.text = (tx['stopReason'] ?? '').toString();
       if (tx['goodsQuantity'] != null)
@@ -254,6 +282,22 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     if (_declarationType.trim().isEmpty) body.remove('declarationType');
     if (_declarationType2.trim().isEmpty) body.remove('declarationType2');
     if (_portType.trim().isEmpty) body.remove('portType');
+    
+    void addS(String k, TextEditingController c) {
+      final v = c.text.trim();
+      if (v.isNotEmpty) body[k] = v;
+    }
+
+    addS('containerSize', _containerSize);
+    addS('portOfLading', _portOfLading);
+    addS('portOfDischarge', _portOfDischarge);
+    addS('destination', _destination);
+    addS('transportationTo', _transportationTo);
+    addS('trachNo', _trachNo);
+    addS('transportationCompany', _transportationCompany);
+    addS('transportationFrom', _transportationFrom);
+    addS('transportationToLocation', _transportationToLocation);
+
     void addD(String k, TextEditingController c) {
       final v = double.tryParse(c.text.trim());
       if (v != null) body[k] = v;
@@ -276,6 +320,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     addD('goodsWeightKg', _weight);
     addI('containerCount', _containers);
     addD('goodsQuantity', _qty);
+    addD('tripCharge', _tripCharge);
+    addD('waitingCharge', _waitingCharge);
+    addD('maccrikCharge', _maccrikCharge);
+    addI('unitNumber', _unitNumber);
+
     if (_quality != null && _quality!.isNotEmpty)
       body['goodsQuality'] = _quality;
     if (_unit != null && _unit!.isNotEmpty) body['goodsUnit'] = _unit;
@@ -285,6 +334,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       body['documentArrivalDate'] = _documentArrival.text.trim();
     if (_fileNumber.text.trim().isNotEmpty)
       body['fileNumber'] = _fileNumber.text.trim();
+    if (_documentPostalNumber.text.trim().isNotEmpty)
+      body['documentPostalNumber'] = _documentPostalNumber.text.trim();
     final containerNumbers = _containerNumbers.text
         .split(RegExp(r'[\n,]+'))
         .map((e) => e.trim())
@@ -421,6 +472,18 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     _declarationNumberInput.dispose();
     _declarationNumberInput2.dispose();
     _declarationDateInput.dispose();
+    _containerSize.dispose();
+    _portOfLading.dispose();
+    _portOfDischarge.dispose();
+    _destination.dispose();
+    _transportationTo.dispose();
+    _trachNo.dispose();
+    _transportationCompany.dispose();
+    _transportationFrom.dispose();
+    _transportationToLocation.dispose();
+    _tripCharge.dispose();
+    _waitingCharge.dispose();
+    _maccrikCharge.dispose();
     _awb.dispose();
     _hs.dispose();
     _goods.dispose();
@@ -432,8 +495,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     _containerArrival.dispose();
     _documentArrival.dispose();
     _fileNumber.dispose();
+    _documentPostalNumber.dispose();
     _containerNumbers.dispose();
     _unitCount.dispose();
+    _unitNumber.dispose();
     _stopReason.dispose();
     _qty.dispose();
     super.dispose();
@@ -474,6 +539,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final storageWarehouseOnly = _isEdit &&
         _stage == 'STORAGE' &&
         (widget.module == 'transactions' || widget.module == 'transfers');
+    
+    final prepEditableEffective = (!_isEdit || _stage == 'PREPARATION') && !storageWarehouseOnly;
+    final customsEditableEffective = (!_isEdit || _stage == 'PREPARATION' || _stage == 'CUSTOMS_CLEARANCE') && !storageWarehouseOnly;
+    final transportationEditableEffective = (!_isEdit || _stage == 'PREPARATION' || _stage == 'CUSTOMS_CLEARANCE' || _stage == 'TRANSPORTATION') && !storageWarehouseOnly;
+
     final prepEditable = (!_isEdit ||
             _stage == 'PREPARATION' ||
             _stage == 'CUSTOMS_CLEARANCE') &&
@@ -692,6 +762,14 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       : null,
                 )),
           ],
+          const SizedBox(height: 12),
+          Text(l10n.txTransferDetailsSection,
+              style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          _field(_portOfLading, l10n.txPortOfLading, enabled: prepEditable),
+          _field(_portOfDischarge, l10n.txPortOfDischarge, enabled: prepEditable),
+          _field(_destination, l10n.txDestination, enabled: prepEditable),
+          const SizedBox(height: 12),
           _field(_awb, l10n.airwayBill, enabled: prepEditable),
           _field(_hs, l10n.hsCode, enabled: prepEditable),
           _field(_origin, l10n.originCountry, enabled: prepEditable),
@@ -723,6 +801,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ),
           _field(_containers, l10n.txContainerCount,
               keyboard: TextInputType.number, enabled: prepEditable),
+          _field(_containerSize, l10n.txContainerSize, enabled: prepEditable),
           ApiDateField(
             controller: _containerArrival,
             label: l10n.txContainerArrival,
@@ -733,6 +812,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             label: l10n.txDocumentArrival,
             enabled: customsEditable,
           ),
+          _field(_documentPostalNumber, l10n.txDocumentPostalNumber, enabled: customsEditable),
           _field(_containerNumbers, l10n.containerNumbers,
               maxLines: 3, enabled: storageEditable),
           Padding(
@@ -837,6 +917,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 ],
               ),
             ),
+          _field(_unitNumber, l10n.txUnitNumber,
+              keyboard: TextInputType.number, enabled: storageEditable),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(
@@ -917,6 +999,31 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               },
               child: Text(l10n.storageOpenDedicatedPage),
             ),
+          ],
+          if (_isEdit) ...[
+            const SizedBox(height: 12),
+            Text(l10n.txTransportationSection,
+                style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            _field(_transportationTo, l10n.txTransportationTo,
+                enabled: transportationEditableEffective),
+            _field(_trachNo, l10n.txTrachNo,
+                enabled: transportationEditableEffective),
+            _field(_transportationCompany, l10n.txTransportationCompany,
+                enabled: transportationEditableEffective),
+            _field(_transportationFrom, l10n.txTransportationFrom,
+                enabled: transportationEditableEffective),
+            _field(_transportationToLocation, l10n.txTransportationToLocation,
+                enabled: transportationEditableEffective),
+            _field(_tripCharge, l10n.txTripCharge,
+                keyboard: const TextInputType.numberWithOptions(decimal: true),
+                enabled: transportationEditableEffective),
+            _field(_waitingCharge, l10n.txWaitingCharge,
+                keyboard: const TextInputType.numberWithOptions(decimal: true),
+                enabled: transportationEditableEffective),
+            _field(_maccrikCharge, l10n.txMaccrikCharge,
+                keyboard: const TextInputType.numberWithOptions(decimal: true),
+                enabled: transportationEditableEffective),
           ],
           const SizedBox(height: 12),
           Text(l10n.documentPhotosSection,
