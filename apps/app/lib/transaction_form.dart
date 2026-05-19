@@ -540,8 +540,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         _stage == 'STORAGE' &&
         (widget.module == 'transactions' || widget.module == 'transfers');
     
-    final prepEditableEffective = (!_isEdit || _stage == 'PREPARATION') && !storageWarehouseOnly;
-    final customsEditableEffective = (!_isEdit || _stage == 'PREPARATION' || _stage == 'CUSTOMS_CLEARANCE') && !storageWarehouseOnly;
     final transportationEditableEffective = (!_isEdit || _stage == 'PREPARATION' || _stage == 'CUSTOMS_CLEARANCE' || _stage == 'TRANSPORTATION') && !storageWarehouseOnly;
 
     final prepEditable = (!_isEdit ||

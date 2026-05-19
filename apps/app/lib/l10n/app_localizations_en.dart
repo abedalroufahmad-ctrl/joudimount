@@ -174,6 +174,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shippingEmailOptional => 'Email (optional)';
 
   @override
+  String get shippingLocationOptional => 'Location (optional)';
+
+  @override
   String get latitudeOptional => 'Latitude (optional)';
 
   @override
@@ -700,4 +703,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get docPackingList => 'Packing List';
+
+  @override
+  String get txContainerSize => 'Container size';
+
+  @override
+  String get txUnitNumber => 'Unit number';
+
+  @override
+  String get txDocumentPostalNumber => 'Document postal number';
+
+  @override
+  String get txPortOfLading => 'Port of lading';
+
+  @override
+  String get txPortOfDischarge => 'Port of discharge';
+
+  @override
+  String get txDestination => 'Destination';
+
+  @override
+  String get txTransferDetailsSection => 'Transfer Details';
+
+  @override
+  String get txTransportationSection => 'Transportation';
+
+  @override
+  String get txTransportationTo => 'The appointment';
+
+  @override
+  String get txTrachNo => 'TrachNo';
+
+  @override
+  String get txTransportationCompany => 'Company transportation';
+
+  @override
+  String get txTransportationFrom => 'From';
+
+  @override
+  String get txTransportationToLocation => 'To';
+
+  @override
+  String get txTripCharge => 'Trip Charge';
+
+  @override
+  String get txWaitingCharge => 'Waiting charge';
+
+  @override
+  String get txMaccrikCharge => 'Maccrik charge';
 }

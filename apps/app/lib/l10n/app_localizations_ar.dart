@@ -174,6 +174,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shippingEmailOptional => 'البريد الإلكتروني (اختياري)';
 
   @override
+  String get shippingLocationOptional => 'الموقع (اختياري)';
+
+  @override
   String get latitudeOptional => 'خط العرض (اختياري)';
 
   @override
@@ -700,4 +703,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get docPackingList => 'بيان التعبئة';
+
+  @override
+  String get txContainerSize => 'حجم الحاوية';
+
+  @override
+  String get txUnitNumber => 'رقم الوحدة';
+
+  @override
+  String get txDocumentPostalNumber => 'الرقم البريدي';
+
+  @override
+  String get txPortOfLading => 'ميناء التحميل';
+
+  @override
+  String get txPortOfDischarge => 'ميناء التفريغ';
+
+  @override
+  String get txDestination => 'الوجهة';
+
+  @override
+  String get txTransferDetailsSection => 'بيانات التحويل';
+
+  @override
+  String get txTransportationSection => 'النقل';
+
+  @override
+  String get txTransportationTo => 'الموعد';
+
+  @override
+  String get txTrachNo => 'TrachNo';
+
+  @override
+  String get txTransportationCompany => 'شركة النقل';
+
+  @override
+  String get txTransportationFrom => 'من';
+
+  @override
+  String get txTransportationToLocation => 'إلى';
+
+  @override
+  String get txTripCharge => 'تكلفة الرحلة';
+
+  @override
+  String get txWaitingCharge => 'تكلفة الانتظار';
+
+  @override
+  String get txMaccrikCharge => 'تكلفة مكريك';
 }

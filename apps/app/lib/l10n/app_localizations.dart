@@ -425,6 +425,12 @@ abstract class AppLocalizations {
   /// **'Email (optional)'**
   String get shippingEmailOptional;
 
+  /// No description provided for @shippingLocationOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Location (optional)'**
+  String get shippingLocationOptional;
+
   /// No description provided for @latitudeOptional.
   ///
   /// In en, this message translates to:
@@ -1480,6 +1486,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Packing List'**
   String get docPackingList;
+
+  /// No description provided for @txContainerSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Container size'**
+  String get txContainerSize;
+
+  /// No description provided for @txUnitNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit number'**
+  String get txUnitNumber;
+
+  /// No description provided for @txDocumentPostalNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Document postal number'**
+  String get txDocumentPostalNumber;
+
+  /// No description provided for @txPortOfLading.
+  ///
+  /// In en, this message translates to:
+  /// **'Port of lading'**
+  String get txPortOfLading;
+
+  /// No description provided for @txPortOfDischarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Port of discharge'**
+  String get txPortOfDischarge;
+
+  /// No description provided for @txDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get txDestination;
+
+  /// No description provided for @txTransferDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Details'**
+  String get txTransferDetailsSection;
+
+  /// No description provided for @txTransportationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Transportation'**
+  String get txTransportationSection;
+
+  /// No description provided for @txTransportationTo.
+  ///
+  /// In en, this message translates to:
+  /// **'The appointment'**
+  String get txTransportationTo;
+
+  /// No description provided for @txTrachNo.
+  ///
+  /// In en, this message translates to:
+  /// **'TrachNo'**
+  String get txTrachNo;
+
+  /// No description provided for @txTransportationCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company transportation'**
+  String get txTransportationCompany;
+
+  /// No description provided for @txTransportationFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get txTransportationFrom;
+
+  /// No description provided for @txTransportationToLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get txTransportationToLocation;
+
+  /// No description provided for @txTripCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip Charge'**
+  String get txTripCharge;
+
+  /// No description provided for @txWaitingCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting charge'**
+  String get txWaitingCharge;
+
+  /// No description provided for @txMaccrikCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Maccrik charge'**
+  String get txMaccrikCharge;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
