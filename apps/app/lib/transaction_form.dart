@@ -540,7 +540,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         _stage == 'STORAGE' &&
         (widget.module == 'transactions' || widget.module == 'transfers');
     
-    final transportationEditableEffective = (!_isEdit || _stage == 'PREPARATION' || _stage == 'CUSTOMS_CLEARANCE' || _stage == 'TRANSPORTATION') && !storageWarehouseOnly;
+    final showTransportationSection = _isEdit && _stage == 'TRANSPORTATION';
+    final transportationEditableEffective = showTransportationSection && !storageWarehouseOnly;
 
     final prepEditable = (!_isEdit ||
             _stage == 'PREPARATION' ||
@@ -998,7 +999,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               child: Text(l10n.storageOpenDedicatedPage),
             ),
           ],
-          if (_isEdit) ...[
+          if (showTransportationSection) ...[
             const SizedBox(height: 12),
             Text(l10n.txTransportationSection,
                 style: Theme.of(context).textTheme.titleSmall),

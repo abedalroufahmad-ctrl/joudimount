@@ -499,14 +499,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     if (tx!['goodsUnit'] != null)
                       _kv(l10n.txGoodsUnit,
                           _unitLabel('${tx!['goodsUnit']}', l10n)),
-                    if ((tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty) ||
+                    if ('${tx!['transactionStage'] ?? ''}' == 'TRANSPORTATION' &&
+                        ((tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty) ||
                         (tx!['trachNo'] != null && tx!['trachNo'].toString().isNotEmpty) ||
                         (tx!['transportationCompany'] != null && tx!['transportationCompany'].toString().isNotEmpty) ||
                         (tx!['transportationFrom'] != null && tx!['transportationFrom'].toString().isNotEmpty) ||
                         (tx!['transportationToLocation'] != null && tx!['transportationToLocation'].toString().isNotEmpty) ||
                         (tx!['tripCharge'] != null) ||
                         (tx!['waitingCharge'] != null) ||
-                        (tx!['maccrikCharge'] != null)) ...[
+                        (tx!['maccrikCharge'] != null))) ...[
                       const SizedBox(height: 8),
                       Text(l10n.txTransportationSection,
                           style: Theme.of(context).textTheme.titleSmall),

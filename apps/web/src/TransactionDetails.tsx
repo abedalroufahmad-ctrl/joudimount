@@ -368,7 +368,8 @@ export default function TransactionDetails({
             </p>
           ) : null}
 
-          {(transaction.transportationTo ||
+          {transaction.transactionStage === "TRANSPORTATION" &&
+          (transaction.transportationTo ||
             transaction.trachNo ||
             transaction.transportationCompany ||
             transaction.transportationFrom ||

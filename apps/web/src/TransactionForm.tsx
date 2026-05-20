@@ -542,7 +542,8 @@ export default function TransactionForm({
   const prepEditableEffective = prepEditable && !storageOnlyImportTransfer;
   const customsEditableEffective = customsEditable && !storageOnlyImportTransfer;
   const legacyStorageEditable = storageEditable && !storageOnlyImportTransfer;
-  const transportationEditableEffective = (!isEdit || stage === "PREPARATION" || stage === "CUSTOMS_CLEARANCE" || stage === "TRANSPORTATION") && !storageOnlyImportTransfer;
+  const showTransportationSection = isEdit && stage === "TRANSPORTATION";
+  const transportationEditableEffective = showTransportationSection && !storageOnlyImportTransfer;
   const fullyLocked = storageOnlyImportTransfer;
   /** Stage can move forward or back; only manager and employee2 may call the API. */
   const canSetStage = role === "manager" || role === "employee2";
@@ -875,14 +876,13 @@ export default function TransactionForm({
             </>
           ) : null}
 
-          {isEdit ? (
+          {showTransportationSection ? (
             <>
               <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("transportation.sectionTitle" as MessageKey)}</h2>
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.toUpper" as MessageKey)}
                 <input className="form-control mt-1"
-                  type="date"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.transportationTo}
                   onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
                 />
@@ -890,7 +890,7 @@ export default function TransactionForm({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.trachNo" as MessageKey)}
                 <input className="form-control mt-1"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.trachNo}
                   onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
                 />
@@ -898,7 +898,7 @@ export default function TransactionForm({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.company" as MessageKey)}
                 <input className="form-control mt-1"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.transportationCompany}
                   onChange={(e) => setForm({ ...form, transportationCompany: e.target.value })}
                 />
@@ -906,7 +906,7 @@ export default function TransactionForm({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.from" as MessageKey)}
                 <input className="form-control mt-1"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.transportationFrom}
                   onChange={(e) => setForm({ ...form, transportationFrom: e.target.value })}
                 />
@@ -914,7 +914,7 @@ export default function TransactionForm({
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("transportation.to" as MessageKey)}
                 <input className="form-control mt-1"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.transportationToLocation}
                   onChange={(e) => setForm({ ...form, transportationToLocation: e.target.value })}
                 />
@@ -925,7 +925,7 @@ export default function TransactionForm({
                   type="number"
                   min={0}
                   step="any"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.tripCharge}
                   onChange={(e) => setForm({ ...form, tripCharge: e.target.value })}
                 />
@@ -936,7 +936,7 @@ export default function TransactionForm({
                   type="number"
                   min={0}
                   step="any"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.waitingCharge}
                   onChange={(e) => setForm({ ...form, waitingCharge: e.target.value })}
                 />
@@ -947,7 +947,7 @@ export default function TransactionForm({
                   type="number"
                   min={0}
                   step="any"
-                  disabled={transferWarehouseOnly}
+                  disabled={!transportationEditableEffective}
                   value={form.maccrikCharge}
                   onChange={(e) => setForm({ ...form, maccrikCharge: e.target.value })}
                 />
@@ -1377,7 +1377,7 @@ export default function TransactionForm({
           />
         </label>
 
-        {isEdit ? (
+        {showTransportationSection ? (
           <>
             <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-3 mb-0">{t("transportation.sectionTitle" as MessageKey)}</h2>
             <label className="col-12 col-md-6 form-label w-100 mb-0">
