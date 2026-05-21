@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api.dart';
 import 'app_lang.dart';
+import 'app_theme.dart';
 import 'client_detail.dart';
 import 'employees.dart';
 import 'home_dashboard.dart';
@@ -48,78 +49,7 @@ class _TrackerMobileAppState extends State<TrackerMobileApp> {
         return MaterialApp(
           title: 'Transaction Tracker Mobile',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: true,
-            fontFamily: isArabic ? 'NotoSansArabic' : null,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1e3a8a),
-              brightness: Brightness.light,
-            ),
-            scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-            pageTransitionsTheme: const PageTransitionsTheme(
-              builders: {
-                TargetPlatform.android: ZoomPageTransitionsBuilder(),
-                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-              },
-            ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Color(0xFF1e3a8a),
-              centerTitle: false,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-            ),
-            cardTheme: CardThemeData(
-              color: Colors.white,
-              elevation: 0,
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            listTileTheme: const ListTileThemeData(
-              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(14)),
-                borderSide: BorderSide(color: Color(0xFF2563EB), width: 1.2),
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1e3a8a),
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            outlinedButtonTheme: OutlinedButtonThemeData(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1e3a8a),
-                side: const BorderSide(color: Color(0xFF2563EB)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
+          theme: buildAppTheme(isArabic: isArabic),
           locale: Locale(value),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: const [
@@ -269,94 +199,150 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE8F0FA), AppColors.surface],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned(
+                top: 8,
+                right: 8,
+                child: PopupMenuButton<String>(
+                  tooltip: l10n.language,
+                  icon: const Icon(Icons.language, color: AppColors.brand800),
+                  onSelected: Lang.setLocale,
+                  itemBuilder: (_) => [
+                    PopupMenuItem(value: 'ar', child: Text(l10n.languageAr)),
+                    PopupMenuItem(value: 'en', child: Text(l10n.languageEn)),
+                  ],
+                ),
+              ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    shrinkWrap: true,
                     children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        height: 56,
-                        fit: BoxFit.contain,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 22),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: AppGradients.hero,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.brand800.withValues(alpha: 0.25),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/logo.png',
+                              height: 64,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              l10n.loginBannerTitle,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.loginBannerTitle,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                      const SizedBox(height: 16),
+                      Card(
+                        elevation: 2,
+                        shadowColor: AppColors.brand800.withValues(alpha: 0.08),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                l10n.login,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _emailCtrl,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  labelText: l10n.email,
+                                  prefixIcon: const Icon(Icons.email_outlined),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: _passCtrl,
+                                decoration: InputDecoration(
+                                  labelText: l10n.password,
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                ),
+                                obscureText: true,
+                              ),
+                              CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                value: _rememberMe,
+                                onChanged: _loading
+                                    ? null
+                                    : (v) =>
+                                        setState(() => _rememberMe = v ?? true),
+                                title: Text(l10n.rememberMe),
+                              ),
+                              if (_error.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.red.shade200),
+                                  ),
+                                  child: Text(
+                                    _error,
+                                    style: TextStyle(color: Colors.red.shade800),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 12),
+                              FilledButton(
+                                onPressed: _loading ? null : _submit,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                      _loading ? l10n.signingIn : l10n.login),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(l10n.login,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 14),
-                        Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: TextField(
-                                controller: _emailCtrl,
-                                decoration:
-                                    InputDecoration(labelText: l10n.email))),
-                        const SizedBox(height: 10),
-                        Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: TextField(
-                                controller: _passCtrl,
-                                decoration:
-                                    InputDecoration(labelText: l10n.password),
-                                obscureText: true)),
-                        const SizedBox(height: 6),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          value: _rememberMe,
-                          onChanged: _loading
-                              ? null
-                              : (v) => setState(() => _rememberMe = v ?? true),
-                          title: Text(l10n.rememberMe),
-                        ),
-                        const SizedBox(height: 14),
-                        if (_error.isNotEmpty)
-                          Text(_error,
-                              style: const TextStyle(color: Colors.red)),
-                        FilledButton(
-                          onPressed: _loading ? null : _submit,
-                          child: Text(_loading ? l10n.signingIn : l10n.login),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -410,7 +396,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isAr = Lang.locale.value.toLowerCase().startsWith('ar');
     final role = widget.user['role'] as String? ?? 'employee';
     final pages = [
       DashboardHome(
@@ -468,40 +453,36 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
       body: FadeIndexedStack(index: _index, children: pages),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _index,
-        onTap: (v) => setState(() => _index = v),
-        selectedItemColor: const Color(0xFFF97316),
-        unselectedItemColor: const Color(0xFF2563EB),
-        items: [
-          BottomNavigationBarItem(
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        onDestinationSelected: (v) => setState(() => _index = v),
+        destinations: [
+          NavigationDestination(
               icon: const Icon(Icons.dashboard_outlined),
               label: l10n.dashboardTab),
-          BottomNavigationBarItem(
+          NavigationDestination(
               icon: const Icon(Icons.receipt_long_outlined),
               label: l10n.transactions),
-          BottomNavigationBarItem(
+          NavigationDestination(
               icon: const Icon(Icons.swap_horiz_outlined),
               label: l10n.transfers),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.outbox_outlined), label: l10n.exports),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.groups_outlined), label: l10n.clients),
-          BottomNavigationBarItem(
+          NavigationDestination(
+              icon: const Icon(Icons.outbox_outlined),
+              label: l10n.exports),
+          NavigationDestination(
+              icon: const Icon(Icons.groups_outlined),
+              label: l10n.clients),
+          NavigationDestination(
               icon: const Icon(Icons.local_shipping_outlined),
               label: l10n.shipping),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.badge_outlined), label: l10n.employees),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.person_outline), label: l10n.profile),
+          NavigationDestination(
+              icon: const Icon(Icons.badge_outlined),
+              label: l10n.employees),
+          NavigationDestination(
+              icon: const Icon(Icons.person_outline),
+              label: l10n.profile),
         ],
-        // Swap module labels to Arabic at runtime.
-        // We keep item count and order identical to web modules.
-        selectedLabelStyle:
-            isAr ? const TextStyle(fontFamily: 'NotoSansArabic') : null,
-        unselectedLabelStyle:
-            isAr ? const TextStyle(fontFamily: 'NotoSansArabic') : null,
       ),
     );
   }
@@ -609,35 +590,9 @@ class _ClientsTabState extends State<ClientsTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0x33FFFFFF),
-                      child: Icon(Icons.groups_outlined, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.clients,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              PageHeroBanner(
+                icon: Icons.groups_outlined,
+                title: l10n.clients,
               ),
               const SizedBox(height: 10),
               if (isManager)
@@ -972,35 +927,9 @@ class _ShippingTabState extends State<ShippingTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0x33FFFFFF),
-                      child: Icon(Icons.local_shipping_outlined, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.shipping,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              PageHeroBanner(
+                icon: Icons.local_shipping_outlined,
+                title: l10n.shipping,
               ),
               const SizedBox(height: 10),
               if (isManager)
@@ -1294,42 +1223,27 @@ class ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final name = (user['name'] ?? '?').toString().trim();
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: Color(0x33FFFFFF),
-                child: Icon(Icons.person_outline, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.profile,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        PageHeroBanner(
+          icon: Icons.person_outline,
+          title: l10n.profile,
+          subtitle: name,
         ),
         const SizedBox(height: 10),
         Card(
           child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: AppColors.brand50,
+              foregroundColor: AppColors.brand800,
+              child: Text(
+                initial,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
             title: Text('${user['name']}'),
             subtitle: Text('${user['email']} • ${user['role']}'),
           ),

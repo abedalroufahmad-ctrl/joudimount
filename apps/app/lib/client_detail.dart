@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 
 class ClientDetailPage extends StatefulWidget {
@@ -65,35 +66,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   : ListView(
                       padding: const EdgeInsets.all(12),
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                              begin: Alignment.topRight,
-                              end: Alignment.bottomLeft,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                backgroundColor: Color(0x33FFFFFF),
-                                child: Icon(Icons.groups_outlined,
-                                    color: Colors.white),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _client!['companyName'].toString(),
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                            ],
-                          ),
+                        PageHeroBanner(
+                          icon: Icons.groups_outlined,
+                          title: _client!['companyName'].toString(),
                         ),
                         const SizedBox(height: 10),
                         _kv(l10n.companyName, '${_client!['companyName']}'),

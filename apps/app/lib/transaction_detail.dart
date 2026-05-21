@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'api.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
@@ -339,42 +340,30 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               : ListView(
                   padding: const EdgeInsets.all(12),
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          const CircleAvatar(
-                            backgroundColor: Color(0x33FFFFFF),
-                            child: Icon(Icons.receipt_long_outlined,
-                                color: Colors.white),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _declarationHeaderTitle(tx!, l10n),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ],
-                      ),
+                    PageHeroBanner(
+                      icon: Icons.receipt_long_outlined,
+                      title: _declarationHeaderTitle(tx!, l10n),
+                      subtitle: '${tx!['clientName']}',
                     ),
                     const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        StageBadgeChip(
+                          stage: '${tx!['transactionStage'] ?? 'PREPARATION'}',
+                          label: _stageLabel(
+                              '${tx!['transactionStage'] ?? 'PREPARATION'}',
+                              l10n),
+                        ),
+                        Chip(
+                          label: Text('${tx!['clearanceStatus']}'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     _kv(l10n.client, '${tx!['clientName']}'),
-                    _kv(
-                        l10n.txStage,
-                        _stageLabel(
-                            '${tx!['transactionStage'] ?? 'PREPARATION'}', l10n)),
                     if ('${tx!['transactionStage'] ?? ''}' == 'STORAGE' &&
                         (widget.module == 'transactions' ||
                             widget.module == 'transfers'))

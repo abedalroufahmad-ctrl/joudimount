@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'api.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 
 class ShippingCompanyDetailPage extends StatefulWidget {
@@ -74,35 +75,10 @@ class _ShippingCompanyDetailPageState extends State<ShippingCompanyDetailPage> {
                   : ListView(
                       padding: const EdgeInsets.all(12),
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                              begin: Alignment.topRight,
-                              end: Alignment.bottomLeft,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                backgroundColor: Color(0x33FFFFFF),
-                                child: Icon(Icons.local_shipping_outlined,
-                                    color: Colors.white),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  s['companyName'].toString(),
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                            ],
-                          ),
+                        PageHeroBanner(
+                          icon: Icons.local_shipping_outlined,
+                          title: s['companyName'].toString(),
+                          subtitle: '${s['code'] ?? ''}',
                         ),
                         const SizedBox(height: 10),
                         _kv(l10n.companyName, '${s['companyName']}'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'transaction_detail.dart';
 import 'transaction_form.dart';
@@ -98,35 +99,13 @@ class _TransactionsTabState extends State<TransactionsTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0x33FFFFFF),
-                      child: Icon(Icons.receipt_long_outlined, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _moduleTitle(l10n),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              PageHeroBanner(
+                icon: widget.module == 'transfers'
+                    ? Icons.swap_horiz_outlined
+                    : widget.module == 'exports'
+                        ? Icons.outbox_outlined
+                        : Icons.receipt_long_outlined,
+                title: _moduleTitle(l10n),
               ),
               const SizedBox(height: 10),
               Row(
@@ -241,13 +220,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                               key: const ValueKey('empty'),
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               children: [
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Text(l10n.noMatch,
-                                        style: TextStyle(color: Colors.grey.shade700)),
-                                  ),
-                                )
+                                EmptyStateCard(message: l10n.noMatch),
                               ],
                             )
                           : ListView.builder(
@@ -259,14 +232,59 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                 final stage =
                                     (tx['transactionStage'] ?? 'PREPARATION')
                                         .toString();
+                                String stageLabel = stage;
+                                if (stage == 'PREPARATION') {
+                                  stageLabel = l10n.stagePreparation;
+                                } else if (stage == 'CUSTOMS_CLEARANCE') {
+                                  stageLabel = l10n.stageCustomsClearance;
+                                } else if (stage == 'STORAGE') {
+                                  stageLabel = l10n.stageStorage;
+                                } else if (stage == 'TRANSPORTATION') {
+                                  stageLabel = l10n.stageTransportation;
+                                }
                                 final showStorage = stage == 'STORAGE' &&
                                     (widget.module == 'transactions' ||
                                         widget.module == 'transfers');
                                 return Card(
                                   child: ListTile(
-                                    title: Text('${tx['clientName']}'),
-                                    subtitle: Text(
-                                        '${tx['shippingCompanyName']} • $stage • ${tx['clearanceStatus']}'),
+                                    title: Text(
+                                      '${tx['clientName']}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${tx['shippingCompanyName']}',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          children: [
+                                            StageBadgeChip(
+                                              stage: stage,
+                                              label: stageLabel,
+                                            ),
+                                            Text(
+                                              '${tx['clearanceStatus']}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    isThreeLine: true,
                                     trailing: showStorage
                                         ? IconButton(
                                             icon: const Icon(

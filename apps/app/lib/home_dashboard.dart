@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'app_lang.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'main.dart'; // To access ClientFormPage and ShippingFormPage
 import 'transaction_detail.dart';
@@ -421,14 +422,10 @@ class _DashboardHomeState extends State<DashboardHome> {
           else if (_recent.isEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Center(
-                  child: Text(
-                    l10n.dashboardNoImportRecordsYet,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: EmptyStateCard(
+                  icon: Icons.receipt_long_outlined,
+                  message: l10n.dashboardNoImportRecordsYet,
                 ),
               ),
             )
@@ -460,11 +457,12 @@ class _DashboardHomeState extends State<DashboardHome> {
                       index: i,
                       child: SizedBox(
                         width: 160,
-                        child: Material(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(14),
+                        child: Card(
+                          elevation: 1,
+                          shadowColor:
+                              AppColors.brand800.withValues(alpha: 0.08),
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(16),
                             onTap: id.isEmpty
                                 ? null
                                 : () {
@@ -502,8 +500,10 @@ class _DashboardHomeState extends State<DashboardHome> {
                                     (tx['clearanceStatus'] ?? '').toString(),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Color(0xFF1e3a8a)),
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.brand700,
+                                        fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
@@ -555,14 +555,10 @@ class _WelcomeBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
+        gradient: AppGradients.hero,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1e3a8a).withValues(alpha: 0.35),
+            color: AppColors.brand800.withValues(alpha: 0.35),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

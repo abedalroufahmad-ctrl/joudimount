@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'api.dart';
+import 'app_theme.dart';
 import 'date_field.dart';
 import 'l10n/app_localizations.dart';
 import 'transaction_storage_page.dart';
@@ -566,36 +567,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: Color(0x33FFFFFF),
-                  child: Icon(Icons.edit_note_outlined, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _isEdit
-                        ? '${_editLabel(context)} ${_moduleNoun(context)}'
-                        : '${_newLabel(context)} ${_moduleNoun(context)}',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            ),
+          PageHeroBanner(
+            icon: Icons.edit_note_outlined,
+            title: _isEdit
+                ? '${_editLabel(context)} ${_moduleNoun(context)}'
+                : '${_newLabel(context)} ${_moduleNoun(context)}',
           ),
           const SizedBox(height: 10),
           if (_isEdit) ...[

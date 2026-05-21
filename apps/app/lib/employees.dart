@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api.dart';
+import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 
 class EmployeesTab extends StatefulWidget {
@@ -161,35 +162,9 @@ class _EmployeesTabState extends State<EmployeesTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1e3a8a), Color(0xFF2563eb)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0x33FFFFFF),
-                      child: Icon(Icons.badge_outlined, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.employeesTitle,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              PageHeroBanner(
+                icon: Icons.badge_outlined,
+                title: l10n.employeesTitle,
               ),
               const SizedBox(height: 10),
               Card(
