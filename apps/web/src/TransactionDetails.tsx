@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { transactionListPath } from "./paths";
 import { apiFetch } from "./api";
@@ -66,6 +66,25 @@ function portTypeLabel(value: string | undefined, t: (key: MessageKey) => string
 }
 
 type TransactionModule = "transactions" | "transfers" | "exports";
+
+function DetailSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="details-section-card card shadow-sm border-0 mb-3">
+      <div className="card-body">
+        <h2 className="form-section-title h5 border-bottom pb-2 mb-3 mt-0">{title}</h2>
+        <div className="row row-cols-1 row-cols-md-2 g-3">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function DetailField({ label, children, fullWidth }: { label: string; children: ReactNode; fullWidth?: boolean }) {
+  return (
+    <p className={`details-item mb-0${fullWidth ? " col-12" : ""}`}>
+      <strong>{label}:</strong> {children}
+    </p>
+  );
+}
 
 export default function TransactionDetails({
   role,
@@ -218,264 +237,199 @@ export default function TransactionDetails({
               </div>
             </div>
           </div>
-        <section className="details-card card shadow-sm border-0">
-          <div className="card-body">
-          <div className="row row-cols-1 row-cols-md-2 g-3">
-          <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.snapshotReadOnly")}</h2>
-          <p className="details-item">
-            <strong>{t("details.createdAt")}:</strong> {new Date(transaction.createdAt).toLocaleString(numberLocale)}
-          </p>
-          <p className="details-item">
-            <strong>{t("form.declarationNumber1")}:</strong> {transaction.declarationNumber}
-          </p>
+        <DetailSection title={t("form.snapshotReadOnly")}>
+          <DetailField label={t("details.createdAt")}>
+            {new Date(transaction.createdAt).toLocaleString(numberLocale)}
+          </DetailField>
+          <DetailField label={t("form.declarationNumber1")}>{transaction.declarationNumber}</DetailField>
           {transaction.declarationNumber2 ? (
-            <p className="details-item">
-              <strong>{t("form.declarationNumber2")}:</strong> {transaction.declarationNumber2}
-            </p>
+            <DetailField label={t("form.declarationNumber2")}>{transaction.declarationNumber2}</DetailField>
           ) : null}
-          <p className="details-item">
-            <strong>{t("details.status")}:</strong> {transaction.clearanceStatus}
-          </p>
-          <p className="details-item">
-            <strong>{t("form.stage")}:</strong> {stageLabel(transaction.transactionStage, t)}
-          </p>
+          {transaction.fileNumber ? (
+            <DetailField label={t("form.fileNumber")}>{transaction.fileNumber}</DetailField>
+          ) : null}
+          <DetailField label={t("details.status")}>{transaction.clearanceStatus}</DetailField>
+          <DetailField label={t("form.stage")}>{stageLabel(transaction.transactionStage, t)}</DetailField>
           {transaction.transactionStage === "STORAGE" && (module === "transactions" || module === "transfers") ? (
-            <p className="details-item col-12">
-              <Link className="btn btn-primary btn-sm" style={{ display: "inline-block" }} to={`/${module}/${transaction.id}/storage`}>
+            <p className="details-item col-12 mb-0">
+              <Link className="btn btn-primary btn-sm" to={`/${module}/${transaction.id}/storage`}>
                 {t("details.linkStorage" as MessageKey)}
               </Link>
             </p>
           ) : null}
           {transaction.releaseCode ? (
-            <p className="details-item col-12">
-              <strong>{t("details.releaseCode")}:</strong> {transaction.releaseCode}
-            </p>
+            <DetailField label={t("details.releaseCode")} fullWidth>
+              {transaction.releaseCode}
+            </DetailField>
           ) : null}
+        </DetailSection>
 
-          <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.partiesSection")}</h2>
-          <p className="details-item">
-            <strong>{t("details.client")}:</strong> {transaction.clientName}
-          </p>
-          <p className="details-item">
-            <strong>{t("details.shippingCompany")}:</strong> {transaction.shippingCompanyName}
-          </p>
+        <DetailSection title={t("form.partiesSection")}>
+          <DetailField label={t("details.client")}>{transaction.clientName}</DetailField>
+          <DetailField label={t("details.shippingCompany")}>{transaction.shippingCompanyName}</DetailField>
           {transaction.shippingCompanyId ? (
-            <p className="details-item">
-              <strong>{t("form.shippingCompanyId")}:</strong> {transaction.shippingCompanyId}
-            </p>
+            <DetailField label={t("form.shippingCompanyId")}>{transaction.shippingCompanyId}</DetailField>
           ) : null}
+        </DetailSection>
 
-          {showCustomsDeclarationSection ? (
-            <>
-              <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.customsDeclarationSection")}</h2>
-              <p className="details-item">
-                  <strong>{t("form.declarationNumber1")}:</strong> {transaction.declarationNumber}
-              </p>
-              {transaction.declarationNumber2 ? (
-                <p className="details-item">
-                    <strong>{t("form.declarationNumber2")}:</strong> {transaction.declarationNumber2}
-                </p>
-              ) : null}
-              {transaction.declarationDate ? (
-                <p className="details-item">
-                  <strong>{t("form.declarationDate")}:</strong> {new Date(transaction.declarationDate).toLocaleString(numberLocale)}
-                </p>
-              ) : null}
-              {transaction.declarationType ? (
-                <p className="details-item">
-                  <strong>{t("form.declarationType1")}:</strong> {declarationTypeLabel(transaction.declarationType, t)}
-                </p>
-              ) : null}
-              {transaction.declarationType2 ? (
-                <p className="details-item">
-                  <strong>{t("form.declarationType2")}:</strong> {declarationTypeLabel(transaction.declarationType2, t)}
-                </p>
-              ) : null}
-              {transaction.portType ? (
-                <p className="details-item">
-                  <strong>{t("form.portType")}:</strong> {portTypeLabel(transaction.portType, t)}
-                </p>
-              ) : null}
-            </>
-          ) : null}
+        {showCustomsDeclarationSection ? (
+          <DetailSection title={t("form.customsDeclarationSection")}>
+            <DetailField label={t("form.declarationNumber1")}>{transaction.declarationNumber}</DetailField>
+            {transaction.declarationNumber2 ? (
+              <DetailField label={t("form.declarationNumber2")}>{transaction.declarationNumber2}</DetailField>
+            ) : null}
+            {transaction.declarationDate ? (
+              <DetailField label={t("form.declarationDate")}>
+                {new Date(transaction.declarationDate).toLocaleString(numberLocale)}
+              </DetailField>
+            ) : null}
+            {transaction.declarationType ? (
+              <DetailField label={t("form.declarationType1")}>
+                {declarationTypeLabel(transaction.declarationType, t)}
+              </DetailField>
+            ) : null}
+            {transaction.declarationType2 ? (
+              <DetailField label={t("form.declarationType2")}>
+                {declarationTypeLabel(transaction.declarationType2, t)}
+              </DetailField>
+            ) : null}
+            {transaction.portType ? (
+              <DetailField label={t("form.portType")}>{portTypeLabel(transaction.portType, t)}</DetailField>
+            ) : null}
+          </DetailSection>
+        ) : null}
 
-          {(transaction.portOfLading || transaction.portOfDischarge || transaction.destination) ? (
-            <>
-              <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("transfer.details.title" as MessageKey)}</h2>
-              {transaction.portOfLading ? (
-                <p className="details-item">
-                  <strong>{t("form.portOfLading")}:</strong> {transaction.portOfLading}
-                </p>
-              ) : null}
-              {transaction.portOfDischarge ? (
-                <p className="details-item">
-                  <strong>{t("form.portOfDischarge")}:</strong> {transaction.portOfDischarge}
-                </p>
-              ) : null}
-              {transaction.destination ? (
-                <p className="details-item">
-                  <strong>{t("form.destination")}:</strong> {transaction.destination}
-                </p>
-              ) : null}
-            </>
-          ) : null}
+        {(transaction.portOfLading || transaction.portOfDischarge || transaction.destination) ? (
+          <DetailSection title={t("transfer.details.title" as MessageKey)}>
+            {transaction.portOfLading ? (
+              <DetailField label={t("form.portOfLading")}>{transaction.portOfLading}</DetailField>
+            ) : null}
+            {transaction.portOfDischarge ? (
+              <DetailField label={t("form.portOfDischarge")}>{transaction.portOfDischarge}</DetailField>
+            ) : null}
+            {transaction.destination ? (
+              <DetailField label={t("form.destination")}>{transaction.destination}</DetailField>
+            ) : null}
+          </DetailSection>
+        ) : null}
 
-          <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.shipmentCoreSection")}</h2>
-          <p className="details-item">
-            <strong>{t("details.airwayBill")}:</strong> {transaction.airwayBill}
-          </p>
-          <p className="details-item">
-            <strong>{t("details.hsCode")}:</strong> {transaction.hsCode}
-          </p>
-          <p className="details-item">
-            <strong>{t("details.goods")}:</strong> {transaction.goodsDescription}
-          </p>
-          <p className="details-item">
-            <strong>{t("details.origin")}:</strong> {transaction.originCountry}
-          </p>
-          <p className="details-item">
-            <strong>{t("form.invoiceValue")}:</strong> {transaction.invoiceValue.toLocaleString(numberLocale)}{" "}
-            {transaction.invoiceCurrency ?? t("details.currencySuffix")}
-          </p>
+        <DetailSection title={t("form.shipmentCoreSection")}>
+          <DetailField label={t("details.airwayBill")}>{transaction.airwayBill}</DetailField>
+          <DetailField label={t("details.hsCode")}>{transaction.hsCode}</DetailField>
+          <DetailField label={t("details.goods")}>{transaction.goodsDescription}</DetailField>
+          <DetailField label={t("details.origin")}>{transaction.originCountry}</DetailField>
+          <DetailField label={t("form.invoiceValue")}>
+            {transaction.invoiceValue.toLocaleString(numberLocale)} {transaction.invoiceCurrency ?? t("details.currencySuffix")}
+          </DetailField>
+        </DetailSection>
 
-          <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.cargoContainersSection")}</h2>
+        <DetailSection title={t("form.cargoContainersSection")}>
           {transaction.containerCount != null ? (
-            <p className="details-item">
-              <strong>{t("details.containerCount")}:</strong> {transaction.containerCount}
-            </p>
+            <DetailField label={t("details.containerCount")}>{transaction.containerCount}</DetailField>
           ) : null}
           {transaction.goodsWeightKg != null ? (
-            <p className="details-item">
-              <strong>{t("details.goodsWeightKg")}:</strong> {transaction.goodsWeightKg.toLocaleString(numberLocale)}
-            </p>
+            <DetailField label={t("details.goodsWeightKg")}>
+              {transaction.goodsWeightKg.toLocaleString(numberLocale)}
+            </DetailField>
           ) : null}
           {transaction.invoiceToWeightRateAedPerKg != null ? (
-            <p className="details-item">
-              <strong>{t("details.invoiceToWeightRate")}:</strong>{" "}
+            <DetailField label={t("details.invoiceToWeightRate")}>
               {transaction.invoiceToWeightRateAedPerKg.toLocaleString(numberLocale)}
-            </p>
+            </DetailField>
           ) : null}
           {transaction.containerArrivalDate ? (
-            <p className="details-item">
-              <strong>{t("details.containerArrivalDate")}:</strong>{" "}
+            <DetailField label={t("details.containerArrivalDate")}>
               {new Date(transaction.containerArrivalDate).toLocaleString(numberLocale)}
-            </p>
+            </DetailField>
           ) : null}
           {transaction.documentArrivalDate ? (
-            <p className="details-item">
-              <strong>{t("details.documentArrivalDate")}:</strong>{" "}
+            <DetailField label={t("details.documentArrivalDate")}>
               {new Date(transaction.documentArrivalDate).toLocaleString(numberLocale)}
-            </p>
-          ) : null}
-          {showCustomsDeclarationSection && transaction.fileNumber ? (
-            <p className="details-item">
-              <strong>{t("form.fileNumber")}:</strong> {transaction.fileNumber}
-            </p>
+            </DetailField>
           ) : null}
           {transaction.containerNumbers && transaction.containerNumbers.length > 0 ? (
-            <p className="details-item">
-              <strong>{t("form.containerNumbers")}:</strong> {transaction.containerNumbers.join(", ")}
-            </p>
+            <DetailField label={t("form.containerNumbers")}>{transaction.containerNumbers.join(", ")}</DetailField>
           ) : null}
           {transaction.unitCount != null ? (
-            <p className="details-item">
-              <strong>{t("form.numberOfUnits")}:</strong> {transaction.unitCount}
-            </p>
+            <DetailField label={t("form.numberOfUnits")}>{transaction.unitCount}</DetailField>
           ) : null}
+        </DetailSection>
 
-          {transaction.transactionStage === "TRANSPORTATION" &&
-          (transaction.transportationTo ||
-            transaction.trachNo ||
-            transaction.transportationCompany ||
-            transaction.transportationFrom ||
-            transaction.transportationToLocation ||
-            transaction.tripCharge != null ||
-            transaction.waitingCharge != null ||
-            transaction.maccrikCharge != null) ? (
-            <>
-              <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("transportation.sectionTitle" as MessageKey)}</h2>
-              {transaction.transportationTo ? (
-                <p className="details-item">
-                  <strong>{t("transportation.toUpper" as MessageKey)}:</strong> {transaction.transportationTo}
-                </p>
-              ) : null}
-              {transaction.trachNo ? (
-                <p className="details-item">
-                  <strong>{t("transportation.trachNo" as MessageKey)}:</strong> {transaction.trachNo}
-                </p>
-              ) : null}
-              {transaction.transportationCompany ? (
-                <p className="details-item">
-                  <strong>{t("transportation.company" as MessageKey)}:</strong> {transaction.transportationCompany}
-                </p>
-              ) : null}
-              {transaction.transportationFrom ? (
-                <p className="details-item">
-                  <strong>{t("transportation.from" as MessageKey)}:</strong> {transaction.transportationFrom}
-                </p>
-              ) : null}
-              {transaction.transportationToLocation ? (
-                <p className="details-item">
-                  <strong>{t("transportation.to" as MessageKey)}:</strong> {transaction.transportationToLocation}
-                </p>
-              ) : null}
-              {transaction.tripCharge != null ? (
-                <p className="details-item">
-                  <strong>{t("transportation.tripCharge" as MessageKey)}:</strong> {transaction.tripCharge.toLocaleString(numberLocale)}
-                </p>
-              ) : null}
-              {transaction.waitingCharge != null ? (
-                <p className="details-item">
-                  <strong>{t("transportation.waitingCharge" as MessageKey)}:</strong> {transaction.waitingCharge.toLocaleString(numberLocale)}
-                </p>
-              ) : null}
-              {transaction.maccrikCharge != null ? (
-                <p className="details-item">
-                  <strong>{t("transportation.maccrikCharge" as MessageKey)}:</strong> {transaction.maccrikCharge.toLocaleString(numberLocale)}
-                </p>
-              ) : null}
-            </>
-          ) : null}
+        {transaction.transactionStage === "TRANSPORTATION" &&
+        (transaction.transportationTo ||
+          transaction.trachNo ||
+          transaction.transportationCompany ||
+          transaction.transportationFrom ||
+          transaction.transportationToLocation ||
+          transaction.tripCharge != null ||
+          transaction.waitingCharge != null ||
+          transaction.maccrikCharge != null) ? (
+          <DetailSection title={t("transportation.sectionTitle" as MessageKey)}>
+            {transaction.transportationTo ? (
+              <DetailField label={t("transportation.toUpper" as MessageKey)}>{transaction.transportationTo}</DetailField>
+            ) : null}
+            {transaction.trachNo ? (
+              <DetailField label={t("transportation.trachNo" as MessageKey)}>{transaction.trachNo}</DetailField>
+            ) : null}
+            {transaction.transportationCompany ? (
+              <DetailField label={t("transportation.company" as MessageKey)}>{transaction.transportationCompany}</DetailField>
+            ) : null}
+            {transaction.transportationFrom ? (
+              <DetailField label={t("transportation.from" as MessageKey)}>{transaction.transportationFrom}</DetailField>
+            ) : null}
+            {transaction.transportationToLocation ? (
+              <DetailField label={t("transportation.to" as MessageKey)}>{transaction.transportationToLocation}</DetailField>
+            ) : null}
+            {transaction.tripCharge != null ? (
+              <DetailField label={t("transportation.tripCharge" as MessageKey)}>
+                {transaction.tripCharge.toLocaleString(numberLocale)}
+              </DetailField>
+            ) : null}
+            {transaction.waitingCharge != null ? (
+              <DetailField label={t("transportation.waitingCharge" as MessageKey)}>
+                {transaction.waitingCharge.toLocaleString(numberLocale)}
+              </DetailField>
+            ) : null}
+            {transaction.maccrikCharge != null ? (
+              <DetailField label={t("transportation.maccrikCharge" as MessageKey)}>
+                {transaction.maccrikCharge.toLocaleString(numberLocale)}
+              </DetailField>
+            ) : null}
+          </DetailSection>
+        ) : null}
 
-          <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.workflowStatusSection")}</h2>
-          <p className="details-item">
-            <strong>{t("details.document")}:</strong> {transaction.documentStatus}
-          </p>
-          <p className="details-item">
-            <strong>{t("details.payment")}:</strong> {transaction.paymentStatus}
-          </p>
-          <p className="details-item">
-            <strong>{t("form.stopTransaction")}:</strong> {transaction.isStopped ? t("form.yes") : t("form.no")}
-          </p>
+        <DetailSection title={t("form.workflowStatusSection")}>
+          <DetailField label={t("details.document")}>{transaction.documentStatus}</DetailField>
+          <DetailField label={t("details.payment")}>{transaction.paymentStatus}</DetailField>
+          <DetailField label={t("form.stopTransaction")}>
+            {transaction.isStopped ? t("form.yes") : t("form.no")}
+          </DetailField>
           {transaction.isStopped && transaction.stopReason ? (
-            <p className="details-item">
-              <strong>{t("form.stopReason")}:</strong> {transaction.stopReason}
-            </p>
+            <DetailField label={t("form.stopReason")}>{transaction.stopReason}</DetailField>
           ) : null}
           {transaction.goodsQuantity != null ? (
-            <p className="details-item">
-              <strong>{t("details.goodsQuantity")}:</strong> {transaction.goodsQuantity.toLocaleString(numberLocale)}
-            </p>
+            <DetailField label={t("details.goodsQuantity")}>
+              {transaction.goodsQuantity.toLocaleString(numberLocale)}
+            </DetailField>
           ) : null}
           {transaction.goodsQuality ? (
-            <p className="details-item">
-              <strong>{t("details.goodsQuality")}:</strong> {t(`form.quality.${transaction.goodsQuality}` as MessageKey)}
-            </p>
+            <DetailField label={t("details.goodsQuality")}>
+              {t(`form.quality.${transaction.goodsQuality}` as MessageKey)}
+            </DetailField>
           ) : null}
           {transaction.goodsUnit ? (
-            <p className="details-item">
-              <strong>{t("details.goodsUnit")}:</strong> {t(`form.unit.${transaction.goodsUnit}` as MessageKey)}
-            </p>
+            <DetailField label={t("details.goodsUnit")}>{t(`form.unit.${transaction.goodsUnit}` as MessageKey)}</DetailField>
           ) : null}
-          {transaction.documentAttachments && transaction.documentAttachments.length > 0 ? (
-            <div className="details-item col-12">
-              <p>
-                <strong>{t("details.documentPhotos")}</strong>
-              </p>
+        </DetailSection>
+
+        {transaction.documentAttachments && transaction.documentAttachments.length > 0 ? (
+          <section className="details-section-card card shadow-sm border-0 mb-3">
+            <div className="card-body">
+              <h2 className="form-section-title h5 border-bottom pb-2 mb-3 mt-0">{t("details.documentPhotos")}</h2>
               {Object.entries(groupedAttachments).map(([group, items]) => (
-                <div key={group} style={{ marginBottom: 12 }}>
-                  <p style={{ margin: "0 0 6px 0", fontWeight: 600 }}>{group}</p>
-                  <ul className="attachment-grid">
+                <div key={group} className="mb-3">
+                  <p className="mb-2 fw-semibold text-secondary">{group}</p>
+                  <ul className="attachment-grid mb-0">
                     {items.map((a) => {
                       const href = `${API_BASE}${a.path}`;
                       const isImg = /\.(png|jpe?g|gif|webp)$/i.test(a.originalName);
@@ -496,10 +450,8 @@ export default function TransactionDetails({
                 </div>
               ))}
             </div>
-          ) : null}
-          </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
         </>
       )}
       <ShippingPaperModal open={shippingPaperOpen} transaction={transaction} onClose={() => setShippingPaperOpen(false)} />

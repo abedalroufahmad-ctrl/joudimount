@@ -992,6 +992,19 @@ th {
   border-radius: var(--radius-lg);
 }
 
+.details-section-card {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.details-section-card .form-section-title {
+  margin-bottom: 0.75rem;
+}
+
+.details-section-card .details-item {
+  height: 100%;
+}
+
 .form-section-title {
   position: relative;
   padding-bottom: 0.5rem !important;
