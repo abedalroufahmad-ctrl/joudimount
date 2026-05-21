@@ -7,6 +7,7 @@ import type { AuthUser, Role, Transaction } from "./types";
 import type { TransactionListModule } from "./paths";
 import { transactionListPath } from "./paths";
 import { DashboardTopBar } from "./DashboardTopBar";
+import { stageBadgeClass } from "./stageBadge";
 
 type Highlight = "home" | TransactionListModule;
 
@@ -168,30 +169,33 @@ export function DashboardHome({
           <div className="module-cards dashboard-top-module-cards">
             {DASHBOARD_MODULES.map((item) => (
               <Link key={item.id} to={item.route} className="module-card card text-decoration-none">
+                <span className="module-card-icon" aria-hidden>
+                  {item.id === "transactions" ? "📦" : item.id === "transfers" ? "↔" : "🚢"}
+                </span>
                 <span className="module-card-title">{t(item.titleKey)}</span>
                 <span className="module-card-desc">{t(item.descKey)}</span>
-                <span className="small text-primary mt-1">{t("home.openFullList")} →</span>
+                <span className="module-card-cta">{t("home.openFullList")} →</span>
               </Link>
             ))}
           </div>
           <p className="small text-secondary mt-3 mb-0">{t("home.snapshotHint")}</p>
           <div className="row g-2 mt-3">
             <div className="col-md-4">
-              <div className="border rounded-3 px-3 py-2 bg-body-secondary bg-opacity-25">
-                <div className="small text-secondary">{t("app.title")}</div>
-                <div className="fs-5 fw-semibold">{loading ? "…" : counts.transactions}</div>
+              <div className="stat-card stat-card--imports">
+                <div className="stat-card-label">{t("app.title")}</div>
+                <div className="stat-card-value">{loading ? "…" : counts.transactions}</div>
               </div>
             </div>
             <div className="col-md-4">
-              <div className="border rounded-3 px-3 py-2 bg-body-secondary bg-opacity-25">
-                <div className="small text-secondary">{t("transfer.app.title" as MessageKey)}</div>
-                <div className="fs-5 fw-semibold">{loading ? "…" : counts.transfers}</div>
+              <div className="stat-card stat-card--transfers">
+                <div className="stat-card-label">{t("transfer.app.title" as MessageKey)}</div>
+                <div className="stat-card-value">{loading ? "…" : counts.transfers}</div>
               </div>
             </div>
             <div className="col-md-4">
-              <div className="border rounded-3 px-3 py-2 bg-body-secondary bg-opacity-25">
-                <div className="small text-secondary">{t("export.app.title" as MessageKey)}</div>
-                <div className="fs-5 fw-semibold">{loading ? "…" : counts.exports}</div>
+              <div className="stat-card stat-card--exports">
+                <div className="stat-card-label">{t("export.app.title" as MessageKey)}</div>
+                <div className="stat-card-value">{loading ? "…" : counts.exports}</div>
               </div>
             </div>
           </div>
@@ -232,7 +236,7 @@ export function DashboardHome({
                         <td>{tx.clientName}</td>
                         <td className="small text-break">{tx.declarationNumber}</td>
                         <td>
-                          <span className="badge rounded-pill text-bg-light border status-badge-pill">
+                          <span className={`badge rounded-pill status-badge-pill ${stageBadgeClass(tx.transactionStage)}`}>
                             {t(`stage.${tx.transactionStage ?? "PREPARATION"}` as MessageKey)} · {tx.clearanceStatus}
                           </span>
                         </td>

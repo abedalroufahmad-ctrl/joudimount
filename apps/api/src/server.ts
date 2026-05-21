@@ -271,12 +271,23 @@ app.post("/api/auth/login", async (req, res) => {
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten() });
 
+  const { verifyPassword, hashPassword, isPasswordHashed } = await import("./password.js");
   const email = result.data.email.toLowerCase().trim();
   const user = (await EmployeeModel.findOne({ email }).lean()) as
     | { _id: string; email: string; name: string; role: UserRole; password: string }
     | null;
-  if (!user || user.password !== result.data.password) {
+  if (!user) {
     return res.status(401).json({ error: "Invalid credentials" });
+  }
+  const passwordOk = await verifyPassword(result.data.password, user.password);
+  if (!passwordOk) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
+  if (!isPasswordHashed(user.password)) {
+    await EmployeeModel.updateOne(
+      { _id: user._id },
+      { $set: { password: await hashPassword(result.data.password) } },
+    );
   }
 
   const token = signAuthToken({
@@ -1159,14 +1170,28 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 const port = Number(process.env.PORT ?? 4000);
 connectDb()
   .then(async () => {
+    const { hashPassword, isPasswordHashed } = await import("./password.js");
+    const defaultPasswordHash = await hashPassword("123456");
     const defaults = [
-      { name: "Main Manager", email: "manager@tracker.local", password: "123456", role: "manager" as const },
-      { name: "Operations Employee", email: "employee@tracker.local", password: "123456", role: "employee" as const },
-      { name: "Finance Accountant", email: "accountant@tracker.local", password: "123456", role: "accountant" as const },
-      { name: "employee2", email: "employee2@tracker.local", password: "123456", role: "employee2" as const },
+      { name: "Main Manager", email: "manager@tracker.local", password: defaultPasswordHash, role: "manager" as const },
+      { name: "Operations Employee", email: "employee@tracker.local", password: defaultPasswordHash, role: "employee" as const },
+      { name: "Finance Accountant", email: "accountant@tracker.local", password: defaultPasswordHash, role: "accountant" as const },
+      { name: "employee2", email: "employee2@tracker.local", password: defaultPasswordHash, role: "employee2" as const },
     ];
     for (const item of defaults) {
       await EmployeeModel.updateOne({ email: item.email }, { $setOnInsert: item }, { upsert: true });
+    }
+    const legacyEmployees = await EmployeeModel.find({
+      password: { $not: { $regex: /^\$2[aby]\$/ } },
+    }).lean();
+    for (const emp of legacyEmployees) {
+      const plain = (emp as { password?: string }).password;
+      if (plain && !isPasswordHashed(plain)) {
+        await EmployeeModel.updateOne(
+          { _id: (emp as { _id: unknown })._id },
+          { $set: { password: await hashPassword(plain) } },
+        );
+      }
     }
     app.listen(port, () => {
       console.log(`API listening on http://localhost:${port}`);

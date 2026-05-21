@@ -4,6 +4,7 @@ import type { UserRole } from "./auth.js";
 import type { Client, ClearanceStatus, DocumentAttachment, Employee, Transaction, TransactionStage } from "./types.js";
 import { ClientModel, CounterModel, EmployeeModel, ExportModel, ShippingCompanyModel, TransactionModel, TransferModel } from "./models.js";
 import { absolutePathFromPublicPath } from "./uploads.js";
+import { hashPassword } from "./password.js";
 
 /** Single document in `counters` collection; $inc is atomic (fixes E11000 duplicate declarationNumber). */
 const DECLARATION_COUNTER_ID = "declaration_dxb_2026";
@@ -86,7 +87,7 @@ export async function createEmployee(input: {
   const created = await EmployeeModel.create({
     name: input.name.trim(),
     email,
-    password: input.password,
+    password: await hashPassword(input.password),
     role: input.role,
   });
   return mapEmployeePublic(created.toObject());
@@ -99,7 +100,9 @@ export async function updateEmployee(
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name.trim();
   if (input.email !== undefined) patch.email = input.email.toLowerCase().trim();
-  if (input.password !== undefined && input.password.length > 0) patch.password = input.password;
+  if (input.password !== undefined && input.password.length > 0) {
+    patch.password = await hashPassword(input.password);
+  }
   if (input.role !== undefined) patch.role = input.role;
   if (Object.keys(patch).length === 0) {
     const existing = await EmployeeModel.findById(id).lean();

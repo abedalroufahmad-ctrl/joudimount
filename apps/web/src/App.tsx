@@ -10,8 +10,8 @@ import ShippingCompaniesPage from "./ShippingCompaniesPage";
 import ShippingCompanyDetailPage from "./ShippingCompanyDetailPage";
 import EmployeeSection from "./EmployeeSection";
 import Login from "./Login";
-import LanguageSwitcher from "./LanguageSwitcher";
 import { DashboardTopBar } from "./DashboardTopBar";
+import { stageBadgeClass } from "./stageBadge";
 import { apiFetch, getCurrentUser, logout } from "./api";
 import { useI18n } from "./i18n/I18nContext";
 import type { MessageKey } from "./i18n/messages";
@@ -90,6 +90,9 @@ function TransactionsList({
                 to={item.route}
                 className={`module-card card text-decoration-none ${module === item.id ? "module-card-active" : ""}`}
               >
+                <span className="module-card-icon" aria-hidden>
+                  {item.id === "transactions" ? "📦" : item.id === "transfers" ? "↔" : "🚢"}
+                </span>
                 <span className="module-card-title">{t(item.titleKey)}</span>
                 <span className="module-card-desc">{t(item.descKey)}</span>
               </Link>
@@ -157,7 +160,7 @@ function TransactionsList({
                       <td>{tx.clientName}</td>
                       <td>{tx.shippingCompanyName}</td>
                       <td>
-                        <span className="badge rounded-pill text-bg-light border status-badge-pill">
+                        <span className={`badge rounded-pill status-badge-pill ${stageBadgeClass(tx.transactionStage)}`}>
                           {t(`stage.${tx.transactionStage ?? "PREPARATION"}` as MessageKey)} · {tx.clearanceStatus}
                         </span>
                       </td>
@@ -231,35 +234,28 @@ export default function App() {
     setUser(null);
   };
 
-  return (
-    <>
-      {!user ? (
-        <header className="app-header container py-3">
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <img src="/logo.png" alt="Project logo" width={66} height={66} className="app-logo flex-shrink-0" />
-            <div className="d-flex align-items-center flex-wrap gap-3 justify-content-end ms-auto">
-              <LanguageSwitcher />
-            </div>
-          </div>
-        </header>
-      ) : null}
-      {!user ? (
-        <Login onLogin={setUser} />
-      ) : (
-        <AuthenticatedRoutes user={user} onLogout={handleLogout} />
-      )}
-    </>
+  return !user ? (
+    <Login onLogin={setUser} />
+  ) : (
+    <AuthenticatedRoutes user={user} onLogout={handleLogout} />
   );
 }
 
 function NotFoundPage() {
   const { t } = useI18n();
   return (
-    <main className="container">
-      <h1 className="display-6 fw-bold mb-3">{t("notFound.title")}</h1>
-      <Link to="/" className="btn btn-outline-primary">
-        {t("notFound.dashboard")}
-      </Link>
+    <main className="empty-state-page container py-5">
+      <div className="empty-state-card card shadow-sm border-0 text-center mx-auto">
+        <div className="card-body py-5 px-4">
+          <div className="empty-state-icon mb-3" aria-hidden>
+            404
+          </div>
+          <h1 className="h3 fw-bold mb-2">{t("notFound.title")}</h1>
+          <Link to="/" className="btn btn-primary mt-2">
+            {t("notFound.dashboard")}
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }

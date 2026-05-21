@@ -5,6 +5,7 @@ import { apiFetch } from "./api";
 import type { MessageKey } from "./i18n/messages";
 import { useI18n } from "./i18n/I18nContext";
 import ShippingPaperModal from "./ShippingPaperModal";
+import { stageBadgeClass } from "./stageBadge";
 import { API_BASE, DocumentAttachment, Role, Transaction } from "./types";
 
 const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
@@ -138,72 +139,86 @@ export default function TransactionDetails({
     }
   };
 
+  const pageTitle =
+    module === "transactions"
+      ? t("details.title")
+      : module === "transfers"
+        ? t("transfer.details.title" as MessageKey)
+        : t("export.details.title" as MessageKey);
+
   return (
-    <main className="container py-2">
-      <div className="page-actions">
+    <main className="container page-content py-3">
+      <div className="page-actions btn-toolbar gap-2 flex-wrap" role="toolbar">
         <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
-          {t("details.back")}
+          ← {t("details.back")}
         </Link>
-        {id ? (
+        {id && role !== "accountant" ? (
           <>
-            {" | "}
-            {role !== "accountant" ? (
-              <>
-                <Link to={`/${module}/${id}/edit`} className="btn btn-outline-primary btn-sm">
-                  {t("details.edit")}
-                </Link>
-                {" | "}
-                <button className="btn btn-outline-danger btn-sm" onClick={onDelete} disabled={deleting}>
-                  {deleting ? t("details.deleting") : t("details.delete")}
-                </button>
-              </>
-            ) : null}
-            {role === "manager" || role === "accountant" ? (
-              <>
-                {" | "}
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => onAccountingAction("pay")}
-                  disabled={processing || transaction?.paymentStatus === "paid"}
-                >
-                  {t("details.markPaid")}
-                </button>
-                {" "}
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => onAccountingAction("release")}
-                  disabled={
-                    processing ||
-                    transaction?.paymentStatus !== "paid" ||
-                    (transaction?.documentStatus !== "original_received" && transaction?.documentStatus !== "telex_release")
-                  }
-                >
-                  {t("details.release")}
-                </button>
-              </>
-            ) : null}
-            {transaction ? (
-              <>
-                {" | "}
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => setShippingPaperOpen(true)}>
-                  {t("details.shippingPaperButton")}
-                </button>
-              </>
-            ) : null}
+            <Link to={`/${module}/${id}/edit`} className="btn btn-outline-primary btn-sm">
+              {t("details.edit")}
+            </Link>
+            <button className="btn btn-outline-danger btn-sm" onClick={onDelete} disabled={deleting}>
+              {deleting ? t("details.deleting") : t("details.delete")}
+            </button>
           </>
         ) : null}
+        {id && (role === "manager" || role === "accountant") ? (
+          <>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => onAccountingAction("pay")}
+              disabled={processing || transaction?.paymentStatus === "paid"}
+            >
+              {t("details.markPaid")}
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => onAccountingAction("release")}
+              disabled={
+                processing ||
+                transaction?.paymentStatus !== "paid" ||
+                (transaction?.documentStatus !== "original_received" && transaction?.documentStatus !== "telex_release")
+              }
+            >
+              {t("details.release")}
+            </button>
+          </>
+        ) : null}
+        {transaction ? (
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setShippingPaperOpen(true)}>
+            {t("details.shippingPaperButton")}
+          </button>
+        ) : null}
       </div>
-      <h1 className="display-6 fw-bold mb-3">
-        {module === "transactions"
-          ? t("details.title")
-          : module === "transfers"
-            ? t("transfer.details.title" as MessageKey)
-            : t("export.details.title" as MessageKey)}
-      </h1>
+
       {error ? <p className="error alert alert-danger">{error}</p> : null}
-      {!transaction && !error ? <p>{t("details.loading")}</p> : null}
+      {!transaction && !error ? (
+        <div className="empty-state-card card shadow-sm border-0 text-center py-5">
+          <p className="text-muted mb-0">{t("details.loading")}</p>
+        </div>
+      ) : null}
+
       {transaction && (
-        <section className="details-card card shadow-sm">
+        <>
+          <div className="details-hero card border-0 shadow-sm mb-3">
+            <div className="card-body d-flex flex-wrap align-items-start justify-content-between gap-3">
+              <div>
+                <h1 className="details-hero-title h4 fw-bold mb-1">{pageTitle}</h1>
+                <p className="details-hero-meta mb-0 text-break">
+                  <strong>{transaction.clientName}</strong>
+                  <span className="mx-2 opacity-50">·</span>
+                  {transaction.declarationNumber}
+                </p>
+              </div>
+              <div className="d-flex flex-wrap gap-2 align-items-center">
+                <span className={`badge rounded-pill ${stageBadgeClass(transaction.transactionStage)}`}>
+                  {stageLabel(transaction.transactionStage, t)}
+                </span>
+                <span className="badge rounded-pill text-bg-light border">{transaction.clearanceStatus}</span>
+              </div>
+            </div>
+          </div>
+        <section className="details-card card shadow-sm border-0">
           <div className="card-body">
           <div className="row row-cols-1 row-cols-md-2 g-3">
           <h2 className="form-section-title col-12 h5 border-bottom pb-2 mt-2 mb-0">{t("form.snapshotReadOnly")}</h2>
@@ -485,6 +500,7 @@ export default function TransactionDetails({
           </div>
           </div>
         </section>
+        </>
       )}
       <ShippingPaperModal open={shippingPaperOpen} transaction={transaction} onClose={() => setShippingPaperOpen(false)} />
     </main>
