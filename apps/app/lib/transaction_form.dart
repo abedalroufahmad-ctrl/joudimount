@@ -612,6 +612,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final showCustomsDeclarationSection = _isEdit && _stage != 'PREPARATION';
     final groupedRetained = _groupRetainedDocs(l10n);
 
+    final isTransferOrExport =
+        widget.module == 'transfers' || widget.module == 'exports';
+
     Widget sectionCard(String title, List<Widget> children) {
       if (children.isEmpty) return const SizedBox.shrink();
       return Card(
@@ -800,20 +803,21 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       : null,
                 )),
             ]),
-          sectionCard(l10n.txTransferDetailsSection, [
-          _field(_portOfLading, l10n.txPortOfLading, enabled: prepEditable),
-          _field(_portOfDischarge, l10n.txPortOfDischarge, enabled: prepEditable),
-          _field(_destination, l10n.txDestination, enabled: prepEditable),
-          ]),
+          if (isTransferOrExport)
+            sectionCard(
+              widget.module == 'exports'
+                  ? l10n.exportDetails
+                  : l10n.txTransferDetailsSection,
+              [
+                _field(_portOfLading, l10n.txPortOfLading, enabled: prepEditable),
+                _field(_portOfDischarge, l10n.txPortOfDischarge, enabled: prepEditable),
+                _field(_destination, l10n.txDestination, enabled: prepEditable),
+              ],
+            ),
           sectionCard(l10n.txShipmentCoreSection, [
           _field(_awb, l10n.airwayBill, enabled: prepEditable),
           _field(_hs, l10n.hsCode, enabled: prepEditable),
           _field(_origin, l10n.originCountry, enabled: prepEditable),
-          ApiDateField(
-            controller: _orderDate,
-            label: l10n.txOrderDate,
-            enabled: prepEditable,
-          ),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(
@@ -836,8 +840,22 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           _field(_rate, l10n.txRateAedPerKg,
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
+          ApiDateField(
+            controller: _orderDate,
+            label: l10n.txOrderDate,
+            enabled: prepEditable,
+          ),
           _field(_goods, l10n.goodsDescription,
               maxLines: 3, enabled: prepEditable),
+          if (!_isEdit)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: TextFormField(
+                controller: _unitCount,
+                enabled: storageEditable,
+                decoration: InputDecoration(labelText: l10n.txNumberOfUnits),
+              ),
+            ),
           ]),
           sectionCard(l10n.txCargoContainersSection, [
           _field(_weight, l10n.txGoodsWeightKg,
@@ -852,37 +870,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ),
           _field(_containers, l10n.txContainerCount,
               keyboard: TextInputType.number, enabled: prepEditable),
-          _field(_containerSize, l10n.txContainerSize, enabled: prepEditable),
           ApiDateField(
             controller: _containerArrival,
             label: l10n.txContainerArrival,
             enabled: customsEditable,
           ),
-          ApiDateField(
-            controller: _documentArrival,
-            label: l10n.txDocumentArrival,
-            enabled: customsEditable,
-          ),
-          _field(_documentPostalNumber, l10n.txDocumentPostalNumber, enabled: customsEditable),
-          _field(_containerNumbers, l10n.containerNumbers,
-              maxLines: 3, enabled: storageEditable),
-          Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: DropdownButtonFormField<bool>(
-                key: ValueKey('tx-stop-$_isStopped'),
-                decoration: InputDecoration(labelText: l10n.stopTransaction),
-                initialValue: _isStopped,
-                items: [
-                  DropdownMenuItem(value: false, child: Text(l10n.optionNo)),
-                  DropdownMenuItem(value: true, child: Text(l10n.optionYes)),
-                ],
-                onChanged: storageEditable
-                    ? (v) => setState(() => _isStopped = v ?? false)
-                    : null,
-              )),
-          if (_isStopped)
-            _field(_stopReason, l10n.stopReason,
-                maxLines: 2, enabled: storageEditable),
           _field(_qty, l10n.txGoodsQty,
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
@@ -968,19 +960,38 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 ],
               ),
             ),
-          _field(_unitNumber, l10n.txUnitNumber,
-              keyboard: TextInputType.number, enabled: storageEditable),
-          if (!_isEdit)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: TextFormField(
-                controller: _unitCount,
-                enabled: storageEditable,
-                decoration: InputDecoration(labelText: l10n.txNumberOfUnits),
-              ),
-            ),
+          if (isTransferOrExport)
+            _field(_containerSize, l10n.txContainerSize, enabled: prepEditable),
+          ApiDateField(
+            controller: _documentArrival,
+            label: l10n.txDocumentArrival,
+            enabled: customsEditable,
+          ),
+          _field(_containerNumbers, l10n.containerNumbers,
+              maxLines: 3, enabled: storageEditable),
+          if (isTransferOrExport)
+            _field(_unitNumber, l10n.txUnitNumber,
+                keyboard: TextInputType.number, enabled: storageEditable),
           ]),
           sectionCard(l10n.txWorkflowSection, [
+          _field(_documentPostalNumber, l10n.txDocumentPostalNumber, enabled: customsEditable),
+          Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: DropdownButtonFormField<bool>(
+                key: ValueKey('tx-stop-$_isStopped'),
+                decoration: InputDecoration(labelText: l10n.stopTransaction),
+                initialValue: _isStopped,
+                items: [
+                  DropdownMenuItem(value: false, child: Text(l10n.optionNo)),
+                  DropdownMenuItem(value: true, child: Text(l10n.optionYes)),
+                ],
+                onChanged: storageEditable
+                    ? (v) => setState(() => _isStopped = v ?? false)
+                    : null,
+              )),
+          if (_isStopped)
+            _field(_stopReason, l10n.stopReason,
+                maxLines: 2, enabled: storageEditable),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(

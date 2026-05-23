@@ -245,7 +245,7 @@ function getMissingFieldsBeforeCustomsClearance(tx: Transaction): string[] {
   return missing;
 }
 
-function getMissingFieldsBeforeCustomsClearanceForTransfer(tx: Transaction): string[] {
+function getMissingFieldsBeforeCustomsClearanceForTransferOrExport(tx: Transaction): string[] {
   const missing: string[] = [];
   const requiredStringFields: Array<[keyof Transaction, string]> = [
     ["clientName", "clientName"],
@@ -910,7 +910,7 @@ app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res)
     if (!tx) return res.status(404).json({ error: "Transfer not found" });
     const currentStage = tx.transactionStage ?? "PREPARATION";
     if (currentStage === "PREPARATION") {
-      const missing = getMissingFieldsBeforeCustomsClearanceForTransfer(tx);
+      const missing = getMissingFieldsBeforeCustomsClearanceForTransferOrExport(tx);
       if (missing.length > 0) {
         return res.status(400).json({
           error: `Fill all required preparation fields before Customs clearance: ${missing.join(", ")}`,
@@ -1112,6 +1112,19 @@ app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) =
   });
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+  if (result.data.stage === "CUSTOMS_CLEARANCE") {
+    const tx = await getExport(req.params.id);
+    if (!tx) return res.status(404).json({ error: "Export not found" });
+    const currentStage = tx.transactionStage ?? "PREPARATION";
+    if (currentStage === "PREPARATION") {
+      const missing = getMissingFieldsBeforeCustomsClearanceForTransferOrExport(tx);
+      if (missing.length > 0) {
+        return res.status(400).json({
+          error: `Fill all required preparation fields before Customs clearance: ${missing.join(", ")}`,
+        });
+      }
+    }
+  }
   const updated = await setExportStage(req.params.id, result.data.stage);
   if (updated === null) return res.status(404).json({ error: "Export not found" });
   if (updated === false) return res.status(400).json({ error: "Invalid stage transition" });
