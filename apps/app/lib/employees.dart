@@ -27,14 +27,24 @@ class _EmployeesTabState extends State<EmployeesTab> {
 
   String _employeeErrorMessage(Object error, AppLocalizations l10n) {
     final raw = error.toString();
-    if (raw.contains('email_taken')) return 'Email already exists.';
-    if (raw.contains('last_manager_role'))
-      return 'At least one manager is required.';
-    if (raw.contains('last_manager_delete'))
-      return 'Cannot delete the last manager.';
-    if (raw.contains('delete_self'))
-      return 'You cannot delete your own account.';
+    if (raw.contains('email_taken')) return l10n.employeesEmailTaken;
+    if (raw.contains('last_manager_role')) return l10n.employeesLastManagerRole;
+    if (raw.contains('last_manager_delete')) return l10n.employeesLastManagerDelete;
+    if (raw.contains('delete_self')) return l10n.employeesDeleteSelfError;
     return raw;
+  }
+
+  String _roleLabel(String role, AppLocalizations l10n) {
+    switch (role) {
+      case 'manager':
+        return l10n.roleManager;
+      case 'employee2':
+        return l10n.roleEmployee2;
+      case 'accountant':
+        return l10n.roleAccountant;
+      default:
+        return l10n.roleEmployee;
+    }
   }
 
   @override
@@ -170,7 +180,7 @@ class _EmployeesTabState extends State<EmployeesTab> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text('${l10n.currentRole}: ${widget.role}',
+                  child: Text('${l10n.currentRole}: ${_roleLabel(widget.role, l10n)}',
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
@@ -225,8 +235,8 @@ class _EmployeesTabState extends State<EmployeesTab> {
                                 DropdownMenuItem(
                                     value: 'employee',
                                     child: Text(l10n.roleEmployee)),
-                                const DropdownMenuItem(
-                                    value: 'employee2', child: Text('Employee 2')),
+                                DropdownMenuItem(
+                                    value: 'employee2', child: Text(l10n.roleEmployee2)),
                                 DropdownMenuItem(
                                     value: 'accountant',
                                     child: Text(l10n.roleAccountant)),
@@ -296,7 +306,7 @@ class _EmployeesTabState extends State<EmployeesTab> {
                           return Card(
                             child: ListTile(
                               title: Text('${e['name']}'),
-                              subtitle: Text('${e['email']} • ${e['role']}'),
+                              subtitle: Text('${e['email']} • ${_roleLabel('${e['role']}', l10n)}'),
                               trailing: isManager
                                   ? Row(
                                       mainAxisSize: MainAxisSize.min,

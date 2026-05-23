@@ -1582,6 +1582,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maccrik charge'**
   String get txMaccrikCharge;
+
+  /// No description provided for @txPartiesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Parties'**
+  String get txPartiesSection;
+
+  /// No description provided for @txShipmentCoreSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic shipment data'**
+  String get txShipmentCoreSection;
+
+  /// No description provided for @txCargoContainersSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Goods & containers'**
+  String get txCargoContainersSection;
+
+  /// No description provided for @txWorkflowSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Workflow & status'**
+  String get txWorkflowSection;
+
+  /// No description provided for @txAttachmentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Document attachments'**
+  String get txAttachmentsSection;
+
+  /// No description provided for @txOrderDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Order date'**
+  String get txOrderDate;
+
+  /// No description provided for @roleEmployee2.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee 2'**
+  String get roleEmployee2;
+
+  /// No description provided for @shippingViewOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View on map'**
+  String get shippingViewOnMap;
+
+  /// No description provided for @shippingViewLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'View location'**
+  String get shippingViewLocation;
+
+  /// No description provided for @employeesEmailTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already in use.'**
+  String get employeesEmailTaken;
+
+  /// No description provided for @employeesLastManagerRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot change the role of the only manager.'**
+  String get employeesLastManagerRole;
+
+  /// No description provided for @employeesLastManagerDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete the only manager.'**
+  String get employeesLastManagerDelete;
+
+  /// No description provided for @employeesDeleteSelfError.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot delete your own account.'**
+  String get employeesDeleteSelfError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

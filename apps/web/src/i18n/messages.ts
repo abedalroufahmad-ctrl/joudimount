@@ -69,6 +69,8 @@ export type MessageKey =
   | "employees.managerDesc"
   | "employees.employeeTitle"
   | "employees.employeeDesc"
+  | "employees.employee2Title"
+  | "employees.employee2Desc"
   | "employees.accountantTitle"
   | "employees.accountantDesc"
   | "employees.goTracker"
@@ -166,6 +168,7 @@ export type MessageKey =
   | "details.deleting"
   | "details.markPaid"
   | "details.release"
+  | "details.originalBl"
   | "details.loadError"
   | "details.deleteError"
   | "details.deleteConfirm"
@@ -201,6 +204,7 @@ export type MessageKey =
   | "details.openAttachment"
   | "role.manager"
   | "role.employee"
+  | "role.employee2"
   | "role.accountant"
   | "clients.title"
   | "clients.back"
@@ -339,6 +343,7 @@ export type MessageKey =
   | "export.list.loadError"
   | "export.form.newTitle"
   | "export.form.editTitle"
+  | "export.form.exportDetails"
   | "export.details.title"
   | "dashboard.transactionsDesc"
   | "dashboard.transfersDesc"
@@ -442,6 +447,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.managerDesc": "صلاحيات كاملة: إنشاء، تعديل، حذف، الدفع، والإفراج.",
     "employees.employeeTitle": "موظف",
     "employees.employeeDesc": "إدارة المعاملات ما عدا المحاسبة والفوترة.",
+    "employees.employee2Title": "موظف 2",
+    "employees.employee2Desc": "إدارة بيانات التخليص الجمركي للمرحلة الثانية فقط.",
     "employees.accountantTitle": "محاسب",
     "employees.accountantDesc": "إدارة المحاسبة والفوترة (الدفع والإفراج).",
     "employees.goTracker": "الذهاب إلى المعاملات",
@@ -539,6 +546,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.deleting": "جاري الحذف…",
     "details.markPaid": "تمييز كمدفوع",
     "details.release": "إصدار الإفراج",
+    "details.originalBl": "استلام بوليصة الشحن الأصلية",
     "details.loadError": "تعذر تحميل تفاصيل المعاملة.",
     "details.deleteError": "تعذر حذف المعاملة.",
     "details.deleteConfirm": "حذف هذه المعاملة؟",
@@ -574,6 +582,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.openAttachment": "فتح",
     "role.manager": "مدير",
     "role.employee": "موظف",
+    "role.employee2": "موظف 2",
     "role.accountant": "محاسب",
     "clients.title": "قسم العملاء",
     "clients.back": "العودة",
@@ -709,6 +718,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "export.list.loadError": "تعذر تحميل معاملات التصدير.",
     "export.form.newTitle": "تصدير جديد",
     "export.form.editTitle": "تعديل التصدير",
+    "export.form.exportDetails": "تفاصيل التصدير",
     "export.details.title": "تفاصيل التصدير",
     "dashboard.transactionsDesc": "المعاملات الجمركية الرئيسية وسيرها الكامل.",
     "dashboard.transfersDesc": "عمليات التحويل بسجل مستقل وقواعد مستقلة.",
@@ -811,6 +821,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.managerDesc": "Can do everything: create, edit, delete, payment, billing, and release.",
     "employees.employeeTitle": "Employee",
     "employees.employeeDesc": "Can manage transactions except accounting and billing operations.",
+    "employees.employee2Title": "Employee 2",
+    "employees.employee2Desc": "Handles stage 2 customs clearance data only.",
     "employees.accountantTitle": "Accountant",
     "employees.accountantDesc": "Manages accounting and billing operations (payment and release).",
     "employees.goTracker": "Go to Transactions",
@@ -909,6 +921,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.deleting": "Deleting…",
     "details.markPaid": "Mark Paid",
     "details.release": "Release",
+    "details.originalBl": "Original BL received",
     "details.loadError": "Unable to load transaction details.",
     "details.deleteError": "Unable to delete transaction.",
     "details.deleteConfirm": "Delete this transaction?",
@@ -944,6 +957,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.openAttachment": "Open",
     "role.manager": "manager",
     "role.employee": "employee",
+    "role.employee2": "Employee 2",
     "role.accountant": "accountant",
     "clients.title": "Clients Section",
     "clients.back": "Back",
@@ -1079,6 +1093,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "export.list.loadError": "Unable to load exports.",
     "export.form.newTitle": "New Export",
     "export.form.editTitle": "Edit Export",
+    "export.form.exportDetails": "Export details",
     "export.details.title": "Export Details",
     "dashboard.transactionsDesc": "Main customs transactions and full workflow.",
     "dashboard.transfersDesc": "Transfer operations with independent records and rules.",

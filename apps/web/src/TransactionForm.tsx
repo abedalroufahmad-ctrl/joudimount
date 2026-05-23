@@ -149,6 +149,7 @@ type FormState = {
   goodsQuantity: string;
   goodsQuality: GoodsQuality | "";
   goodsUnit: GoodsUnit | "";
+  documentPostalNumber: string;
 };
 
 const emptyForm: FormState = {
@@ -196,6 +197,7 @@ const emptyForm: FormState = {
   goodsQuantity: "",
   goodsQuality: "",
   goodsUnit: "cbm",
+  documentPostalNumber: "",
 };
 
 type EditReadOnlyMeta = {
@@ -338,6 +340,7 @@ export default function TransactionForm({
           goodsQuantity: data.goodsQuantity != null ? String(data.goodsQuantity) : "",
           goodsQuality: data.goodsQuality ?? "",
           goodsUnit: data.goodsUnit ?? "cbm",
+          documentPostalNumber: data.documentPostalNumber ?? "",
         });
         setRetainedDocs(data.documentAttachments ?? []);
         setNewDocFiles([]);
@@ -461,6 +464,7 @@ export default function TransactionForm({
       if (form.containerArrivalDate) fd.append("containerArrivalDate", form.containerArrivalDate);
       if (form.documentArrivalDate) fd.append("documentArrivalDate", form.documentArrivalDate);
       if (form.fileNumber.trim()) fd.append("fileNumber", form.fileNumber.trim());
+      if (form.documentPostalNumber.trim()) fd.append("documentPostalNumber", form.documentPostalNumber.trim());
       if (form.containerNumbers.trim()) {
         const values = form.containerNumbers
           .split(/[\n,]+/)
@@ -855,7 +859,7 @@ export default function TransactionForm({
           ) : null}
 
           <FormSection
-            title={module === "exports" ? t("export.form.exportDetails" as MessageKey) : t("transfer.details.title" as MessageKey)}
+            title={module === "exports" ? t("export.form.exportDetails") : t("transfer.details.title" as MessageKey)}
           >
               <label className="col-12 col-md-6 form-label w-100 mb-0">
                 {t("form.portOfLading")}
@@ -1269,6 +1273,39 @@ export default function TransactionForm({
             ))}
           </select>
         </label>
+        <label className="col-12 col-md-6 form-label w-100 mb-0">
+          {t("form.invoiceValue")}
+          <input className="form-control mt-1"
+            type="number"
+            min={0}
+            step="any"
+            disabled={!prepEditableEffective}
+            value={form.invoiceValue}
+            onChange={(e) => setForm({ ...form, invoiceValue: Number(e.target.value) })}
+            required
+          />
+        </label>
+        <label className="col-12 col-md-6 form-label w-100 mb-0">
+          {t("form.invoiceToWeightRate")}
+          <input className="form-control mt-1"
+            type="number"
+            min={0}
+            step="any"
+            disabled={!prepEditableEffective}
+            value={form.invoiceToWeightRateAedPerKg}
+            onChange={(e) => setForm({ ...form, invoiceToWeightRateAedPerKg: e.target.value })}
+          />
+          <span className="form-text">{t("form.invoiceToWeightRateHint")}</span>
+        </label>
+        <label className="col-12 col-md-6 form-label w-100 mb-0">
+          {t("form.orderDate")}
+          <input className="form-control mt-1"
+            type="date"
+            disabled={!prepEditableEffective}
+            value={form.orderDate}
+            onChange={(e) => setForm({ ...form, orderDate: e.target.value })}
+          />
+        </label>
         <label className="col-12 form-label w-100 mb-0">
           {t("form.goodsDescription")}
           <textarea className="form-control mt-1"
@@ -1477,6 +1514,14 @@ export default function TransactionForm({
         ) : null}
 
         <FormSection title={t("form.workflowStatusSection")}>
+        <label className="col-12 col-md-6 form-label w-100 mb-0">
+          {t("form.documentPostalNumber")}
+          <input className="form-control mt-1"
+            disabled={!customsEditableEffective}
+            value={form.documentPostalNumber}
+            onChange={(e) => setForm({ ...form, documentPostalNumber: e.target.value })}
+          />
+        </label>
         <label className="col-12 col-md-6 form-label w-100 mb-0">
           {t("form.stopTransaction")}
           <select className="form-select mt-1" disabled={!legacyStorageEditable} value={form.isStopped} onChange={(e) => setForm({ ...form, isStopped: e.target.value as "no" | "yes" })}>

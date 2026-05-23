@@ -751,4 +751,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get txMaccrikCharge => 'Maccrik charge';
+
+  @override
+  String get txPartiesSection => 'Parties';
+
+  @override
+  String get txShipmentCoreSection => 'Basic shipment data';
+
+  @override
+  String get txCargoContainersSection => 'Goods & containers';
+
+  @override
+  String get txWorkflowSection => 'Workflow & status';
+
+  @override
+  String get txAttachmentsSection => 'Document attachments';
+
+  @override
+  String get txOrderDate => 'Order date';
+
+  @override
+  String get roleEmployee2 => 'Employee 2';
+
+  @override
+  String get shippingViewOnMap => 'View on map';
+
+  @override
+  String get shippingViewLocation => 'View location';
+
+  @override
+  String get employeesEmailTaken => 'This email is already in use.';
+
+  @override
+  String get employeesLastManagerRole => 'Cannot change the role of the only manager.';
+
+  @override
+  String get employeesLastManagerDelete => 'Cannot delete the only manager.';
+
+  @override
+  String get employeesDeleteSelfError => 'You cannot delete your own account.';
 }

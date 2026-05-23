@@ -11,7 +11,7 @@ interface Props {
 function roleLabel(role: Role, t: ReturnType<typeof useI18n>["t"]) {
   if (role === "manager") return t("role.manager");
   if (role === "employee") return t("role.employee");
-  if (role === "employee2") return "Employee 2";
+  if (role === "employee2") return t("role.employee2");
   return t("role.accountant");
 }
 
@@ -148,8 +148,8 @@ export default function EmployeeSection({ role }: Props) {
           <p>{t("employees.employeeDesc")}</p>
         </section>
         <section className={`details-card ${role === "employee2" ? "role-active" : ""}`}>
-          <h3>Employee 2</h3>
-          <p>Handles stage 2 customs clearance data only.</p>
+          <h3>{t("employees.employee2Title")}</h3>
+          <p>{t("employees.employee2Desc")}</p>
         </section>
         <section className={`details-card ${role === "accountant" ? "role-active" : ""}`}>
           <h3>{t("employees.accountantTitle")}</h3>
@@ -207,7 +207,7 @@ export default function EmployeeSection({ role }: Props) {
                 >
                   <option value="manager">{t("role.manager")}</option>
                   <option value="employee">{t("role.employee")}</option>
-                  <option value="employee2">Employee 2</option>
+                  <option value="employee2">{t("role.employee2")}</option>
                   <option value="accountant">{t("role.accountant")}</option>
                 </select>
               </div>

@@ -47,6 +47,73 @@ class _ShippingCompanyDetailPageState extends State<ShippingCompanyDetailPage> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  RegExpMatch? _coordMatch(String value) {
+    return RegExp(r'(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)').firstMatch(value);
+  }
+
+  Widget _locationTile(AppLocalizations l10n, Map<String, dynamic> s) {
+    final location = (s['location'] ?? '').toString().trim();
+    if (location.isEmpty) {
+      if (s['latitude'] != null && s['longitude'] != null) {
+        final lat = (s['latitude'] as num).toDouble();
+        final lng = (s['longitude'] as num).toDouble();
+        return Card(
+          child: ListTile(
+            title: Text(l10n.shippingLocationOptional,
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text('$lat, $lng'),
+            trailing: IconButton(
+              icon: const Icon(Icons.map_outlined),
+              tooltip: l10n.shippingViewOnMap,
+              onPressed: () => _openMap(lat, lng),
+            ),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+  if (location.startsWith('http')) {
+      return Card(
+        child: ListTile(
+          title: Text(l10n.shippingLocationOptional,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: Text(location, maxLines: 2, overflow: TextOverflow.ellipsis),
+          trailing: IconButton(
+            icon: const Icon(Icons.open_in_new),
+            tooltip: l10n.shippingViewLocation,
+            onPressed: () => _openUrl(location),
+          ),
+        ),
+      );
+    }
+
+    final match = _coordMatch(location);
+    if (match != null) {
+      final lat = double.parse(match.group(1)!);
+      final lng = double.parse(match.group(2)!);
+      return Card(
+        child: ListTile(
+          title: Text(l10n.shippingLocationOptional,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: Text(location),
+          trailing: IconButton(
+            icon: const Icon(Icons.map_outlined),
+            tooltip: l10n.shippingViewOnMap,
+            onPressed: () => _openMap(lat, lng),
+          ),
+        ),
+      );
+    }
+
+    return _kv(l10n.shippingLocationOptional, location);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -90,32 +157,10 @@ class _ShippingCompanyDetailPageState extends State<ShippingCompanyDetailPage> {
                             .toString()
                             .trim()
                             .isNotEmpty)
-                          _kv('Dispatch template',
+                          _kv(l10n.shippingDispatchTemplateOptional,
                               '${s['dispatchFormTemplate']}'),
-                        if (s['latitude'] != null && s['longitude'] != null)
-                          Card(
-                            child: ListTile(
-                              title: Text(l10n.latitudeOptional,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w600)),
-                              subtitle:
-                                  Text('${s['latitude']}, ${s['longitude']}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.map_outlined),
-                                tooltip: 'OpenStreetMap',
-                                onPressed: () => _openMap(
-                                  (s['latitude'] as num).toDouble(),
-                                  (s['longitude'] as num).toDouble(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        if ((s['location'] ?? '')
-                            .toString()
-                            .trim()
-                            .isNotEmpty)
-                          _kv(l10n.shippingLocationOptional, '${s['location']}'),
-                        _kv(l10n.shippingStatus, '${s['status']}'),
+                        _locationTile(l10n, s),
+                        _kv(l10n.shippingStatus, s['status'] == 'active' ? l10n.statusActive : l10n.statusInactive),
                       ],
                     ),
     );

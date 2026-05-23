@@ -138,7 +138,7 @@ export default function TransactionDetails({
     }
   };
 
-  const onAccountingAction = async (action: "pay" | "release") => {
+  const onPostAction = async (action: "pay" | "release" | "original-bl") => {
     if (!id) return;
     setProcessing(true);
     setError("");
@@ -185,14 +185,14 @@ export default function TransactionDetails({
           <>
             <button
               className="btn btn-primary btn-sm"
-              onClick={() => onAccountingAction("pay")}
+              onClick={() => onPostAction("pay")}
               disabled={processing || transaction?.paymentStatus === "paid"}
             >
               {t("details.markPaid")}
             </button>
             <button
               className="btn btn-primary btn-sm"
-              onClick={() => onAccountingAction("release")}
+              onClick={() => onPostAction("release")}
               disabled={
                 processing ||
                 transaction?.paymentStatus !== "paid" ||
@@ -202,6 +202,15 @@ export default function TransactionDetails({
               {t("details.release")}
             </button>
           </>
+        ) : null}
+        {id && module === "transactions" && (role === "manager" || role === "employee") ? (
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => onPostAction("original-bl")}
+            disabled={processing}
+          >
+            {t("details.originalBl")}
+          </button>
         ) : null}
         {transaction ? (
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setShippingPaperOpen(true)}>
@@ -324,6 +333,14 @@ export default function TransactionDetails({
         </DetailSection>
 
         <DetailSection title={t("form.cargoContainersSection")}>
+          {transaction.orderDate ? (
+            <DetailField label={t("form.orderDate")}>
+              {new Date(transaction.orderDate).toLocaleString(numberLocale)}
+            </DetailField>
+          ) : null}
+          {transaction.containerSize ? (
+            <DetailField label={t("form.containerSize")}>{transaction.containerSize}</DetailField>
+          ) : null}
           {transaction.containerCount != null ? (
             <DetailField label={t("details.containerCount")}>{transaction.containerCount}</DetailField>
           ) : null}
@@ -352,6 +369,9 @@ export default function TransactionDetails({
           ) : null}
           {transaction.unitCount != null ? (
             <DetailField label={t("form.numberOfUnits")}>{transaction.unitCount}</DetailField>
+          ) : null}
+          {transaction.unitNumber != null ? (
+            <DetailField label={t("form.unitNumber")}>{transaction.unitNumber}</DetailField>
           ) : null}
         </DetailSection>
 
@@ -399,6 +419,9 @@ export default function TransactionDetails({
         ) : null}
 
         <DetailSection title={t("form.workflowStatusSection")}>
+          {transaction.documentPostalNumber ? (
+            <DetailField label={t("details.documentPostalNumber")}>{transaction.documentPostalNumber}</DetailField>
+          ) : null}
           <DetailField label={t("details.document")}>{transaction.documentStatus}</DetailField>
           <DetailField label={t("details.payment")}>{transaction.paymentStatus}</DetailField>
           <DetailField label={t("form.stopTransaction")}>

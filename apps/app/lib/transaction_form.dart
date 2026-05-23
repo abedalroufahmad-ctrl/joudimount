@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -32,22 +33,30 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     'TRANSPORTATION',
     'STORAGE',
   ];
+  static const List<String> _exportStageOptions = [
+    'PREPARATION',
+    'CUSTOMS_CLEARANCE',
+    'TRANSPORTATION',
+  ];
+  static const List<String> _importDeclarationTypeOptions = [
+    'Import',
+    'Import to Free Zone',
+    'Import for Re-Export',
+    'Temporary Import',
+    'Transitin',
+    'Transitin from GCC',
+  ];
+  static const List<String> _transferDeclarationTypeOptions = ['Transfer'];
+  static const List<String> _exportDeclarationTypeOptions = [
+    'Export',
+    'Transit out',
+    'Export to GCC',
+  ];
   static const List<String> _documentCategoryOptions = [
     'bill_of_lading',
     'certificate_of_origin',
     'invoice',
     'packing_list',
-  ];
-  static const List<String> _declarationTypeOptions = [
-    'Import',
-    'Import to Free Zone',
-    'Import for Re-Export',
-    'Temporary Import',
-    'Export',
-    'Re-Export',
-    'Transfer',
-    'Transit',
-    'Temporary Admission',
   ];
   static const List<String> _portTypeOptions = [
     'Seaports',
@@ -55,12 +64,42 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     'Mainland'
   ];
 
+  List<String> get _stageOptionsForModule =>
+      widget.module == 'exports' ? _exportStageOptions : _stageOptions;
+
+  List<String> _declarationTypeOptionsForModule() {
+    switch (widget.module) {
+      case 'transfers':
+        return _transferDeclarationTypeOptions;
+      case 'exports':
+        return _exportDeclarationTypeOptions;
+      default:
+        return _importDeclarationTypeOptions;
+    }
+  }
+
+  List<String> _declarationDropdownOptions(String current) {
+    final base = _declarationTypeOptionsForModule();
+    if (current.isNotEmpty && !base.contains(current)) {
+      return [current, ...base];
+    }
+    return base;
+  }
+
+  List<String> _portTypeDropdownOptions() {
+    if (_portType.isNotEmpty && !_portTypeOptions.contains(_portType)) {
+      return [_portType, ..._portTypeOptions];
+    }
+    return _portTypeOptions;
+  }
+
   final _client = TextEditingController();
   final _shippingName = TextEditingController();
   final _shippingId = TextEditingController();
   final _declarationNumberInput = TextEditingController();
   final _declarationNumberInput2 = TextEditingController();
   final _declarationDateInput = TextEditingController();
+  final _orderDate = TextEditingController();
   String _declarationType = '';
   String _declarationType2 = '';
   String _portType = '';
@@ -175,17 +214,12 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           (tx['declarationNumber2'] ?? '').toString();
       _declarationDateInput.text = _isoToDateInput(tx['declarationDate']);
       final loadedDeclarationType = (tx['declarationType'] ?? '').toString();
-      _declarationType = _declarationTypeOptions.contains(loadedDeclarationType)
-          ? loadedDeclarationType
-          : '';
+      _declarationType = loadedDeclarationType;
       final loadedDeclarationType2 = (tx['declarationType2'] ?? '').toString();
-      _declarationType2 =
-          _declarationTypeOptions.contains(loadedDeclarationType2)
-              ? loadedDeclarationType2
-              : '';
+      _declarationType2 = loadedDeclarationType2;
       final loadedPortType = (tx['portType'] ?? '').toString();
-      _portType =
-          _portTypeOptions.contains(loadedPortType) ? loadedPortType : '';
+      _portType = loadedPortType;
+      _orderDate.text = _isoToDateInput(tx['orderDate']);
       _containerSize.text = (tx['containerSize'] ?? '').toString();
       _portOfLading.text = (tx['portOfLading'] ?? '').toString();
       _portOfDischarge.text = (tx['portOfDischarge'] ?? '').toString();
@@ -238,8 +272,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _releaseCode = tx['releaseCode']?.toString();
       _clearanceStatus = tx['clearanceStatus']?.toString();
       final loadedStage = (tx['transactionStage'] ?? 'PREPARATION').toString();
-      _stage =
-          _stageOptions.contains(loadedStage) ? loadedStage : 'PREPARATION';
+      _stage = _stageOptionsForModule.contains(loadedStage)
+          ? loadedStage
+          : 'PREPARATION';
       final att = tx['documentAttachments'];
       if (att is List) {
         _retainedDocs = att.cast<Map<String, dynamic>>();
@@ -254,20 +289,36 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   }
 
   Map<String, dynamic> _jsonBody() {
+    final mod = widget.module;
+    final destination = _destination.text.trim();
+    final portOfDischarge = _portOfDischarge.text.trim();
+    final portOfLading = _portOfLading.text.trim();
+    final effectiveShippingCompanyName = mod == 'transactions'
+        ? _shippingName.text.trim()
+        : (destination.isNotEmpty
+            ? destination
+            : (portOfDischarge.isNotEmpty ? portOfDischarge : 'N/A'));
+    final effectiveAirwayBill = mod == 'transactions'
+        ? _awb.text.trim()
+        : (portOfLading.isNotEmpty ? portOfLading : 'N/A');
+    final parsedInvoice = double.tryParse(_value.text.trim()) ?? 0;
+    final effectiveInvoiceValue =
+        mod == 'transactions' ? parsedInvoice : math.max(1, parsedInvoice);
+
     final body = <String, dynamic>{
       'clientName': _client.text.trim(),
-      'shippingCompanyName': _shippingName.text.trim(),
+      'shippingCompanyName': effectiveShippingCompanyName,
       'declarationNumber': _declarationNumberInput.text.trim(),
       'declarationNumber2': _declarationNumberInput2.text.trim(),
       'declarationDate': _declarationDateInput.text.trim(),
       'declarationType': _declarationType.trim(),
       'declarationType2': _declarationType2.trim(),
       'portType': _portType.trim(),
-      'airwayBill': _awb.text.trim(),
+      'airwayBill': effectiveAirwayBill,
       'hsCode': _hs.text.trim(),
       'goodsDescription': _goods.text.trim(),
       'originCountry': _origin.text.trim().toUpperCase(),
-      'invoiceValue': double.tryParse(_value.text.trim()) ?? 0,
+      'invoiceValue': effectiveInvoiceValue,
       'invoiceCurrency': _currency,
       'documentStatus': _docStatus,
       'paymentStatus': _paymentStatus,
@@ -280,6 +331,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       body.remove('declarationNumber2');
     if (_declarationDateInput.text.trim().isEmpty)
       body.remove('declarationDate');
+    if (_orderDate.text.trim().isNotEmpty) body['orderDate'] = _orderDate.text.trim();
     if (_declarationType.trim().isEmpty) body.remove('declarationType');
     if (_declarationType2.trim().isEmpty) body.remove('declarationType2');
     if (_portType.trim().isEmpty) body.remove('portType');
@@ -473,6 +525,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     _declarationNumberInput.dispose();
     _declarationNumberInput2.dispose();
     _declarationDateInput.dispose();
+    _orderDate.dispose();
     _containerSize.dispose();
     _portOfLading.dispose();
     _portOfDischarge.dispose();
@@ -559,6 +612,29 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final showCustomsDeclarationSection = _isEdit && _stage != 'PREPARATION';
     final groupedRetained = _groupRetainedDocs(l10n);
 
+    Widget sectionCard(String title, List<Widget> children) {
+      if (children.isEmpty) return const SizedBox.shrink();
+      return Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const Divider(height: 20),
+              ...children,
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
           title: Text(_isEdit
@@ -574,35 +650,30 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 : '${_newLabel(context)} ${_moduleNoun(context)}',
           ),
           const SizedBox(height: 10),
-          if (_isEdit) ...[
-            Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('tx-stage-$_stage'),
-                  decoration:
-                      InputDecoration(labelText: l10n.txStage),
-                  initialValue: _stage,
-                  items: _stageOptions
-                      .map((s) => DropdownMenuItem(
-                          value: s, child: Text(_stageLabel(s, l10n))))
-                      .toList(),
-                  onChanged: !canSetStage
-                      ? null
-                      : (v) {
-                          if (v != null && v != _stage) _changeStage(v);
-                        },
-                )),
-            const SizedBox(height: 8),
-            Text(l10n.txReadOnlyFields,
-                style: Theme.of(context).textTheme.titleMedium),
-            if ((_releaseCode ?? '').isNotEmpty)
-              _readonlyField(l10n.releaseCode, _releaseCode!),
-            if ((_clearanceStatus ?? '').isNotEmpty)
-              _readonlyField(l10n.status, _clearanceStatus!),
-            const SizedBox(height: 8),
-          ],
-          if (showCustomsDeclarationSection)
-            _field(_fileNumber, l10n.txFileNumber, enabled: customsEditable),
+          if (_isEdit)
+            sectionCard(l10n.txReadOnlyFields, [
+              DropdownButtonFormField<String>(
+                key: ValueKey('tx-stage-$_stage'),
+                decoration: InputDecoration(labelText: l10n.txStage),
+                initialValue: _stage,
+                items: _stageOptionsForModule
+                    .map((s) => DropdownMenuItem(
+                        value: s, child: Text(_stageLabel(s, l10n))))
+                    .toList(),
+                onChanged: !canSetStage
+                    ? null
+                    : (v) {
+                        if (v != null && v != _stage) _changeStage(v);
+                      },
+              ),
+              if ((_releaseCode ?? '').isNotEmpty)
+                _readonlyField(l10n.releaseCode, _releaseCode!),
+              if ((_clearanceStatus ?? '').isNotEmpty)
+                _readonlyField(l10n.status, _clearanceStatus!),
+              if (showCustomsDeclarationSection)
+                _field(_fileNumber, l10n.txFileNumber, enabled: customsEditable),
+            ]),
+          sectionCard(l10n.txPartiesSection, [
           _field(_client, l10n.client,
               enabled: prepEditable, onChanged: (_) => setState(() {})),
           if (clientOpts.isNotEmpty)
@@ -655,17 +726,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ),
           _field(_shippingId, l10n.shippingCompanyIdOptional,
               enabled: prepEditable),
-          if (showCustomsDeclarationSection) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: Text(
-                l10n.txCustomsDeclaration,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
+          ]),
+          if (showCustomsDeclarationSection)
+            sectionCard(l10n.txCustomsDeclaration, [
             _field(_declarationNumberInput, l10n.txDeclarationNumber1,
                 enabled: customsEditable, maxLength: 120),
             ApiDateField(
@@ -685,7 +748,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                   items: [
                     DropdownMenuItem<String>(
                         value: null, child: Text(l10n.optionalSelect)),
-                    ..._declarationTypeOptions.map(
+                    ..._declarationDropdownOptions(_declarationType).map(
                       (type) => DropdownMenuItem<String>(
                           value: type, child: Text(type)),
                     ),
@@ -708,7 +771,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                   items: [
                     DropdownMenuItem<String>(
                         value: null, child: Text(l10n.optionalSelect)),
-                    ..._declarationTypeOptions.map(
+                    ..._declarationDropdownOptions(_declarationType2).map(
                       (type) => DropdownMenuItem<String>(
                           value: type, child: Text(type)),
                     ),
@@ -727,7 +790,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                   items: [
                     DropdownMenuItem<String>(
                         value: null, child: Text(l10n.optionalSelect)),
-                    ..._portTypeOptions.map(
+                    ..._portTypeDropdownOptions().map(
                       (type) => DropdownMenuItem<String>(
                           value: type, child: Text(type)),
                     ),
@@ -736,18 +799,21 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       ? (v) => setState(() => _portType = v ?? '')
                       : null,
                 )),
-          ],
-          const SizedBox(height: 12),
-          Text(l10n.txTransferDetailsSection,
-              style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 8),
+            ]),
+          sectionCard(l10n.txTransferDetailsSection, [
           _field(_portOfLading, l10n.txPortOfLading, enabled: prepEditable),
           _field(_portOfDischarge, l10n.txPortOfDischarge, enabled: prepEditable),
           _field(_destination, l10n.txDestination, enabled: prepEditable),
-          const SizedBox(height: 12),
+          ]),
+          sectionCard(l10n.txShipmentCoreSection, [
           _field(_awb, l10n.airwayBill, enabled: prepEditable),
           _field(_hs, l10n.hsCode, enabled: prepEditable),
           _field(_origin, l10n.originCountry, enabled: prepEditable),
+          ApiDateField(
+            controller: _orderDate,
+            label: l10n.txOrderDate,
+            enabled: prepEditable,
+          ),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(
@@ -764,6 +830,16 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     ? (v) => setState(() => _currency = v ?? 'AED')
                     : null,
               )),
+          _field(_value, l10n.invoiceValue,
+              keyboard: const TextInputType.numberWithOptions(decimal: true),
+              enabled: prepEditable),
+          _field(_rate, l10n.txRateAedPerKg,
+              keyboard: const TextInputType.numberWithOptions(decimal: true),
+              enabled: prepEditable),
+          _field(_goods, l10n.goodsDescription,
+              maxLines: 3, enabled: prepEditable),
+          ]),
+          sectionCard(l10n.txCargoContainersSection, [
           _field(_weight, l10n.txGoodsWeightKg,
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
@@ -894,6 +970,17 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ),
           _field(_unitNumber, l10n.txUnitNumber,
               keyboard: TextInputType.number, enabled: storageEditable),
+          if (!_isEdit)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: TextFormField(
+                controller: _unitCount,
+                enabled: storageEditable,
+                decoration: InputDecoration(labelText: l10n.txNumberOfUnits),
+              ),
+            ),
+          ]),
+          sectionCard(l10n.txWorkflowSection, [
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(
@@ -933,28 +1020,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     ? null
                     : (v) => setState(() => _paymentStatus = v ?? 'pending'),
               )),
-          const SizedBox(height: 8),
-          _field(_goods, l10n.goodsDescription,
-              maxLines: 3, enabled: prepEditable),
-          if (!_isEdit)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: TextFormField(
-                        controller: _unitCount,
-                        enabled: storageEditable,
-                        decoration:
-                            InputDecoration(labelText: l10n.txNumberOfUnits),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          ]),
           if (storageWarehouseOnly && widget.transactionId != null) ...[
             const SizedBox(height: 8),
             Text(l10n.storageReadOnlyHint,
@@ -975,11 +1041,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               child: Text(l10n.storageOpenDedicatedPage),
             ),
           ],
-          if (showTransportationSection) ...[
-            const SizedBox(height: 12),
-            Text(l10n.txTransportationSection,
-                style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
+          if (showTransportationSection)
+            sectionCard(l10n.txTransportationSection, [
             _field(_transportationTo, l10n.txTransportationTo,
                 enabled: transportationEditableEffective),
             _field(_trachNo, l10n.txTrachNo,
@@ -999,10 +1062,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             _field(_maccrikCharge, l10n.txMaccrikCharge,
                 keyboard: const TextInputType.numberWithOptions(decimal: true),
                 enabled: transportationEditableEffective),
-          ],
-          const SizedBox(height: 12),
-          Text(l10n.documentPhotosSection,
-              style: Theme.of(context).textTheme.titleSmall),
+            ]),
+          sectionCard(l10n.txAttachmentsSection, [
           Text(l10n.txAttachDocs, style: Theme.of(context).textTheme.bodySmall),
           if (_isEdit && _retainedDocs.isNotEmpty)
             ...groupedRetained.entries.map(
@@ -1077,7 +1138,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                       key: ValueKey(
                           'doc-cat-$idx-${_pickedCategories[idx] ?? 'none'}'),
                       decoration:
-                          InputDecoration(labelText: '${f.name} - Category'),
+                          InputDecoration(labelText: '${f.name} — ${l10n.selectCategory}'),
                       initialValue: _pickedCategories[idx],
                       items: [
                         DropdownMenuItem<String?>(
@@ -1096,6 +1157,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               );
             }),
           ],
+          ]),
           if (_error.isNotEmpty)
             Card(
               color: cs.errorContainer,

@@ -247,5 +247,18 @@
   "txTransportationToLocation": "إلى",
   "txTripCharge": "تكلفة الرحلة",
   "txWaitingCharge": "تكلفة الانتظار",
-  "txMaccrikCharge": "تكلفة مكريك"
+  "txMaccrikCharge": "تكلفة مكريك",
+  "txPartiesSection": "الأطراف",
+  "txShipmentCoreSection": "بيانات الشحنة الأساسية",
+  "txCargoContainersSection": "البضاعة والحاويات",
+  "txWorkflowSection": "سير العمل والحالة",
+  "txAttachmentsSection": "مرفقات المستندات",
+  "txOrderDate": "تاريخ الطلب",
+  "roleEmployee2": "موظف 2",
+  "shippingViewOnMap": "عرض على الخريطة",
+  "shippingViewLocation": "عرض الموقع",
+  "employeesEmailTaken": "هذا البريد مستخدم بالفعل.",
+  "employeesLastManagerRole": "لا يمكن تغيير دور المدير الوحيد.",
+  "employeesLastManagerDelete": "لا يمكن حذف المدير الوحيد.",
+  "employeesDeleteSelfError": "لا يمكن حذف حسابك الحالي."
 }

@@ -83,6 +83,235 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     return '$d1 · $d2';
   }
 
+  Widget _detailSection(String title, List<Widget> children) {
+    final visible = children.where((w) => w is! SizedBox).toList();
+    if (visible.isEmpty) return const SizedBox.shrink();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    )),
+            const Divider(height: 20),
+            ...visible,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(value),
+          ],
+        ),
+      );
+
+  Widget _detailRowOptional(String label, dynamic value, String locale,
+      {bool dateTime = false}) {
+    if (value == null) return const SizedBox.shrink();
+    final text = value.toString().trim();
+    if (text.isEmpty) return const SizedBox.shrink();
+  final display = dateTime ? _formatDateTime(text, locale) : text;
+    return _detailRow(label, display);
+  }
+
+  String _declarationTypeLabel(String value) {
+    const map = {
+      'Import': 'Import',
+      'Import to Free Zone': 'Import to Free Zone',
+      'Import for Re-Export': 'Import for Re-Export',
+      'Temporary Import': 'Temporary Import',
+      'Transfer': 'Transfer',
+      'Export': 'Export',
+      'Transit out': 'Transit out',
+      'Export to GCC': 'Export to GCC',
+      'Transitin': 'Transitin',
+      'Transitin from GCC': 'Transitin from GCC',
+    };
+    return map[value] ?? value;
+  }
+
+  String _portTypeLabel(String value) {
+    const map = {
+      'Seaports': 'Seaports',
+      'Free Zones': 'Free Zones',
+      'Mainland': 'Mainland',
+    };
+    return map[value] ?? value;
+  }
+
+  List<Widget> _buildDetailSections(
+    AppLocalizations l10n,
+    String locale,
+    intl.NumberFormat numberFormat,
+  ) {
+    final t = tx!;
+    final stage = '${t['transactionStage'] ?? 'PREPARATION'}';
+    final showCustoms = stage != 'PREPARATION';
+    final showTransportation = stage == 'TRANSPORTATION' &&
+        ((t['transportationTo']?.toString().trim().isNotEmpty ?? false) ||
+            (t['trachNo']?.toString().trim().isNotEmpty ?? false) ||
+            (t['transportationCompany']?.toString().trim().isNotEmpty ?? false) ||
+            (t['transportationFrom']?.toString().trim().isNotEmpty ?? false) ||
+            (t['transportationToLocation']?.toString().trim().isNotEmpty ?? false) ||
+            t['tripCharge'] != null ||
+            t['waitingCharge'] != null ||
+            t['maccrikCharge'] != null);
+    final showTransfer = (t['portOfLading']?.toString().trim().isNotEmpty ?? false) ||
+        (t['portOfDischarge']?.toString().trim().isNotEmpty ?? false) ||
+        (t['destination']?.toString().trim().isNotEmpty ?? false);
+
+    final snapshotRows = <Widget>[
+      _detailRow(l10n.createdAt, _formatDateTime('${t['createdAt']}', locale)),
+      _detailRow(l10n.txDeclarationNumber1, '${t['declarationNumber']}'),
+      _detailRowOptional(l10n.txDeclarationNumber2, t['declarationNumber2'], locale),
+      _detailRowOptional(l10n.txFileNumber, t['fileNumber'], locale),
+      _detailRow(l10n.status, '${t['clearanceStatus']}'),
+      _detailRow(l10n.txStage, _stageLabel(stage, l10n)),
+      if (stage == 'STORAGE' &&
+          (widget.module == 'transactions' || widget.module == 'transfers'))
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: FilledButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => TransactionStoragePage(
+                    role: widget.role,
+                    transactionId: widget.id,
+                    module: widget.module,
+                  ),
+                ),
+              );
+            },
+            child: Text(l10n.storageLinkFromDetails),
+          ),
+        ),
+      _detailRowOptional(l10n.releaseCode, t['releaseCode'], locale),
+    ];
+
+    final partiesRows = <Widget>[
+      _detailRow(l10n.client, '${t['clientName']}'),
+      _detailRow(l10n.shippingCompany, '${t['shippingCompanyName']}'),
+      _detailRowOptional(l10n.shippingCompanyIdOptional, t['shippingCompanyId'], locale),
+    ];
+
+    final customsRows = <Widget>[
+      _detailRow(l10n.txDeclarationNumber1, '${t['declarationNumber']}'),
+      _detailRowOptional(l10n.txDeclarationNumber2, t['declarationNumber2'], locale),
+      _detailRowOptional(l10n.txDeclarationDate, t['declarationDate'], locale, dateTime: true),
+      if (t['declarationType'] != null && t['declarationType'].toString().isNotEmpty)
+        _detailRow(l10n.txDeclarationType1, _declarationTypeLabel('${t['declarationType']}')),
+      if (t['declarationType2'] != null && t['declarationType2'].toString().isNotEmpty)
+        _detailRow(l10n.txDeclarationType2, _declarationTypeLabel('${t['declarationType2']}')),
+      if (t['portType'] != null && t['portType'].toString().isNotEmpty)
+        _detailRow(l10n.txPortType, _portTypeLabel('${t['portType']}')),
+    ];
+
+    final transferRows = <Widget>[
+      _detailRowOptional(l10n.txPortOfLading, t['portOfLading'], locale),
+      _detailRowOptional(l10n.txPortOfDischarge, t['portOfDischarge'], locale),
+      _detailRowOptional(l10n.txDestination, t['destination'], locale),
+    ];
+
+    final shipmentRows = <Widget>[
+      _detailRow(l10n.airwayBill, '${t['airwayBill']}'),
+      _detailRow(l10n.hsCode, '${t['hsCode']}'),
+      _detailRow(l10n.goods, '${t['goodsDescription']}'),
+      _detailRow(l10n.origin, '${t['originCountry']}'),
+      _detailRow(
+        l10n.invoiceValue,
+        '${numberFormat.format(t['invoiceValue'] ?? 0)} ${t['invoiceCurrency'] ?? 'AED'}',
+      ),
+    ];
+
+    final cargoRows = <Widget>[
+      _detailRowOptional(l10n.txOrderDate, t['orderDate'], locale, dateTime: true),
+      _detailRowOptional(l10n.txContainerSize, t['containerSize'], locale),
+      _detailRowOptional(l10n.txContainerCount, t['containerCount'], locale),
+      _detailRowOptional(l10n.txGoodsWeightKg, t['goodsWeightKg'], locale),
+      _detailRowOptional(l10n.txRateAedPerKg, t['invoiceToWeightRateAedPerKg'], locale),
+      _detailRowOptional(l10n.txContainerArrival, t['containerArrivalDate'], locale, dateTime: true),
+      _detailRowOptional(l10n.txDocumentArrival, t['documentArrivalDate'], locale, dateTime: true),
+      if (t['containerNumbers'] is List && (t['containerNumbers'] as List).isNotEmpty)
+        _detailRow(
+          l10n.containerNumbers,
+          (t['containerNumbers'] as List).map((e) => '$e').join(', '),
+        ),
+      _detailRowOptional(l10n.txNumberOfUnits, t['unitCount'], locale),
+      _detailRowOptional(l10n.txUnitNumber, t['unitNumber'], locale),
+    ];
+
+    final transportationRows = <Widget>[
+      _detailRowOptional(l10n.txTransportationTo, t['transportationTo'], locale),
+      _detailRowOptional(l10n.txTrachNo, t['trachNo'], locale),
+      _detailRowOptional(l10n.txTransportationCompany, t['transportationCompany'], locale),
+      _detailRowOptional(l10n.txTransportationFrom, t['transportationFrom'], locale),
+      _detailRowOptional(l10n.txTransportationToLocation, t['transportationToLocation'], locale),
+      _detailRowOptional(l10n.txTripCharge, t['tripCharge'], locale),
+      _detailRowOptional(l10n.txWaitingCharge, t['waitingCharge'], locale),
+      _detailRowOptional(l10n.txMaccrikCharge, t['maccrikCharge'], locale),
+    ];
+
+    final workflowRows = <Widget>[
+      _detailRowOptional(l10n.txDocumentPostalNumber, t['documentPostalNumber'], locale),
+      _detailRow(l10n.document, _docStatusLabel('${t['documentStatus']}', l10n)),
+      _detailRow(l10n.payment, _paymentStatusLabel('${t['paymentStatus']}', l10n)),
+      _detailRow(l10n.stopTransaction,
+          t['isStopped'] == true ? l10n.optionYes : l10n.optionNo),
+      _detailRowOptional(l10n.stopReason, t['stopReason'], locale),
+      _detailRowOptional(l10n.txGoodsQty, t['goodsQuantity'], locale),
+      if (t['goodsQuality'] != null)
+        _detailRow(l10n.txGoodsQuality, _qualityLabel('${t['goodsQuality']}', l10n)),
+      if (t['goodsUnit'] != null)
+        _detailRow(l10n.txGoodsUnit, _unitLabel('${t['goodsUnit']}', l10n)),
+    ];
+
+    final attachmentWidgets = <Widget>[];
+    if ((t['documentAttachments'] as List?)?.isNotEmpty ?? false) {
+      attachmentWidgets.addAll(
+        _groupAttachments(
+                (t['documentAttachments'] as List).cast<Map<String, dynamic>>())
+            .entries
+            .expand(
+              (entry) => [
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, bottom: 2),
+                  child: Text(entry.key,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                ),
+                ...entry.value.map(_attachmentTile),
+              ],
+            ),
+      );
+    }
+
+    return [
+      _detailSection(l10n.txReadOnlyFields, snapshotRows),
+      _detailSection(l10n.txPartiesSection, partiesRows),
+      if (showCustoms) _detailSection(l10n.txCustomsDeclaration, customsRows),
+      if (showTransfer) _detailSection(l10n.txTransferDetailsSection, transferRows),
+      _detailSection(l10n.txShipmentCoreSection, shipmentRows),
+      _detailSection(l10n.txCargoContainersSection, cargoRows),
+      if (showTransportation)
+        _detailSection(l10n.txTransportationSection, transportationRows),
+      _detailSection(l10n.txWorkflowSection, workflowRows),
+      if (attachmentWidgets.isNotEmpty)
+        _detailSection(l10n.txAttachmentsSection, attachmentWidgets),
+    ];
+  }
+
   Future<void> _action(String name) async {
     try {
       await Api.post('$_modulePath/${widget.id}/$name', {});
@@ -363,220 +592,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    _kv(l10n.client, '${tx!['clientName']}'),
-                    if ('${tx!['transactionStage'] ?? ''}' == 'STORAGE' &&
-                        (widget.module == 'transactions' ||
-                            widget.module == 'transfers'))
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: FilledButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => TransactionStoragePage(
-                                  role: widget.role,
-                                  transactionId: widget.id,
-                                  module: widget.module,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Text(l10n.storageLinkFromDetails),
-                        ),
-                      ),
-                    _kv(l10n.shippingCompany, '${tx!['shippingCompanyName']}'),
-                    if ('${tx!['transactionStage'] ?? 'PREPARATION'}' !=
-                        'PREPARATION') ...[
-                      _kv(l10n.txDeclarationNumber1,
-                          '${tx!['declarationNumber']}'),
-                      if (tx!['declarationNumber2'] != null &&
-                          tx!['declarationNumber2']
-                              .toString()
-                              .trim()
-                              .isNotEmpty)
-                        _kv(l10n.txDeclarationNumber2,
-                            '${tx!['declarationNumber2']}'),
-                      if (tx!['declarationDate'] != null)
-                        _kv(
-                            l10n.txDeclarationDate,
-                            _formatDateTime(
-                                '${tx!['declarationDate']}', locale)),
-                      if (tx!['declarationType'] != null &&
-                          tx!['declarationType'].toString().isNotEmpty)
-                        _kv(l10n.txDeclarationType1,
-                            '${tx!['declarationType']}'),
-                      if (tx!['declarationType2'] != null &&
-                          tx!['declarationType2'].toString().isNotEmpty)
-                        _kv(l10n.txDeclarationType2,
-                            '${tx!['declarationType2']}'),
-                      if (tx!['portType'] != null &&
-                          tx!['portType'].toString().isNotEmpty)
-                        _kv(l10n.txPortType, '${tx!['portType']}'),
-                    ],
-                    if (tx!['shippingCompanyId'] != null &&
-                        tx!['shippingCompanyId'].toString().isNotEmpty)
-                      _kv(l10n.shippingCompanyIdOptional,
-                          '${tx!['shippingCompanyId']}'),
-                    _kv(l10n.airwayBill, '${tx!['airwayBill']}'),
-                    _kv(l10n.hsCode, '${tx!['hsCode']}'),
-                    _kv(l10n.goods, '${tx!['goodsDescription']}'),
-                    _kv(l10n.origin, '${tx!['originCountry']}'),
-                    _kv(
-                      l10n.invoiceValue,
-                      '${numberFormat.format(tx!['invoiceValue'] ?? 0)} ${tx!['invoiceCurrency'] ?? 'AED'}',
-                    ),
-                    _kv(l10n.document, _docStatusLabel('${tx!['documentStatus']}', l10n)),
-                    _kv(l10n.status, '${tx!['clearanceStatus']}'),
-                    _kv(l10n.payment, _paymentStatusLabel('${tx!['paymentStatus']}', l10n)),
-                    if ((tx!['portOfLading'] != null && tx!['portOfLading'].toString().isNotEmpty) ||
-                        (tx!['portOfDischarge'] != null && tx!['portOfDischarge'].toString().isNotEmpty) ||
-                        (tx!['destination'] != null && tx!['destination'].toString().isNotEmpty)) ...[
-                      const SizedBox(height: 8),
-                      Text(l10n.txTransferDetailsSection,
-                          style: Theme.of(context).textTheme.titleSmall),
-                      if (tx!['portOfLading'] != null && tx!['portOfLading'].toString().isNotEmpty)
-                        _kv(l10n.txPortOfLading, '${tx!['portOfLading']}'),
-                      if (tx!['portOfDischarge'] != null && tx!['portOfDischarge'].toString().isNotEmpty)
-                        _kv(l10n.txPortOfDischarge, '${tx!['portOfDischarge']}'),
-                      if (tx!['destination'] != null && tx!['destination'].toString().isNotEmpty)
-                        _kv(l10n.txDestination, '${tx!['destination']}'),
-                      const SizedBox(height: 8),
-                    ],
-                    if (tx!['containerCount'] != null)
-                      _kv(l10n.txContainerCount, '${tx!['containerCount']}'),
-                    if (tx!['containerSize'] != null && tx!['containerSize'].toString().isNotEmpty)
-                      _kv(l10n.txContainerSize, '${tx!['containerSize']}'),
-                    if (tx!['goodsWeightKg'] != null)
-                      _kv(l10n.txGoodsWeightKg, '${tx!['goodsWeightKg']}'),
-                    if (tx!['invoiceToWeightRateAedPerKg'] != null)
-                      _kv(l10n.txRateAedPerKg,
-                          '${tx!['invoiceToWeightRateAedPerKg']}'),
-                    if (tx!['containerArrivalDate'] != null)
-                      _kv(l10n.txContainerArrival,
-                          '${tx!['containerArrivalDate']}'),
-                    if (tx!['documentArrivalDate'] != null)
-                      _kv(l10n.txDocumentArrival,
-                          '${tx!['documentArrivalDate']}'),
-                    if (tx!['documentPostalNumber'] != null && tx!['documentPostalNumber'].toString().isNotEmpty)
-                      _kv(l10n.txDocumentPostalNumber, '${tx!['documentPostalNumber']}'),
-                    if ('${tx!['transactionStage'] ?? 'PREPARATION'}' !=
-                            'PREPARATION' &&
-                        tx!['fileNumber'] != null &&
-                        tx!['fileNumber'].toString().isNotEmpty)
-                      _kv(l10n.txFileNumber, '${tx!['fileNumber']}'),
-                    if (tx!['containerNumbers'] is List &&
-                        (tx!['containerNumbers'] as List).isNotEmpty)
-                      _kv(
-                          l10n.containerNumbers,
-                          (tx!['containerNumbers'] as List)
-                              .map((e) => '$e')
-                              .join(', ')),
-                    if (tx!['unitCount'] != null)
-                      _kv(l10n.txNumberOfUnits, '${tx!['unitCount']}'),
-                    if (tx!['unitNumber'] != null)
-                      _kv(l10n.txUnitNumber, '${tx!['unitNumber']}'),
-                    _kv(l10n.stopTransaction, tx!['isStopped'] == true ? l10n.optionYes : l10n.optionNo),
-                    if (tx!['isStopped'] == true &&
-                        tx!['stopReason'] != null &&
-                        tx!['stopReason'].toString().isNotEmpty)
-                      _kv(l10n.stopReason, '${tx!['stopReason']}'),
-                    if (tx!['goodsQuantity'] != null)
-                      _kv(l10n.txGoodsQty, '${tx!['goodsQuantity']}'),
-                    if (tx!['goodsQuality'] != null)
-                      _kv(l10n.txGoodsQuality,
-                          _qualityLabel('${tx!['goodsQuality']}', l10n)),
-                    if (tx!['goodsUnit'] != null)
-                      _kv(l10n.txGoodsUnit,
-                          _unitLabel('${tx!['goodsUnit']}', l10n)),
-                    if ('${tx!['transactionStage'] ?? ''}' == 'TRANSPORTATION' &&
-                        ((tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty) ||
-                        (tx!['trachNo'] != null && tx!['trachNo'].toString().isNotEmpty) ||
-                        (tx!['transportationCompany'] != null && tx!['transportationCompany'].toString().isNotEmpty) ||
-                        (tx!['transportationFrom'] != null && tx!['transportationFrom'].toString().isNotEmpty) ||
-                        (tx!['transportationToLocation'] != null && tx!['transportationToLocation'].toString().isNotEmpty) ||
-                        (tx!['tripCharge'] != null) ||
-                        (tx!['waitingCharge'] != null) ||
-                        (tx!['maccrikCharge'] != null))) ...[
-                      const SizedBox(height: 8),
-                      Text(l10n.txTransportationSection,
-                          style: Theme.of(context).textTheme.titleSmall),
-                      if (tx!['transportationTo'] != null && tx!['transportationTo'].toString().isNotEmpty)
-                        _kv(l10n.txTransportationTo, '${tx!['transportationTo']}'),
-                      if (tx!['trachNo'] != null && tx!['trachNo'].toString().isNotEmpty)
-                        _kv(l10n.txTrachNo, '${tx!['trachNo']}'),
-                      if (tx!['transportationCompany'] != null && tx!['transportationCompany'].toString().isNotEmpty)
-                        _kv(l10n.txTransportationCompany, '${tx!['transportationCompany']}'),
-                      if (tx!['transportationFrom'] != null && tx!['transportationFrom'].toString().isNotEmpty)
-                        _kv(l10n.txTransportationFrom, '${tx!['transportationFrom']}'),
-                      if (tx!['transportationToLocation'] != null && tx!['transportationToLocation'].toString().isNotEmpty)
-                        _kv(l10n.txTransportationToLocation, '${tx!['transportationToLocation']}'),
-                      if (tx!['tripCharge'] != null)
-                        _kv(l10n.txTripCharge, '${tx!['tripCharge']}'),
-                      if (tx!['waitingCharge'] != null)
-                        _kv(l10n.txWaitingCharge, '${tx!['waitingCharge']}'),
-                      if (tx!['maccrikCharge'] != null)
-                        _kv(l10n.txMaccrikCharge, '${tx!['maccrikCharge']}'),
-                      const SizedBox(height: 8),
-                    ],
-                    if (tx!['storageEntryDate'] != null &&
-                        tx!['storageEntryDate'].toString().isNotEmpty)
-                      _kv(l10n.storageEntryDate,
-                          tx!['storageEntryDate'].toString()),
-                    if (tx!['storageWorkersWages'] != null)
-                      _kv(l10n.storageWorkersWages,
-                          '${tx!['storageWorkersWages']}'),
-                    if (tx!['storageWorkersCompany'] != null &&
-                        tx!['storageWorkersCompany'].toString().isNotEmpty)
-                      _kv(l10n.storageWorkersCompany,
-                          '${tx!['storageWorkersCompany']}'),
-                    if (tx!['storageStoreName'] != null &&
-                        tx!['storageStoreName'].toString().isNotEmpty)
-                      _kv(l10n.storageStoreName, '${tx!['storageStoreName']}'),
-                    if (tx!['storageSizeCbm'] != null)
-                      _kv(l10n.storageSizeCbm, '${tx!['storageSizeCbm']}'),
-                    if (tx!['storageFreightVehicleNumbers'] != null &&
-                        tx!['storageFreightVehicleNumbers']
-                            .toString()
-                            .isNotEmpty)
-                      _kv(l10n.storageFreightVehicleNumbers,
-                          '${tx!['storageFreightVehicleNumbers']}'),
-                    if (tx!['storageCrossPackaging'] != null &&
-                        tx!['storageCrossPackaging'].toString().isNotEmpty)
-                      _kv(l10n.storageCrossPackaging,
-                          '${tx!['storageCrossPackaging']}'),
-                    if (tx!['storageUnity'] != null &&
-                        tx!['storageUnity'].toString().isNotEmpty)
-                      _kv(l10n.storageUnity, '${tx!['storageUnity']}'),
-                    if (tx!['storageSealNumber'] != null &&
-                        tx!['storageSealNumber'].toString().isNotEmpty)
-                      _kv(l10n.storageSealNumber,
-                          '${tx!['storageSealNumber']}'),
-                    _kv(l10n.createdAt,
-                        _formatDateTime('${tx!['createdAt']}', locale)),
-                    const SizedBox(height: 12),
-                    if ((tx!['documentAttachments'] as List?)?.isNotEmpty ??
-                        false) ...[
-                      Text(l10n.documentPhotosSection,
-                          style: Theme.of(context).textTheme.titleSmall),
-                      const SizedBox(height: 8),
-                      ..._groupAttachments((tx!['documentAttachments'] as List)
-                              .cast<Map<String, dynamic>>())
-                          .entries
-                          .expand(
-                            (entry) => [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 6, bottom: 2),
-                                child: Text(
-                                  entry.key,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                              ...entry.value.map(_attachmentTile),
-                            ],
-                          ),
-                    ],
+                    ..._buildDetailSections(l10n, locale, numberFormat),
                     const SizedBox(height: 12),
                     if (widget.module == 'transactions' &&
                         (widget.role == 'manager' || widget.role == 'employee'))
@@ -757,11 +773,4 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       ),
     );
   }
-
-  Widget _kv(String k, String v) => Card(
-        child: ListTile(
-          title: Text(k, style: const TextStyle(fontWeight: FontWeight.w600)),
-          subtitle: Text(v),
-        ),
-      );
 }

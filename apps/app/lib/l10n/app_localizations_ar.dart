@@ -751,4 +751,43 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get txMaccrikCharge => 'تكلفة مكريك';
+
+  @override
+  String get txPartiesSection => 'الأطراف';
+
+  @override
+  String get txShipmentCoreSection => 'بيانات الشحنة الأساسية';
+
+  @override
+  String get txCargoContainersSection => 'البضاعة والحاويات';
+
+  @override
+  String get txWorkflowSection => 'سير العمل والحالة';
+
+  @override
+  String get txAttachmentsSection => 'مرفقات المستندات';
+
+  @override
+  String get txOrderDate => 'تاريخ الطلب';
+
+  @override
+  String get roleEmployee2 => 'موظف 2';
+
+  @override
+  String get shippingViewOnMap => 'عرض على الخريطة';
+
+  @override
+  String get shippingViewLocation => 'عرض الموقع';
+
+  @override
+  String get employeesEmailTaken => 'هذا البريد مستخدم بالفعل.';
+
+  @override
+  String get employeesLastManagerRole => 'لا يمكن تغيير دور المدير الوحيد.';
+
+  @override
+  String get employeesLastManagerDelete => 'لا يمكن حذف المدير الوحيد.';
+
+  @override
+  String get employeesDeleteSelfError => 'لا يمكن حذف حسابك الحالي.';
 }

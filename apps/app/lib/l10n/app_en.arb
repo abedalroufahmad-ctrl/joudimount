@@ -247,5 +247,18 @@
   "txTransportationToLocation": "To",
   "txTripCharge": "Trip Charge",
   "txWaitingCharge": "Waiting charge",
-  "txMaccrikCharge": "Maccrik charge"
+  "txMaccrikCharge": "Maccrik charge",
+  "txPartiesSection": "Parties",
+  "txShipmentCoreSection": "Basic shipment data",
+  "txCargoContainersSection": "Goods & containers",
+  "txWorkflowSection": "Workflow & status",
+  "txAttachmentsSection": "Document attachments",
+  "txOrderDate": "Order date",
+  "roleEmployee2": "Employee 2",
+  "shippingViewOnMap": "View on map",
+  "shippingViewLocation": "View location",
+  "employeesEmailTaken": "This email is already in use.",
+  "employeesLastManagerRole": "Cannot change the role of the only manager.",
+  "employeesLastManagerDelete": "Cannot delete the only manager.",
+  "employeesDeleteSelfError": "You cannot delete your own account."
 }
