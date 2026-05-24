@@ -790,4 +790,43 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get employeesDeleteSelfError => 'لا يمكن حذف حسابك الحالي.';
+
+  @override
+  String get txDeclTypeImport => 'استيراد';
+
+  @override
+  String get txDeclTypeImportFreeZone => 'استيراد إلى المنطقة الحرة';
+
+  @override
+  String get txDeclTypeImportReExport => 'استيراد لإعادة التصدير';
+
+  @override
+  String get txDeclTypeTemporaryImport => 'استيراد مؤقت';
+
+  @override
+  String get txDeclTypeTransfer => 'تحويل';
+
+  @override
+  String get txDeclTypeExport => 'تصدير';
+
+  @override
+  String get txDeclTypeTransitOut => 'عبور خارجي';
+
+  @override
+  String get txDeclTypeExportGcc => 'تصدير إلى دول الخليج';
+
+  @override
+  String get txDeclTypeTransitin => 'ترانزيت';
+
+  @override
+  String get txDeclTypeTransitinGcc => 'ترانزيت من دول الخليج';
+
+  @override
+  String get txPortSeaports => 'الموانئ البحرية';
+
+  @override
+  String get txPortFreeZones => 'المناطق الحرة';
+
+  @override
+  String get txPortMainland => 'البر الرئيسي';
 }

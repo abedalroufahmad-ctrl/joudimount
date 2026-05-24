@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'api.dart';
 import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'transaction_labels.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
 
@@ -126,30 +127,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     return _detailRow(label, display);
   }
 
-  String _declarationTypeLabel(String value) {
-    const map = {
-      'Import': 'Import',
-      'Import to Free Zone': 'Import to Free Zone',
-      'Import for Re-Export': 'Import for Re-Export',
-      'Temporary Import': 'Temporary Import',
-      'Transfer': 'Transfer',
-      'Export': 'Export',
-      'Transit out': 'Transit out',
-      'Export to GCC': 'Export to GCC',
-      'Transitin': 'Transitin',
-      'Transitin from GCC': 'Transitin from GCC',
-    };
-    return map[value] ?? value;
-  }
+  String _declarationTypeLabel(String value, AppLocalizations l10n) =>
+      declarationTypeLabel(value, l10n);
 
-  String _portTypeLabel(String value) {
-    const map = {
-      'Seaports': 'Seaports',
-      'Free Zones': 'Free Zones',
-      'Mainland': 'Mainland',
-    };
-    return map[value] ?? value;
-  }
+  String _portTypeLabel(String value, AppLocalizations l10n) =>
+      portTypeLabel(value, l10n);
 
   List<Widget> _buildDetailSections(
     AppLocalizations l10n,
@@ -212,11 +194,13 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       _detailRowOptional(l10n.txDeclarationNumber2, t['declarationNumber2'], locale),
       _detailRowOptional(l10n.txDeclarationDate, t['declarationDate'], locale, dateTime: true),
       if (t['declarationType'] != null && t['declarationType'].toString().isNotEmpty)
-        _detailRow(l10n.txDeclarationType1, _declarationTypeLabel('${t['declarationType']}')),
+        _detailRow(l10n.txDeclarationType1,
+            _declarationTypeLabel('${t['declarationType']}', l10n)),
       if (t['declarationType2'] != null && t['declarationType2'].toString().isNotEmpty)
-        _detailRow(l10n.txDeclarationType2, _declarationTypeLabel('${t['declarationType2']}')),
+        _detailRow(l10n.txDeclarationType2,
+            _declarationTypeLabel('${t['declarationType2']}', l10n)),
       if (t['portType'] != null && t['portType'].toString().isNotEmpty)
-        _detailRow(l10n.txPortType, _portTypeLabel('${t['portType']}')),
+        _detailRow(l10n.txPortType, _portTypeLabel('${t['portType']}', l10n)),
     ];
 
     final transferRows = <Widget>[
@@ -423,13 +407,17 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                 forceLatinTemplate
                     ? 'Declaration type (1)'
                     : l10n.txDeclarationType1,
-                '${t['declarationType']}'),
+                forceLatinTemplate
+                    ? '${t['declarationType']}'
+                    : declarationTypeLabel('${t['declarationType']}', l10n)),
           if ((t['declarationType2'] ?? '').toString().trim().isNotEmpty)
             _pdfRow(
                 forceLatinTemplate
                     ? 'Declaration type (2)'
                     : l10n.txDeclarationType2,
-                '${t['declarationType2']}'),
+                forceLatinTemplate
+                    ? '${t['declarationType2']}'
+                    : declarationTypeLabel('${t['declarationType2']}', l10n)),
           _pdfRow(forceLatinTemplate ? 'Airway bill' : l10n.airwayBillShort,
               '${t['airwayBill']}'),
           _pdfRow(forceLatinTemplate ? 'HS code' : l10n.hsCode,

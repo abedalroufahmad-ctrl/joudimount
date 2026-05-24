@@ -260,5 +260,18 @@
   "employeesEmailTaken": "هذا البريد مستخدم بالفعل.",
   "employeesLastManagerRole": "لا يمكن تغيير دور المدير الوحيد.",
   "employeesLastManagerDelete": "لا يمكن حذف المدير الوحيد.",
-  "employeesDeleteSelfError": "لا يمكن حذف حسابك الحالي."
+  "employeesDeleteSelfError": "لا يمكن حذف حسابك الحالي.",
+  "txDeclTypeImport": "استيراد",
+  "txDeclTypeImportFreeZone": "استيراد إلى المنطقة الحرة",
+  "txDeclTypeImportReExport": "استيراد لإعادة التصدير",
+  "txDeclTypeTemporaryImport": "استيراد مؤقت",
+  "txDeclTypeTransfer": "تحويل",
+  "txDeclTypeExport": "تصدير",
+  "txDeclTypeTransitOut": "عبور خارجي",
+  "txDeclTypeExportGcc": "تصدير إلى دول الخليج",
+  "txDeclTypeTransitin": "ترانزيت",
+  "txDeclTypeTransitinGcc": "ترانزيت من دول الخليج",
+  "txPortSeaports": "الموانئ البحرية",
+  "txPortFreeZones": "المناطق الحرة",
+  "txPortMainland": "البر الرئيسي"
 }

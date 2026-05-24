@@ -260,5 +260,18 @@
   "employeesEmailTaken": "This email is already in use.",
   "employeesLastManagerRole": "Cannot change the role of the only manager.",
   "employeesLastManagerDelete": "Cannot delete the only manager.",
-  "employeesDeleteSelfError": "You cannot delete your own account."
+  "employeesDeleteSelfError": "You cannot delete your own account.",
+  "txDeclTypeImport": "Import",
+  "txDeclTypeImportFreeZone": "Import to Free Zone",
+  "txDeclTypeImportReExport": "Import for Re-Export",
+  "txDeclTypeTemporaryImport": "Temporary Import",
+  "txDeclTypeTransfer": "Transfer",
+  "txDeclTypeExport": "Export",
+  "txDeclTypeTransitOut": "Transit out",
+  "txDeclTypeExportGcc": "Export to GCC",
+  "txDeclTypeTransitin": "Transitin",
+  "txDeclTypeTransitinGcc": "Transitin from GCC",
+  "txPortSeaports": "Seaports",
+  "txPortFreeZones": "Free Zones",
+  "txPortMainland": "Mainland"
 }

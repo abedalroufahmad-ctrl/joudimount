@@ -7,6 +7,7 @@ import 'api.dart';
 import 'app_theme.dart';
 import 'date_field.dart';
 import 'l10n/app_localizations.dart';
+import 'transaction_labels.dart';
 import 'transaction_storage_page.dart';
 
 /// New or edit transaction — aligned with web TransactionForm.
@@ -753,7 +754,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                         value: null, child: Text(l10n.optionalSelect)),
                     ..._declarationDropdownOptions(_declarationType).map(
                       (type) => DropdownMenuItem<String>(
-                          value: type, child: Text(type)),
+                          value: type,
+                          child: Text(declarationTypeLabel(type, l10n))),
                     ),
                   ],
                   onChanged: customsEditable
@@ -776,7 +778,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                         value: null, child: Text(l10n.optionalSelect)),
                     ..._declarationDropdownOptions(_declarationType2).map(
                       (type) => DropdownMenuItem<String>(
-                          value: type, child: Text(type)),
+                          value: type,
+                          child: Text(declarationTypeLabel(type, l10n))),
                     ),
                   ],
                   onChanged: customsEditable
@@ -795,7 +798,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                         value: null, child: Text(l10n.optionalSelect)),
                     ..._portTypeDropdownOptions().map(
                       (type) => DropdownMenuItem<String>(
-                          value: type, child: Text(type)),
+                          value: type, child: Text(portTypeLabel(type, l10n))),
                     ),
                   ],
                   onChanged: customsEditable

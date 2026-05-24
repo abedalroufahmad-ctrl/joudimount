@@ -790,4 +790,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get employeesDeleteSelfError => 'You cannot delete your own account.';
+
+  @override
+  String get txDeclTypeImport => 'Import';
+
+  @override
+  String get txDeclTypeImportFreeZone => 'Import to Free Zone';
+
+  @override
+  String get txDeclTypeImportReExport => 'Import for Re-Export';
+
+  @override
+  String get txDeclTypeTemporaryImport => 'Temporary Import';
+
+  @override
+  String get txDeclTypeTransfer => 'Transfer';
+
+  @override
+  String get txDeclTypeExport => 'Export';
+
+  @override
+  String get txDeclTypeTransitOut => 'Transit out';
+
+  @override
+  String get txDeclTypeExportGcc => 'Export to GCC';
+
+  @override
+  String get txDeclTypeTransitin => 'Transitin';
+
+  @override
+  String get txDeclTypeTransitinGcc => 'Transitin from GCC';
+
+  @override
+  String get txPortSeaports => 'Seaports';
+
+  @override
+  String get txPortFreeZones => 'Free Zones';
+
+  @override
+  String get txPortMainland => 'Mainland';
 }

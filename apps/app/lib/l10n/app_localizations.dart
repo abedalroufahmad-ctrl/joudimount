@@ -1660,6 +1660,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You cannot delete your own account.'**
   String get employeesDeleteSelfError;
+
+  /// No description provided for @txDeclTypeImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get txDeclTypeImport;
+
+  /// No description provided for @txDeclTypeImportFreeZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Import to Free Zone'**
+  String get txDeclTypeImportFreeZone;
+
+  /// No description provided for @txDeclTypeImportReExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import for Re-Export'**
+  String get txDeclTypeImportReExport;
+
+  /// No description provided for @txDeclTypeTemporaryImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary Import'**
+  String get txDeclTypeTemporaryImport;
+
+  /// No description provided for @txDeclTypeTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get txDeclTypeTransfer;
+
+  /// No description provided for @txDeclTypeExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get txDeclTypeExport;
+
+  /// No description provided for @txDeclTypeTransitOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit out'**
+  String get txDeclTypeTransitOut;
+
+  /// No description provided for @txDeclTypeExportGcc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to GCC'**
+  String get txDeclTypeExportGcc;
+
+  /// No description provided for @txDeclTypeTransitin.
+  ///
+  /// In en, this message translates to:
+  /// **'Transitin'**
+  String get txDeclTypeTransitin;
+
+  /// No description provided for @txDeclTypeTransitinGcc.
+  ///
+  /// In en, this message translates to:
+  /// **'Transitin from GCC'**
+  String get txDeclTypeTransitinGcc;
+
+  /// No description provided for @txPortSeaports.
+  ///
+  /// In en, this message translates to:
+  /// **'Seaports'**
+  String get txPortSeaports;
+
+  /// No description provided for @txPortFreeZones.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Zones'**
+  String get txPortFreeZones;
+
+  /// No description provided for @txPortMainland.
+  ///
+  /// In en, this message translates to:
+  /// **'Mainland'**
+  String get txPortMainland;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
