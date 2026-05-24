@@ -829,4 +829,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get txPortMainland => 'البر الرئيسي';
+
+  @override
+  String get profileAccountInfo => 'معلومات الحساب';
+
+  @override
+  String get profileEditTitle => 'تعديل الملف الشخصي';
+
+  @override
+  String get profileMemberSince => 'عضو منذ';
+
+  @override
+  String get profileLastUpdated => 'آخر تحديث';
+
+  @override
+  String get profileAccountId => 'معرّف الحساب';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف الشخصي';
 }

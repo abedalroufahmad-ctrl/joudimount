@@ -771,10 +771,7 @@ th {
   body.shipping-paper-printing .app-header {
     display: none !important;
   }
-  body.shipping-paper-printing main.container > .page-actions,
-  body.shipping-paper-printing main.container > h1,
-  body.shipping-paper-printing main.container > p,
-  body.shipping-paper-printing main.container > section.details-card {
+  body.shipping-paper-printing main.container > :not(.shipping-paper-modal) {
     display: none !important;
   }
 
@@ -798,6 +795,10 @@ th {
   }
   .shipping-print-target {
     position: static !important;
+  }
+  body.shipping-paper-printing .shipping-print-input,
+  body.shipping-paper-printing .shipping-print-textarea {
+    unicode-bidi: plaintext;
   }
   .shipping-print-input,
   .shipping-print-textarea {

@@ -18,6 +18,7 @@ import {
   Transaction,
   TransactionStage,
 } from "./types";
+import { canRoleSubmitField } from "./transactionFieldPermissions";
 
 const UNIT_OPTIONS: { value: GoodsUnit; labelKey: string }[] = [
   { value: "kg", labelKey: "form.unit.kg" },
@@ -414,7 +415,17 @@ export default function TransactionForm({
     setLoading(true);
     try {
       const fd = new FormData();
-      fd.append("clientName", form.clientName);
+      const put = (key: string, value: string) => {
+        if (canRoleSubmitField(role, key, isEdit, stage)) fd.append(key, value);
+      };
+      const putIfPresent = (key: string, value: string) => {
+        if (value.trim()) put(key, value.trim());
+      };
+      const putOptionalNumber = (key: string, raw: string) => {
+        if (canRoleSubmitField(role, key, isEdit, stage)) appendOptionalNumber(fd, key, raw);
+      };
+
+      put("clientName", form.clientName);
       const effectiveShippingCompanyName =
         module === "transactions"
           ? form.shippingCompanyName
@@ -422,79 +433,83 @@ export default function TransactionForm({
       const effectiveAirwayBill = module === "transactions" ? form.airwayBill : form.portOfLading.trim() || "N/A";
       const effectiveInvoiceValue =
         module === "transactions" ? Number(form.invoiceValue) : Math.max(1, Number(form.invoiceValue) || 1);
-      fd.append("shippingCompanyName", effectiveShippingCompanyName);
-      if (form.shippingCompanyId?.trim()) fd.append("shippingCompanyId", form.shippingCompanyId.trim());
-      if (form.declarationNumber.trim()) fd.append("declarationNumber", form.declarationNumber.trim());
-      if (form.declarationNumber2.trim()) fd.append("declarationNumber2", form.declarationNumber2.trim());
-      if (form.declarationDate) fd.append("declarationDate", form.declarationDate);
-      if (form.orderDate) fd.append("orderDate", form.orderDate);
-      if (form.declarationType.trim()) fd.append("declarationType", form.declarationType.trim());
-      if (form.declarationType2.trim()) fd.append("declarationType2", form.declarationType2.trim());
-      if (form.portType.trim()) fd.append("portType", form.portType.trim());
-      if (form.containerSize.trim()) fd.append("containerSize", form.containerSize.trim());
-      if (form.portOfLading.trim()) fd.append("portOfLading", form.portOfLading.trim());
-      if (form.portOfDischarge.trim()) fd.append("portOfDischarge", form.portOfDischarge.trim());
-      if (form.destination.trim()) fd.append("destination", form.destination.trim());
-      if (form.transportationTo.trim()) fd.append("transportationTo", form.transportationTo.trim());
-      if (form.trachNo.trim()) fd.append("trachNo", form.trachNo.trim());
-      if (form.transportationCompany.trim()) fd.append("transportationCompany", form.transportationCompany.trim());
-      if (form.transportationFrom.trim()) fd.append("transportationFrom", form.transportationFrom.trim());
-      if (form.transportationToLocation.trim()) fd.append("transportationToLocation", form.transportationToLocation.trim());
-      appendOptionalNumber(fd, "tripCharge", form.tripCharge);
-      appendOptionalNumber(fd, "waitingCharge", form.waitingCharge);
-      appendOptionalNumber(fd, "maccrikCharge", form.maccrikCharge);
-      fd.append("airwayBill", effectiveAirwayBill);
-      fd.append("hsCode", form.hsCode);
-      fd.append("goodsDescription", form.goodsDescription);
-      fd.append("originCountry", form.originCountry.toUpperCase());
-      fd.append("invoiceValue", String(effectiveInvoiceValue));
-      if (form.invoiceCurrency) fd.append("invoiceCurrency", form.invoiceCurrency);
-      fd.append("documentStatus", form.documentStatus);
-      if (role !== "employee") fd.append("paymentStatus", form.paymentStatus);
+      put("shippingCompanyName", effectiveShippingCompanyName);
+      putIfPresent("shippingCompanyId", form.shippingCompanyId ?? "");
+      putIfPresent("declarationNumber", form.declarationNumber);
+      putIfPresent("declarationNumber2", form.declarationNumber2);
+      if (form.declarationDate) put("declarationDate", form.declarationDate);
+      if (form.orderDate) put("orderDate", form.orderDate);
+      putIfPresent("declarationType", form.declarationType);
+      putIfPresent("declarationType2", form.declarationType2);
+      putIfPresent("portType", form.portType);
+      putIfPresent("containerSize", form.containerSize);
+      putIfPresent("portOfLading", form.portOfLading);
+      putIfPresent("portOfDischarge", form.portOfDischarge);
+      putIfPresent("destination", form.destination);
+      putIfPresent("transportationTo", form.transportationTo);
+      putIfPresent("trachNo", form.trachNo);
+      putIfPresent("transportationCompany", form.transportationCompany);
+      putIfPresent("transportationFrom", form.transportationFrom);
+      putIfPresent("transportationToLocation", form.transportationToLocation);
+      putOptionalNumber("tripCharge", form.tripCharge);
+      putOptionalNumber("waitingCharge", form.waitingCharge);
+      putOptionalNumber("maccrikCharge", form.maccrikCharge);
+      put("airwayBill", effectiveAirwayBill);
+      put("hsCode", form.hsCode);
+      put("goodsDescription", form.goodsDescription);
+      put("originCountry", form.originCountry.toUpperCase());
+      put("invoiceValue", String(effectiveInvoiceValue));
+      if (form.invoiceCurrency) put("invoiceCurrency", form.invoiceCurrency);
+      put("documentStatus", form.documentStatus);
+      put("paymentStatus", form.paymentStatus);
 
-      appendOptionalNumber(fd, "containerCount", form.containerCount);
+      putOptionalNumber("containerCount", form.containerCount);
       const weightStr =
         form.goodsWeightKg.trim() !== ""
           ? form.goodsWeightKg
           : derivedWeight != null
             ? String(Math.round(derivedWeight * 1000) / 1000)
             : "";
-      appendOptionalNumber(fd, "goodsWeightKg", weightStr);
-      appendOptionalNumber(fd, "invoiceToWeightRateAedPerKg", form.invoiceToWeightRateAedPerKg);
-      if (form.containerArrivalDate) fd.append("containerArrivalDate", form.containerArrivalDate);
-      if (form.documentArrivalDate) fd.append("documentArrivalDate", form.documentArrivalDate);
-      if (form.fileNumber.trim()) fd.append("fileNumber", form.fileNumber.trim());
-      if (form.documentPostalNumber.trim()) fd.append("documentPostalNumber", form.documentPostalNumber.trim());
+      putOptionalNumber("goodsWeightKg", weightStr);
+      putOptionalNumber("invoiceToWeightRateAedPerKg", form.invoiceToWeightRateAedPerKg);
+      if (form.containerArrivalDate) put("containerArrivalDate", form.containerArrivalDate);
+      if (form.documentArrivalDate) put("documentArrivalDate", form.documentArrivalDate);
+      putIfPresent("fileNumber", form.fileNumber);
+      putIfPresent("documentPostalNumber", form.documentPostalNumber);
       if (form.containerNumbers.trim()) {
         const values = form.containerNumbers
           .split(/[\n,]+/)
           .map((v) => v.trim())
           .filter(Boolean);
-        if (values.length) fd.append("containerNumbers", JSON.stringify(values));
+        if (values.length && canRoleSubmitField(role, "containerNumbers", isEdit, stage)) {
+          fd.append("containerNumbers", JSON.stringify(values));
+        }
       }
-      if (form.unitCount.trim()) fd.append("unitCount", form.unitCount.trim());
-      appendOptionalNumber(fd, "unitNumber", form.unitNumber);
-      fd.append("isStopped", form.isStopped === "yes" ? "true" : "false");
-      if (form.stopReason.trim()) fd.append("stopReason", form.stopReason.trim());
-      appendOptionalNumber(fd, "goodsQuantity", form.goodsQuantity);
-      if (form.goodsQuality) fd.append("goodsQuality", form.goodsQuality);
-      if (form.goodsUnit) fd.append("goodsUnit", form.goodsUnit);
+      putIfPresent("unitCount", form.unitCount);
+      putOptionalNumber("unitNumber", form.unitNumber);
+      put("isStopped", form.isStopped === "yes" ? "true" : "false");
+      putIfPresent("stopReason", form.stopReason);
+      putOptionalNumber("goodsQuantity", form.goodsQuantity);
+      if (form.goodsQuality) put("goodsQuality", form.goodsQuality);
+      if (form.goodsUnit) put("goodsUnit", form.goodsUnit);
 
-      if (isEdit) {
+      if (isEdit && (role === "manager" || role === "employee")) {
         fd.append("existingAttachments", JSON.stringify(retainedDocs));
       }
       if (newDocFiles.some((item) => !item.category)) {
         setError(t("form.categoryRequiredError"));
         return;
       }
-      if (newDocFiles.length) {
+      if (newDocFiles.length && (role === "manager" || role === "employee" || !isEdit)) {
         fd.append(
           "documentPhotoCategories",
           JSON.stringify(newDocFiles.map((item) => item.category)),
         );
       }
-      for (const item of newDocFiles) {
-        fd.append("documentPhotos", item.file);
+      if (role === "manager" || role === "employee" || !isEdit) {
+        for (const item of newDocFiles) {
+          fd.append("documentPhotos", item.file);
+        }
       }
 
       const res = await apiFetch(`/api/${module}${isEdit ? `/${routeId}` : ""}`, {
@@ -554,11 +569,14 @@ export default function TransactionForm({
   /** Imports & transfers in Storage: only warehouse fields stay editable (API-enforced). */
   const storageOnlyImportTransfer =
     isEdit && stage === "STORAGE" && (module === "transactions" || module === "transfers");
-  const prepEditableEffective = prepEditable && !storageOnlyImportTransfer;
-  const customsEditableEffective = customsEditable && !storageOnlyImportTransfer;
-  const legacyStorageEditable = storageEditable && !storageOnlyImportTransfer;
+  const prepEditableEffective =
+    prepEditable && !storageOnlyImportTransfer && (role === "manager" || role === "employee" || !isEdit);
+  const customsEditableEffective =
+    customsEditable && !storageOnlyImportTransfer && (role === "manager" || role === "employee2");
+  const legacyStorageEditable = storageEditable && !storageOnlyImportTransfer && role === "manager";
   const showTransportationSection = isEdit && stage === "TRANSPORTATION";
-  const transportationEditableEffective = showTransportationSection && !storageOnlyImportTransfer;
+  const transportationEditableEffective =
+    showTransportationSection && !storageOnlyImportTransfer && (role === "manager" || role === "employee2");
   const fullyLocked = storageOnlyImportTransfer;
   /** Stage can move forward or back; only manager and employee2 may call the API. */
   const canSetStage = role === "manager" || role === "employee2";
@@ -1558,7 +1576,7 @@ export default function TransactionForm({
           <select className="form-select mt-1"
             value={form.paymentStatus}
             onChange={(e) => setForm({ ...form, paymentStatus: e.target.value as "pending" | "paid" })}
-            disabled={!customsEditableEffective || role === "employee" || role === "employee2"}
+            disabled={!(role === "manager" || role === "accountant")}
           >
             <option value="pending">{t("form.paymentStatus.pending")}</option>
             <option value="paid">{t("form.paymentStatus.paid")}</option>

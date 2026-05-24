@@ -32,6 +32,7 @@ import {
   issueRelease,
   listExports,
   listClients,
+  getEmployeeProfile,
   listEmployees,
   listShippingCompanies,
   listTransfers,
@@ -102,8 +103,13 @@ const stage2EmployeeFields = new Set([
   "containerArrivalDate",
   "documentArrivalDate",
   "fileNumber",
+  "documentPostalNumber",
   "documentStatus",
   "clearanceStatus",
+  "containerNumbers",
+  "unitCount",
+  "isStopped",
+  "stopReason",
   "transportationTo",
   "trachNo",
   "transportationCompany",
@@ -335,14 +341,51 @@ app.post("/api/auth/logout", (_req, res) => {
   return res.json({ ok: true });
 });
 
-app.get("/api/auth/me", authenticate, (req: AuthRequest, res) => {
-  return res.json({ user: req.user });
-});
-
 const optionalEmployeePassword = z.preprocess(
   (v) => (v === "" || v === null || v === undefined ? undefined : v),
   z.string().min(4).optional(),
 );
+
+app.get("/api/auth/me", authenticate, async (req: AuthRequest, res) => {
+  const profile = await getEmployeeProfile(req.user!.id);
+  if (!profile) return res.status(404).json({ error: "User not found" });
+  return res.json(profile);
+});
+
+app.put("/api/auth/me", authenticate, async (req: AuthRequest, res) => {
+  const schema = z
+    .object({
+      name: z.string().min(2).optional(),
+      email: z.string().email().optional(),
+      password: optionalEmployeePassword,
+    })
+    .refine((value) => Object.keys(value).length > 0, "At least one field is required");
+
+  const result = schema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: result.error.flatten() });
+  }
+
+  try {
+    const updated = await updateEmployee(req.user!.id, result.data);
+    if (!updated) return res.status(404).json({ error: "User not found" });
+    const profile = await getEmployeeProfile(updated.id);
+    if (!profile) return res.status(404).json({ error: "User not found" });
+    const token = signAuthToken({
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+    });
+    return res.json({ user: profile, token });
+  } catch (err: unknown) {
+    if ((err as { code?: number })?.code === 11000) {
+      return res.status(409).json({ error: "email_taken" });
+    }
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 app.get("/api/employees", authenticate, async (_req, res) => {
   res.json(await listEmployees());
@@ -773,10 +816,6 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
     }
 
     const hasMultipart = hasMultipartEarly;
-    if (role === "employee2" && hasMultipart) {
-      return res.status(403).json({ error: "Employee2 cannot upload attachments" });
-    }
-
     let payload: Parameters<typeof updateTransaction>[1] = { ...result.data };
     if (result.data.originCountry !== undefined) {
       payload.originCountry = result.data.originCountry.toUpperCase();
@@ -784,6 +823,9 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
+      if (role === "employee2" && files.length > 0) {
+        return res.status(403).json({ error: "Employee2 cannot upload attachments" });
+      }
       if (atStorage) {
         if (files.length > 0) {
           return res.status(400).json({ error: "Cannot upload new documents while the transaction is in Storage stage" });

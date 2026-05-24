@@ -339,16 +339,10 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   Future<void> _openShippingPaper() async {
     final l10n = AppLocalizations.of(context)!;
     final t = tx!;
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final forceLatinTemplate =
-        Localizations.localeOf(context).languageCode == 'ar';
-    final heading =
-        forceLatinTemplate ? 'Shipping Paper' : l10n.shippingPaperHeading;
-    final subheading = forceLatinTemplate
-        ? 'Please process and release this shipment as soon as possible.'
-        : l10n.shippingPaperSub;
-    // Embed Unicode fonts to keep Arabic/English text readable on all viewers.
-    final pw.Font arabicFont;
+    final rtlLabels =
+        Directionality.of(context) == TextDirection.rtl;
+    final pw.Font latinFont = pw.Font.helvetica();
+    pw.Font arabicFont;
     try {
       arabicFont = pw.Font.ttf(
           await rootBundle.load('assets/fonts/NotoSansArabic-Regular.ttf'));
@@ -359,94 +353,304 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       );
       return;
     }
-    final pdfTheme = pw.ThemeData.withFont(
-      base: arabicFont,
-      bold: arabicFont,
-      italic: arabicFont,
-      boldItalic: arabicFont,
-      fontFallback: [pw.Font.helvetica()],
+
+    const cellPadding = pw.EdgeInsets.symmetric(horizontal: 10, vertical: 7);
+    final needsLatinGlyphs = RegExp(r'[\x00-\x7F]');
+
+    pw.TextSpan pdfSpan(
+      String part,
+      pw.Font font, {
+      bool bold = false,
+      double size = 10,
+    }) {
+      return pw.TextSpan(
+        text: part,
+        style: pw.TextStyle(
+          font: font,
+          fontSize: size,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+        ),
+      );
+    }
+
+    pw.Widget pdfMixedText(
+      String text, {
+      bool bold = false,
+      double size = 10,
+      pw.TextDirection direction = pw.TextDirection.rtl,
+      pw.TextAlign align = pw.TextAlign.right,
+    }) {
+      final pw.Alignment alignment;
+      switch (align) {
+        case pw.TextAlign.center:
+          alignment = pw.Alignment.center;
+          break;
+        case pw.TextAlign.left:
+          alignment = pw.Alignment.centerLeft;
+          break;
+        default:
+          alignment = pw.Alignment.centerRight;
+      }
+
+      final spans = <pw.TextSpan>[];
+      final latinRuns = RegExp(r'[\x00-\x7F]+');
+      var index = 0;
+      for (final match in latinRuns.allMatches(text)) {
+        if (match.start > index) {
+          spans.add(pdfSpan(
+            text.substring(index, match.start),
+            arabicFont,
+            bold: bold,
+            size: size,
+          ));
+        }
+        spans.add(pdfSpan(
+          match.group(0)!,
+          latinFont,
+          bold: bold,
+          size: size,
+        ));
+        index = match.end;
+      }
+      if (index < text.length) {
+        spans.add(pdfSpan(
+          text.substring(index),
+          arabicFont,
+          bold: bold,
+          size: size,
+        ));
+      }
+
+      return pw.Padding(
+        padding: cellPadding,
+        child: pw.Directionality(
+          textDirection: direction,
+          child: pw.Align(
+            alignment: alignment,
+            child: pw.RichText(
+              textAlign: align,
+              text: pw.TextSpan(children: spans),
+            ),
+          ),
+        ),
+      );
+    }
+
+    pw.Widget arabicText(
+      String text, {
+      bool bold = false,
+      double size = 10,
+      pw.TextAlign align = pw.TextAlign.right,
+    }) {
+      final pw.Alignment alignment;
+      switch (align) {
+        case pw.TextAlign.center:
+          alignment = pw.Alignment.center;
+          break;
+        case pw.TextAlign.left:
+          alignment = pw.Alignment.centerLeft;
+          break;
+        default:
+          alignment = pw.Alignment.centerRight;
+      }
+      return needsLatinGlyphs.hasMatch(text)
+          ? pdfMixedText(
+              text,
+              bold: bold,
+              size: size,
+              direction: pw.TextDirection.rtl,
+              align: align,
+            )
+          : pw.Padding(
+              padding: cellPadding,
+              child: pw.Directionality(
+                textDirection: pw.TextDirection.rtl,
+                child: pw.Align(
+                  alignment: alignment,
+                  child: pw.Text(
+                    text,
+                    style: pw.TextStyle(
+                      font: arabicFont,
+                      fontSize: size,
+                      fontWeight:
+                          bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+                    ),
+                    textAlign: align,
+                  ),
+                ),
+              ),
+            );
+    }
+
+    pw.Widget latinText(
+      String text, {
+      bool bold = false,
+      double size = 10,
+      pw.TextAlign align = pw.TextAlign.left,
+    }) {
+      final pw.Alignment alignment;
+      switch (align) {
+        case pw.TextAlign.center:
+          alignment = pw.Alignment.center;
+          break;
+        case pw.TextAlign.right:
+          alignment = pw.Alignment.centerRight;
+          break;
+        default:
+          alignment = pw.Alignment.centerLeft;
+      }
+      return pw.Padding(
+        padding: cellPadding,
+        child: pw.Directionality(
+          textDirection: pw.TextDirection.ltr,
+          child: pw.Align(
+            alignment: alignment,
+            child: pw.Text(
+              text,
+              style: pw.TextStyle(
+                font: latinFont,
+                fontSize: size,
+                fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              ),
+              textAlign: align,
+            ),
+          ),
+        ),
+      );
+    }
+
+    pw.Widget labelCell(String label) =>
+        rtlLabels ? arabicText(label, bold: true) : latinText(label, bold: true);
+
+    pw.Widget valueCell(String value) {
+      final hasLatin = RegExp(r'[A-Za-z]').hasMatch(value);
+      if (hasLatin || !rtlLabels) {
+        return latinText(value);
+      }
+      return arabicText(value, align: pw.TextAlign.right);
+    }
+
+    pw.TableRow dataRow(String label, String value) {
+      return pw.TableRow(
+        children: rtlLabels
+            ? [valueCell(value), labelCell(label)]
+            : [labelCell(label), valueCell(value)],
+      );
+    }
+
+    final rows = <pw.TableRow>[
+      dataRow('${l10n.toShippingCompany}:', '${t['shippingCompanyName']}'),
+      dataRow('${l10n.fromClient}:', '${t['clientName']}'),
+      dataRow('${l10n.declaration}:', '${t['declarationNumber']}'),
+      if ((t['declarationNumber2'] ?? '').toString().trim().isNotEmpty)
+        dataRow('${l10n.txDeclarationNumber2}:', '${t['declarationNumber2']}'),
+      if ((t['declarationType'] ?? '').toString().trim().isNotEmpty)
+        dataRow(
+          '${l10n.txDeclarationType1}:',
+          declarationTypeLabel('${t['declarationType']}', l10n),
+        ),
+      if ((t['declarationType2'] ?? '').toString().trim().isNotEmpty)
+        dataRow(
+          '${l10n.txDeclarationType2}:',
+          declarationTypeLabel('${t['declarationType2']}', l10n),
+        ),
+      dataRow('${l10n.airwayBillShort}:', '${t['airwayBill']}'),
+      dataRow('${l10n.hsCode}:', '${t['hsCode']}'),
+      dataRow('${l10n.origin}:', '${t['originCountry']}'),
+      dataRow('${l10n.valueAed}:', '${t['invoiceValue']}'),
+      dataRow(
+        '${l10n.releaseCode}:',
+        '${t['releaseCode'] ?? l10n.notIssued}',
+      ),
+      if (t['goodsWeightKg'] != null)
+        dataRow('${l10n.weightKg}:', '${t['goodsWeightKg']}'),
+      if (t['goodsQuantity'] != null)
+        dataRow('${l10n.quantity}:', '${t['goodsQuantity']}'),
+    ];
+
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(base: latinFont, bold: latinFont),
     );
-    final pdf = pw.Document();
     pdf.addPage(
-      pw.MultiPage(
+      pw.Page(
         pageFormat: PdfPageFormat.a4,
-        theme: pdfTheme,
-        textDirection: isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-        build: (ctx) => [
-          pw.Text(
-            heading,
-            style: pw.TextStyle(
-              fontSize: 20,
-              fontWeight: pw.FontWeight.bold,
+        margin: const pw.EdgeInsets.all(36),
+        textDirection: pw.TextDirection.ltr,
+        theme: pw.ThemeData.withFont(
+          base: latinFont,
+          bold: latinFont,
+        ),
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Container(
+              padding:
+                  const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey700, width: 1),
+              ),
+              child: pw.Column(
+                children: [
+                  rtlLabels
+                      ? arabicText(
+                          l10n.shippingPaperHeading,
+                          bold: true,
+                          size: 18,
+                          align: pw.TextAlign.center,
+                        )
+                      : latinText(
+                          l10n.shippingPaperHeading,
+                          bold: true,
+                          size: 18,
+                          align: pw.TextAlign.center,
+                        ),
+                  pw.SizedBox(height: 6),
+                  rtlLabels
+                      ? arabicText(
+                          l10n.shippingPaperSub,
+                          size: 10,
+                          align: pw.TextAlign.center,
+                        )
+                      : latinText(
+                          l10n.shippingPaperSub,
+                          size: 10,
+                          align: pw.TextAlign.center,
+                        ),
+                ],
+              ),
             ),
-          ),
-          pw.SizedBox(height: 6),
-          pw.Text(
-            subheading,
-            style: const pw.TextStyle(fontSize: 12),
-          ),
-          pw.SizedBox(height: 12),
-          _pdfRow(
-              forceLatinTemplate
-                  ? 'To shipping company'
-                  : l10n.toShippingCompany,
-              '${t['shippingCompanyName']}'),
-          _pdfRow(forceLatinTemplate ? 'From client' : l10n.fromClient,
-              '${t['clientName']}'),
-          _pdfRow(forceLatinTemplate ? 'Declaration' : l10n.declaration,
-              '${t['declarationNumber']}'),
-          if ((t['declarationNumber2'] ?? '').toString().trim().isNotEmpty)
-            _pdfRow(
-              forceLatinTemplate
-                  ? 'Declaration (2)'
-                  : '${l10n.declaration} (2)',
-              '${t['declarationNumber2']}',
+            pw.SizedBox(height: 14),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.6),
+              columnWidths: rtlLabels
+                  ? {
+                      0: const pw.FlexColumnWidth(),
+                      1: const pw.FixedColumnWidth(190),
+                    }
+                  : {
+                      0: const pw.FixedColumnWidth(190),
+                      1: const pw.FlexColumnWidth(),
+                    },
+              defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+              children: rows,
             ),
-          if ((t['declarationType'] ?? '').toString().trim().isNotEmpty)
-            _pdfRow(
-                forceLatinTemplate
-                    ? 'Declaration type (1)'
-                    : l10n.txDeclarationType1,
-                forceLatinTemplate
-                    ? '${t['declarationType']}'
-                    : declarationTypeLabel('${t['declarationType']}', l10n)),
-          if ((t['declarationType2'] ?? '').toString().trim().isNotEmpty)
-            _pdfRow(
-                forceLatinTemplate
-                    ? 'Declaration type (2)'
-                    : l10n.txDeclarationType2,
-                forceLatinTemplate
-                    ? '${t['declarationType2']}'
-                    : declarationTypeLabel('${t['declarationType2']}', l10n)),
-          _pdfRow(forceLatinTemplate ? 'Airway bill' : l10n.airwayBillShort,
-              '${t['airwayBill']}'),
-          _pdfRow(forceLatinTemplate ? 'HS code' : l10n.hsCode,
-              '${t['hsCode']}'),
-          _pdfRow(forceLatinTemplate ? 'Origin' : l10n.origin,
-              '${t['originCountry']}'),
-          _pdfRow(forceLatinTemplate ? 'Value (AED)' : l10n.valueAed,
-              '${t['invoiceValue']}'),
-          _pdfRow(
-              forceLatinTemplate ? 'Release code' : l10n.releaseCode,
-              '${t['releaseCode'] ?? (forceLatinTemplate ? 'Not issued' : l10n.notIssued)}'),
-          if (t['goodsWeightKg'] != null)
-            _pdfRow(forceLatinTemplate ? 'Weight (kg)' : l10n.weightKg,
-                '${t['goodsWeightKg']}'),
-          if (t['goodsQuantity'] != null)
-            _pdfRow(forceLatinTemplate ? 'Quantity' : l10n.quantity,
-                '${t['goodsQuantity']}'),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            forceLatinTemplate ? 'Goods' : l10n.goods,
-            style: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
+            pw.SizedBox(height: 12),
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.fromLTRB(10, 8, 10, 8),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey600, width: 0.6),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: [
+                  labelCell('${l10n.goods}:'),
+                  valueCell('${t['goodsDescription']}'),
+                ],
+              ),
             ),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(
-            '${t['goodsDescription']}',
-          ),
-        ],
+          ],
+        ),
       ),
     );
     final bytes = await pdf.save();
@@ -464,29 +668,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       }
     }
   }
-
-  pw.Widget _pdfRow(String k, String v) => pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.SizedBox(
-              width: 140,
-              child: pw.Text(
-                '$k:',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
-            pw.Expanded(
-              child: pw.Text(
-                v,
-              ),
-            ),
-          ],
-        ),
-      );
 
   @override
   Widget build(BuildContext context) {

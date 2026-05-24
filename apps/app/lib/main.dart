@@ -11,6 +11,7 @@ import 'employees.dart';
 import 'home_dashboard.dart';
 import 'l10n/app_localizations.dart';
 import 'location_map_picker.dart';
+import 'profile.dart';
 import 'shipping_detail.dart';
 import 'transactions_list.dart';
 
@@ -361,6 +362,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _index = 0;
+  late Map<String, dynamic> _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _user = Map<String, dynamic>.from(widget.user);
+  }
+
+  void _onUserUpdated(Map<String, dynamic> user) {
+    setState(() => _user = user);
+  }
 
   Future<void> _logout() async {
     try {
@@ -396,10 +408,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final role = widget.user['role'] as String? ?? 'employee';
+    final role = _user['role'] as String? ?? 'employee';
     final pages = [
       DashboardHome(
-        user: widget.user,
+        user: _user,
         role: role,
         onSwitchTab: (i) => setState(() => _index = i),
         onOpenProfile: () => setState(() => _index = 7),
@@ -410,10 +422,14 @@ class _HomePageState extends State<HomePage> {
       ClientsTab(role: role),
       ShippingTab(role: role),
       EmployeesTab(role: role),
-      ProfileTab(user: widget.user, onLogout: _logout),
+      ProfileTab(
+        user: _user,
+        onLogout: _logout,
+        onUserUpdated: _onUserUpdated,
+      ),
     ];
 
-    final userName = (widget.user['name'] ?? '').toString().trim();
+    final userName = (_user['name'] ?? '').toString().trim();
 
     return Scaffold(
       appBar: _index == 0
@@ -1211,49 +1227,6 @@ class _ShippingFormPageState extends State<ShippingFormPage> {
               child: Text(_saving ? l10n.saving : l10n.save)),
         ],
       ),
-    );
-  }
-}
-
-class ProfileTab extends StatelessWidget {
-  final Map<String, dynamic> user;
-  final Future<void> Function() onLogout;
-  const ProfileTab({super.key, required this.user, required this.onLogout});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final name = (user['name'] ?? '?').toString().trim();
-    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        PageHeroBanner(
-          icon: Icons.person_outline,
-          title: l10n.profile,
-          subtitle: name,
-        ),
-        const SizedBox(height: 10),
-        Card(
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppColors.brand50,
-              foregroundColor: AppColors.brand800,
-              child: Text(
-                initial,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            title: Text('${user['name']}'),
-            subtitle: Text('${user['email']} • ${user['role']}'),
-          ),
-        ),
-        const SizedBox(height: 8),
-        FilledButton.tonal(
-          onPressed: () async => onLogout(),
-          child: Text(l10n.logout),
-        ),
-      ],
     );
   }
 }

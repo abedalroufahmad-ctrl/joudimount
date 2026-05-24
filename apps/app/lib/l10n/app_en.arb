@@ -273,5 +273,11 @@
   "txDeclTypeTransitinGcc": "Transitin from GCC",
   "txPortSeaports": "Seaports",
   "txPortFreeZones": "Free Zones",
-  "txPortMainland": "Mainland"
+  "txPortMainland": "Mainland",
+  "profileAccountInfo": "Account information",
+  "profileEditTitle": "Edit profile",
+  "profileMemberSince": "Member since",
+  "profileLastUpdated": "Last updated",
+  "profileAccountId": "Account ID",
+  "profileUpdated": "Profile updated"
 }

@@ -50,6 +50,11 @@ export interface Employee {
   role: AppUserRole;
 }
 
+export interface EmployeeProfile extends Employee {
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Client {
   id: string;
   companyName: string;

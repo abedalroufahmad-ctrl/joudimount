@@ -829,4 +829,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get txPortMainland => 'Mainland';
+
+  @override
+  String get profileAccountInfo => 'Account information';
+
+  @override
+  String get profileEditTitle => 'Edit profile';
+
+  @override
+  String get profileMemberSince => 'Member since';
+
+  @override
+  String get profileLastUpdated => 'Last updated';
+
+  @override
+  String get profileAccountId => 'Account ID';
+
+  @override
+  String get profileUpdated => 'Profile updated';
 }

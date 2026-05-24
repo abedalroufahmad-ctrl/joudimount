@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import { assessRisk } from "./risk.js";
 import type { UserRole } from "./auth.js";
-import type { Client, ClearanceStatus, DocumentAttachment, Employee, Transaction, TransactionStage } from "./types.js";
+import type { Client, ClearanceStatus, DocumentAttachment, Employee, EmployeeProfile, Transaction, TransactionStage } from "./types.js";
 import { ClientModel, CounterModel, EmployeeModel, ExportModel, ShippingCompanyModel, TransactionModel, TransferModel } from "./models.js";
 import { absolutePathFromPublicPath } from "./uploads.js";
 import { hashPassword } from "./password.js";
@@ -70,6 +70,19 @@ function mapEmployeePublic(doc: any): Employee {
     email: doc.email,
     role: doc.role,
   };
+}
+
+function mapEmployeeProfile(doc: any): EmployeeProfile {
+  return {
+    ...mapEmployeePublic(doc),
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : undefined,
+    updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined,
+  };
+}
+
+export async function getEmployeeProfile(id: string): Promise<EmployeeProfile | null> {
+  const doc = await EmployeeModel.findById(id).lean();
+  return doc ? mapEmployeeProfile(doc) : null;
 }
 
 export async function listEmployees(): Promise<Employee[]> {

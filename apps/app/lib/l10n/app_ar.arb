@@ -273,5 +273,11 @@
   "txDeclTypeTransitinGcc": "ترانزيت من دول الخليج",
   "txPortSeaports": "الموانئ البحرية",
   "txPortFreeZones": "المناطق الحرة",
-  "txPortMainland": "البر الرئيسي"
+  "txPortMainland": "البر الرئيسي",
+  "profileAccountInfo": "معلومات الحساب",
+  "profileEditTitle": "تعديل الملف الشخصي",
+  "profileMemberSince": "عضو منذ",
+  "profileLastUpdated": "آخر تحديث",
+  "profileAccountId": "معرّف الحساب",
+  "profileUpdated": "تم تحديث الملف الشخصي"
 }

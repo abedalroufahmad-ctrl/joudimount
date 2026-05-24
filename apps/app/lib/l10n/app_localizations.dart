@@ -1738,6 +1738,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mainland'**
   String get txPortMainland;
+
+  /// No description provided for @profileAccountInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Account information'**
+  String get profileAccountInfo;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileMemberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get profileMemberSince;
+
+  /// No description provided for @profileLastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated'**
+  String get profileLastUpdated;
+
+  /// No description provided for @profileAccountId.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID'**
+  String get profileAccountId;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdated;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
