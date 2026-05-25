@@ -6,7 +6,8 @@ import type { MessageKey } from "./i18n/messages";
 import { useI18n } from "./i18n/I18nContext";
 import ShippingPaperModal from "./ShippingPaperModal";
 import { stageBadgeClass } from "./stageBadge";
-import { API_BASE, DocumentAttachment, Role, Transaction } from "./types";
+import { API_BASE, DocumentAttachment, Role, Transaction, TransactionStage } from "./types";
+import { roleCanWorkAtStage } from "./stageRolePermissions";
 
 const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
   bill_of_lading: "docCategory.bill_of_lading",
@@ -165,20 +166,26 @@ export default function TransactionDetails({
         ? t("transfer.details.title" as MessageKey)
         : t("export.details.title" as MessageKey);
 
+  const txStage = (transaction?.transactionStage ?? "PREPARATION") as TransactionStage;
+  const canWorkRecord =
+    role === "manager" || (transaction != null && roleCanWorkAtStage(role, txStage));
+
   return (
     <main className="container page-content py-3">
       <div className="page-actions btn-toolbar gap-2 flex-wrap" role="toolbar">
         <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
           ← {t("details.back")}
         </Link>
-        {id && role !== "accountant" ? (
+        {id && canWorkRecord && role !== "accountant" ? (
           <>
             <Link to={`/${module}/${id}/edit`} className="btn btn-outline-primary btn-sm">
               {t("details.edit")}
             </Link>
-            <button className="btn btn-outline-danger btn-sm" onClick={onDelete} disabled={deleting}>
-              {deleting ? t("details.deleting") : t("details.delete")}
-            </button>
+            {(role === "manager" || role === "employee") ? (
+              <button className="btn btn-outline-danger btn-sm" onClick={onDelete} disabled={deleting}>
+                {deleting ? t("details.deleting") : t("details.delete")}
+              </button>
+            ) : null}
           </>
         ) : null}
         {id && (role === "manager" || role === "accountant") ? (
@@ -203,7 +210,9 @@ export default function TransactionDetails({
             </button>
           </>
         ) : null}
-        {id && module === "transactions" && (role === "manager" || role === "employee") ? (
+        {id &&
+        module === "transactions" &&
+        (role === "manager" || (role === "employee" && roleCanWorkAtStage(role, txStage))) ? (
           <button
             className="btn btn-outline-secondary btn-sm"
             onClick={() => onPostAction("original-bl")}

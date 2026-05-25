@@ -13,6 +13,17 @@ import 'transaction_labels.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
 
+bool roleCanWorkAtStage(String role, String stage) {
+  if (role == 'manager') return true;
+  if (role == 'employee') {
+    return stage == 'PREPARATION' || stage == 'CUSTOMS_CLEARANCE';
+  }
+  if (role == 'employee2') {
+    return stage == 'TRANSPORTATION' || stage == 'STORAGE';
+  }
+  return false;
+}
+
 class TransactionDetailsPage extends StatefulWidget {
   final String id;
   final String role;
@@ -675,7 +686,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final cs = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final numberFormat = intl.NumberFormat.decimalPattern(locale);
-    final canEdit = widget.role != 'accountant';
+    final stage = '${tx?['transactionStage'] ?? 'PREPARATION'}';
+    final canWorkRecord = tx != null && roleCanWorkAtStage(widget.role, stage);
+    final canEdit =
+        widget.role == 'manager' || (widget.role != 'accountant' && canWorkRecord);
+    final canDelete = widget.role == 'manager' || widget.role == 'employee';
     final canAccounting =
         widget.role == 'manager' || widget.role == 'accountant';
     final paid = tx?['paymentStatus'] == 'paid';
@@ -712,7 +727,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               tooltip: l10n.shippingPaper,
               onPressed: _openShippingPaper,
             ),
-          if (tx != null && canEdit)
+          if (tx != null && canEdit && canDelete)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: _delete,
@@ -764,7 +779,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     ..._buildDetailSections(l10n, locale, numberFormat),
                     const SizedBox(height: 12),
                     if (widget.module == 'transactions' &&
-                        (widget.role == 'manager' || widget.role == 'employee'))
+                        (widget.role == 'manager' ||
+                            (widget.role == 'employee' &&
+                                roleCanWorkAtStage(widget.role, stage))))
                       FilledButton.tonal(
                         onPressed: () => _action('original-bl'),
                         child: Text(l10n.originalBl),

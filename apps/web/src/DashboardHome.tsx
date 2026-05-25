@@ -109,6 +109,8 @@ export function DashboardHome({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [activityPage, setActivityPage] = useState(1);
+  const activityPageSize = 30;
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +142,7 @@ export function DashboardHome({
         ];
         merged.sort((a, b) => new Date(b.tx.createdAt).getTime() - new Date(a.tx.createdAt).getTime());
         setRows(merged.slice(0, 80));
+        setActivityPage(1);
       })
       .catch(() => {
         if (!cancelled) setError(t("home.loadError"));
@@ -151,6 +154,13 @@ export function DashboardHome({
       cancelled = true;
     };
   }, [t]);
+
+  const activityTotalPages = Math.max(1, Math.ceil(rows.length / activityPageSize));
+  const activityCurrentPage = Math.min(activityPage, activityTotalPages);
+  const pagedRows = rows.slice(
+    (activityCurrentPage - 1) * activityPageSize,
+    activityCurrentPage * activityPageSize,
+  );
 
   const moduleLabel = (m: TransactionListModule): MessageKey =>
     m === "transactions" ? "app.title" : m === "transfers" ? ("transfer.app.title" as MessageKey) : ("export.app.title" as MessageKey);
@@ -209,7 +219,9 @@ export function DashboardHome({
               <span className="small fw-semibold text-secondary text-truncate me-2">
                 {t("home.activityHeading")}
               </span>
-              <span className="badge rounded-pill text-bg-primary">{loading ? "…" : rows.length}</span>
+              <span className="badge rounded-pill text-bg-primary">
+                {loading ? "…" : `${rows.length}`}
+              </span>
             </div>
             <div className="dashboard-table-scroll">
               <table className="table table-hover align-middle mb-0 sticky-table-head">
@@ -224,7 +236,7 @@ export function DashboardHome({
                 </thead>
                 <tbody>
                   {!loading &&
-                    rows.map(({ module, tx }) => (
+                    pagedRows.map(({ module, tx }) => (
                       <tr
                         key={`${module}-${tx.id}`}
                         className="clickable-row"
@@ -260,6 +272,48 @@ export function DashboardHome({
                 </tbody>
               </table>
             </div>
+            {!loading && rows.length > 0 ? (
+              <div className="dashboard-list-footer border-top px-3 py-2 bg-body-tertiary">
+                <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                  <span className="small text-secondary">
+                    {t("home.paginationSummary")
+                      .replace("{page}", String(activityCurrentPage))
+                      .replace("{pages}", String(activityTotalPages))
+                      .replace("{total}", String(rows.length))}
+                  </span>
+                  <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center ms-auto">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => setActivityPage(activityCurrentPage - 1)}
+                      disabled={activityCurrentPage === 1}
+                    >
+                      {t("list.paginationPrev")}
+                    </button>
+                    {Array.from({ length: activityTotalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        type="button"
+                        key={p}
+                        className={
+                          p === activityCurrentPage ? "btn btn-sm btn-primary" : "btn btn-sm btn-outline-secondary"
+                        }
+                        onClick={() => setActivityPage(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => setActivityPage(activityCurrentPage + 1)}
+                      disabled={activityCurrentPage === activityTotalPages}
+                    >
+                      {t("list.paginationNext")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       </div>

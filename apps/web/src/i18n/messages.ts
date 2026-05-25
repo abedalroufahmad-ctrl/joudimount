@@ -360,6 +360,7 @@ export type MessageKey =
   | "home.openFullList"
   | "home.snapshotHint"
   | "home.activityHeading"
+  | "home.paginationSummary"
   | "home.loadError"
   | "home.empty"
   | "home.col.module"
@@ -740,6 +741,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "home.openFullList": "عرض القائمة الكاملة",
     "home.snapshotHint": "الأرقام أدناه تعرض عدد أحدث السجلات المحمّلة لكل قسم (حتى 40 لكل منها)، وليس إجمالي المشروع.",
     "home.activityHeading": "أحدث حركة على السجلات",
+    "home.paginationSummary": "صفحة {page} من {pages} ({total} سجل)",
     "home.loadError": "تعذّر تحميل تقرير النشاط.",
     "home.empty": "لا توجد سجلات حديثة في اللقطة الحالية.",
     "home.col.module": "القسم",
@@ -1120,6 +1122,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "home.openFullList": "Open full list",
     "home.snapshotHint": "Figures below count the latest records loaded per module (up to 40 each), not the whole project total.",
     "home.activityHeading": "Latest record activity",
+    "home.paginationSummary": "Page {page} of {pages} ({total} records)",
     "home.loadError": "Could not load the activity report.",
     "home.empty": "No recent records in the current snapshot.",
     "home.col.module": "Module",

@@ -11,6 +11,22 @@ import 'transaction_labels.dart';
 import 'transaction_storage_page.dart';
 
 /// New or edit transaction — aligned with web TransactionForm.
+bool roleCanWorkAtStage(String role, String stage) {
+  if (role == 'manager') return true;
+  if (role == 'employee') {
+    return stage == 'PREPARATION' || stage == 'CUSTOMS_CLEARANCE';
+  }
+  if (role == 'employee2') {
+    return stage == 'TRANSPORTATION' || stage == 'STORAGE';
+  }
+  return false;
+}
+
+List<String> stageOptionsForRole(String role, List<String> options) {
+  if (role == 'manager') return options;
+  return options.where((s) => roleCanWorkAtStage(role, s)).toList();
+}
+
 class TransactionFormPage extends StatefulWidget {
   final String role;
   final String? transactionId;
@@ -596,20 +612,28 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         (widget.module == 'transactions' || widget.module == 'transfers');
     
     final showTransportationSection = _isEdit && _stage == 'TRANSPORTATION';
-    final transportationEditableEffective = showTransportationSection && !storageWarehouseOnly;
-
+    final isManager = widget.role == 'manager';
+    final isEmployee = widget.role == 'employee';
+    final isEmployee2 = widget.role == 'employee2';
+    final canWorkStage = roleCanWorkAtStage(widget.role, _stage);
+    final transportationEditableEffective = showTransportationSection &&
+        !storageWarehouseOnly &&
+        (isManager || (isEmployee2 && canWorkStage));
     final prepEditable = (!_isEdit ||
             _stage == 'PREPARATION' ||
             _stage == 'CUSTOMS_CLEARANCE') &&
-        !storageWarehouseOnly;
+        !storageWarehouseOnly &&
+        (isManager || isEmployee);
     final customsEditable = (!_isEdit ||
             _stage == 'PREPARATION' ||
             _stage == 'CUSTOMS_CLEARANCE') &&
-        !storageWarehouseOnly;
-    final storageEditable =
-        (!_isEdit || _stage == 'PREPARATION' || _stage == 'STORAGE') &&
-            !storageWarehouseOnly;
-    final canSetStage = widget.role == 'manager' || widget.role == 'employee2';
+        !storageWarehouseOnly &&
+        (isManager || isEmployee);
+    final storageEditable = (!_isEdit || _stage == 'STORAGE') &&
+        !storageWarehouseOnly &&
+        (isManager || (isEmployee2 && _stage == 'STORAGE'));
+    final canSetStage = isManager || canWorkStage;
+    final selectableStages = stageOptionsForRole(widget.role, _stageOptionsForModule);
     final showCustomsDeclarationSection = _isEdit && _stage != 'PREPARATION';
     final groupedRetained = _groupRetainedDocs(l10n);
 
@@ -660,7 +684,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 key: ValueKey('tx-stage-$_stage'),
                 decoration: InputDecoration(labelText: l10n.txStage),
                 initialValue: _stage,
-                items: _stageOptionsForModule
+                items: selectableStages
                     .map((s) => DropdownMenuItem(
                         value: s, child: Text(_stageLabel(s, l10n))))
                     .toList(),

@@ -81,12 +81,12 @@ async function resolveRecipientIds(actorId: string, actorRole: UserRole): Promis
     const id = String(emp._id);
     if (id === actorId) continue;
     const role = emp.role as UserRole;
-    if (role === "manager") {
-      ids.push(id);
+    if (actorRole === "manager") {
+      if (role === "manager") ids.push(id);
       continue;
     }
-    if (role === "employee" || role === "employee2" || role === "accountant") {
-      ids.push(id);
+    if (actorRole === "employee" || actorRole === "employee2" || actorRole === "accountant") {
+      if (role === "manager") ids.push(id);
     }
   }
   return ids;

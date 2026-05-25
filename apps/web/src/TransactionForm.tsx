@@ -19,6 +19,7 @@ import {
   TransactionStage,
 } from "./types";
 import { canRoleSubmitField } from "./transactionFieldPermissions";
+import { roleCanChangeStage, roleCanWorkAtStage, stageOptionsForRole } from "./stageRolePermissions";
 
 const UNIT_OPTIONS: { value: GoodsUnit; labelKey: string }[] = [
   { value: "kg", labelKey: "form.unit.kg" },
@@ -569,23 +570,27 @@ export default function TransactionForm({
   /** Imports & transfers in Storage: only warehouse fields stay editable (API-enforced). */
   const storageOnlyImportTransfer =
     isEdit && stage === "STORAGE" && (module === "transactions" || module === "transfers");
+  const canWorkThisStage = role === "manager" || roleCanWorkAtStage(role, stage);
   const prepEditableEffective =
-    prepEditable && !storageOnlyImportTransfer && (role === "manager" || role === "employee" || !isEdit);
+    prepEditable && !storageOnlyImportTransfer && (role === "manager" || (role === "employee" && canWorkThisStage) || !isEdit);
   const customsEditableEffective =
-    customsEditable && !storageOnlyImportTransfer && (role === "manager" || role === "employee2");
-  const legacyStorageEditable = storageEditable && !storageOnlyImportTransfer && role === "manager";
+    customsEditable && !storageOnlyImportTransfer && (role === "manager" || (role === "employee" && canWorkThisStage));
+  const legacyStorageEditable =
+    storageEditable && !storageOnlyImportTransfer && (role === "manager" || (role === "employee2" && stage === "STORAGE"));
   const showTransportationSection = isEdit && stage === "TRANSPORTATION";
   const transportationEditableEffective =
-    showTransportationSection && !storageOnlyImportTransfer && (role === "manager" || role === "employee2");
+    showTransportationSection &&
+    !storageOnlyImportTransfer &&
+    (role === "manager" || (role === "employee2" && canWorkThisStage));
   const fullyLocked = storageOnlyImportTransfer;
-  /** Stage can move forward or back; only manager and employee2 may call the API. */
-  const canSetStage = role === "manager" || role === "employee2";
+  const canSetStage = roleCanChangeStage(role, stage);
   /** Customs Declaration + file number: hidden for new transactions and in Preparation; visible from Customs clearance onward when editing. */
   const showCustomsDeclarationSection = isEdit && stage !== "PREPARATION";
   const isTransferOrExport = module === "transfers" || module === "exports";
   const declarationTypeOptions = DECLARATION_TYPE_OPTIONS_BY_MODULE[module];
   const moduleStageOptions: TransactionStage[] =
     module === "exports" ? ["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION"] : STAGE_OPTIONS;
+  const selectableStages = stageOptionsForRole(role, moduleStageOptions);
 
   if (isTransferOrExport) {
     const transferWarehouseOnly = isEdit && stage === "STORAGE" && module === "transfers";
@@ -616,7 +621,7 @@ export default function TransactionForm({
                   onChange={(e) => setTransactionStage(e.target.value as TransactionStage)}
                   disabled={!canSetStage}
                 >
-                  {moduleStageOptions.map((s) => (
+                  {selectableStages.map((s) => (
                     <option key={s} value={s}>
                       {stageLabel(s)}
                     </option>
@@ -1097,7 +1102,7 @@ export default function TransactionForm({
                 onChange={(e) => setTransactionStage(e.target.value as TransactionStage)}
                 disabled={!canSetStage}
               >
-                {moduleStageOptions.map((s) => (
+                {selectableStages.map((s) => (
                   <option key={s} value={s}>
                     {stageLabel(s)}
                   </option>

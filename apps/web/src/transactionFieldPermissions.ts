@@ -1,4 +1,5 @@
 import type { Role, TransactionStage } from "./types";
+import { roleCanWorkAtStage } from "./stageRolePermissions";
 
 /** Mirrors apps/api/src/server.ts stage1EmployeeFields */
 export const EMPLOYEE1_EDIT_FIELDS = new Set<string>([
@@ -62,6 +63,35 @@ export const EMPLOYEE2_EDIT_FIELDS = new Set<string>([
   "maccrikCharge",
 ]);
 
+/** Warehouse fields at STORAGE (imports/transfers). */
+export const STORAGE_WAREHOUSE_FIELDS = new Set<string>([
+  "storageSubStage",
+  "storageEntryDate",
+  "storageWorkersWages",
+  "storageWorkersCompany",
+  "storageStoreName",
+  "storageSizeCbm",
+  "storageFreightVehicleNumbers",
+  "storageCrossPackaging",
+  "storageUnity",
+  "storageSealNumber",
+  "storageInputEntryDate",
+  "storageInputWorkersWages",
+  "storageInputWorkersCompany",
+  "storageInputStoreName",
+  "storageInputVolumeCbm",
+  "storageInputLoadingEquipmentFare",
+  "storageExitEntryDate",
+  "storageExitWorkersWages",
+  "storageExitWorkersCompany",
+  "storageExitStoreName",
+  "storageExitVolumeCbm",
+  "storageExitLoadingEquipmentFare",
+  "storageExitFreightVehicleNumbers",
+  "storageExitCrossPackaging",
+  "storageExitUnity",
+]);
+
 export function getAllowedUpdateFields(
   role: Role,
   stage: TransactionStage,
@@ -69,12 +99,11 @@ export function getAllowedUpdateFields(
 ): Set<string> | "all" {
   if (role === "manager") return "all";
   if (role === "accountant") return new Set(["paymentStatus"]);
-  if (atStorage) {
-    // Main transaction form is read-only at Storage for imports/transfers; exports use dedicated rules.
-    return role === "employee" ? EMPLOYEE1_EDIT_FIELDS : EMPLOYEE2_EDIT_FIELDS;
-  }
+  if (!roleCanWorkAtStage(role, stage)) return new Set();
   if (role === "employee") return EMPLOYEE1_EDIT_FIELDS;
-  if (role === "employee2") return EMPLOYEE2_EDIT_FIELDS;
+  if (role === "employee2") {
+    return atStorage ? STORAGE_WAREHOUSE_FIELDS : EMPLOYEE2_EDIT_FIELDS;
+  }
   return new Set();
 }
 

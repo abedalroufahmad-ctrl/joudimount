@@ -53,7 +53,7 @@ import {
   STORAGE_STAGE_EDITABLE_FIELDS,
   updateTransaction,
 } from "./store.js";
-import type { DocumentAttachment, Transaction } from "./types.js";
+import type { DocumentAttachment, Transaction, TransactionStage } from "./types.js";
 import { absolutePathFromPublicPath, publicPathForUploadedFile, transactionDocsUpload } from "./uploads.js";
 import {
   initNotificationSocket,
@@ -152,6 +152,65 @@ function notifyAction(req: AuthRequest, input: Omit<ProjectActionInput, "actor">
 
 function txLabel(tx: { declarationNumber?: string; clientName?: string }): string {
   return tx.declarationNumber?.trim() || tx.clientName?.trim() || "transaction";
+}
+
+const EMPLOYEE_WORK_STAGES = new Set<TransactionStage>(["PREPARATION", "CUSTOMS_CLEARANCE"]);
+const EMPLOYEE2_WORK_STAGES = new Set<TransactionStage>(["TRANSPORTATION", "STORAGE"]);
+
+function txStageOf(tx: { transactionStage?: TransactionStage }): TransactionStage {
+  return tx.transactionStage ?? "PREPARATION";
+}
+
+function roleMayEditAtStage(role: UserRole, stage: TransactionStage): boolean {
+  if (role === "manager") return true;
+  if (role === "employee") return EMPLOYEE_WORK_STAGES.has(stage);
+  if (role === "employee2") return EMPLOYEE2_WORK_STAGES.has(stage);
+  return false;
+}
+
+function roleMaySetTargetStage(role: UserRole, target: TransactionStage): boolean {
+  if (role === "manager") return true;
+  if (role === "employee") return EMPLOYEE_WORK_STAGES.has(target);
+  if (role === "employee2") return EMPLOYEE2_WORK_STAGES.has(target);
+  return false;
+}
+
+function validateRoleFieldUpdates(
+  role: UserRole,
+  stage: TransactionStage,
+  data: Record<string, unknown>,
+): string | null {
+  if (role === "manager") return null;
+  if (role === "accountant") {
+    const nonAccounting = Object.keys(data).some((key) => key !== "paymentStatus");
+    return nonAccounting ? "Accountant can only update paymentStatus via edit endpoint" : null;
+  }
+  if (!roleMayEditAtStage(role, stage)) {
+    return role === "employee"
+      ? "Employee can only edit during Preparation and Customs clearance"
+      : "Employee2 can only edit during Transportation and Storage";
+  }
+  if (role === "employee") {
+    const invalidFields = Object.keys(data).filter((key) => !stage1EmployeeFields.has(key));
+    if (invalidFields.length > 0) {
+      return `Employee can only edit stage 1 fields: ${invalidFields.join(", ")}`;
+    }
+    return null;
+  }
+  if (role === "employee2") {
+    const atStorage = stage === "STORAGE";
+    const invalidFields = Object.keys(data).filter((key) => {
+      if (atStorage) return !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction);
+      return !stage2EmployeeFields.has(key);
+    });
+    if (invalidFields.length > 0) {
+      return atStorage
+        ? `At Storage stage, employee2 may only edit warehouse fields: ${invalidFields.join(", ")}`
+        : `Employee2 can only edit stage 2 fields: ${invalidFields.join(", ")}`;
+    }
+    return null;
+  }
+  return "Forbidden";
 }
 
 function authenticate(req: AuthRequest, res: Response, next: () => void) {
@@ -818,8 +877,13 @@ app.get("/api/transactions/:id", authenticate, async (req: AuthRequest, res) => 
 });
 
 app.post("/api/transactions/:id/original-bl", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee"]);
+  if (!role) return;
+  const existing = await getTransaction(req.params.id);
+  if (!existing) return res.status(404).json({ error: "Transaction not found" });
+  if (role === "employee" && !EMPLOYEE_WORK_STAGES.has(txStageOf(existing))) {
+    return res.status(403).json({ error: "Employee can only act during Preparation and Customs clearance" });
+  }
   const tx = await markOriginalBl(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transaction not found" });
   notifyAction(req, {
@@ -861,13 +925,16 @@ app.post("/api/transactions/:id/release", authenticate, async (req: AuthRequest,
 });
 
 app.post("/api/transactions/:id/stage", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee2"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee", "employee2"]);
+  if (!role) return;
   const schema = z.object({
     stage: z.enum(["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"]),
   });
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+  if (!roleMaySetTargetStage(role, result.data.stage)) {
+    return res.status(403).json({ error: "Your role cannot move the record to this stage" });
+  }
   if (result.data.stage === "CUSTOMS_CLEARANCE") {
     const tx = await getTransaction(req.params.id);
     if (!tx) return res.status(404).json({ error: "Transaction not found" });
@@ -932,47 +999,8 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
       return res.status(403).json({ error: "Employee2 cannot manage accounting fields" });
     }
 
-    if (role === "employee") {
-      if (atStorage) {
-        const invalidFields = Object.keys(result.data).filter(
-          (key) => !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction),
-        );
-        if (invalidFields.length > 0) {
-          return res.status(403).json({
-            error: `At Storage stage, employee may only edit warehouse fields: ${invalidFields.join(", ")}`,
-          });
-        }
-      } else {
-        const invalidFields = Object.keys(result.data).filter((key) => !stage1EmployeeFields.has(key));
-        if (invalidFields.length > 0) {
-          return res.status(403).json({ error: `Employee can only edit stage 1 fields: ${invalidFields.join(", ")}` });
-        }
-      }
-    }
-    if (role === "employee2") {
-      if (atStorage) {
-        const invalidFields = Object.keys(result.data).filter(
-          (key) => !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction),
-        );
-        if (invalidFields.length > 0) {
-          return res.status(403).json({
-            error: `At Storage stage, employee2 may only edit warehouse fields: ${invalidFields.join(", ")}`,
-          });
-        }
-      } else {
-        const invalidFields = Object.keys(result.data).filter((key) => !stage2EmployeeFields.has(key));
-        if (invalidFields.length > 0) {
-          return res.status(403).json({ error: `Employee2 can only edit stage 2 fields: ${invalidFields.join(", ")}` });
-        }
-      }
-    }
-
-    if (role === "accountant") {
-      const nonAccountingFieldProvided = Object.keys(result.data).some((key) => key !== "paymentStatus");
-      if (nonAccountingFieldProvided) {
-        return res.status(403).json({ error: "Accountant can only update paymentStatus via edit endpoint" });
-      }
-    }
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
+    if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartEarly;
     let payload: Parameters<typeof updateTransaction>[1] = { ...result.data };
@@ -982,8 +1010,11 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
-      if (role === "employee2" && files.length > 0) {
-        return res.status(403).json({ error: "Employee2 cannot upload attachments" });
+      if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
+        return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
+      }
+      if (role === "employee" && files.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
+        return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
       }
       if (atStorage) {
         if (files.length > 0) {
@@ -1032,9 +1063,12 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 });
 
 app.delete("/api/transactions/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee"]);
+  if (!role) return;
   const existingTx = await getTransaction(req.params.id);
+  if (existingTx && role === "employee" && !EMPLOYEE_WORK_STAGES.has(txStageOf(existingTx))) {
+    return res.status(403).json({ error: "Employee can only delete during Preparation and Customs clearance" });
+  }
   const ok = await deleteTransaction(req.params.id);
   if (!ok) return res.status(404).json({ error: "Transaction not found" });
   notifyAction(req, {
@@ -1131,13 +1165,16 @@ app.post("/api/transfers/:id/release", authenticate, async (req: AuthRequest, re
 });
 
 app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee2"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee", "employee2"]);
+  if (!role) return;
   const schema = z.object({
     stage: z.enum(["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"]),
   });
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+  if (!roleMaySetTargetStage(role, result.data.stage)) {
+    return res.status(403).json({ error: "Your role cannot move the record to this stage" });
+  }
   if (result.data.stage === "CUSTOMS_CLEARANCE") {
     const tx = await getTransfer(req.params.id);
     if (!tx) return res.status(404).json({ error: "Transfer not found" });
@@ -1194,40 +1231,8 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
     if ((role === "employee" || role === "employee2") && result.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    if (role === "employee") {
-      if (atStorage) {
-        const invalidFields = Object.keys(result.data).filter(
-          (key) => !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction),
-        );
-        if (invalidFields.length > 0) {
-          return res.status(403).json({
-            error: `At Storage stage, employee may only edit warehouse fields: ${invalidFields.join(", ")}`,
-          });
-        }
-      } else {
-        const invalidFields = Object.keys(result.data).filter((key) => !stage1EmployeeFields.has(key));
-        if (invalidFields.length > 0) return res.status(403).json({ error: `Employee can only edit stage 1 fields: ${invalidFields.join(", ")}` });
-      }
-    }
-    if (role === "employee2") {
-      if (atStorage) {
-        const invalidFields = Object.keys(result.data).filter(
-          (key) => !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction),
-        );
-        if (invalidFields.length > 0) {
-          return res.status(403).json({
-            error: `At Storage stage, employee2 may only edit warehouse fields: ${invalidFields.join(", ")}`,
-          });
-        }
-      } else {
-        const invalidFields = Object.keys(result.data).filter((key) => !stage2EmployeeFields.has(key));
-        if (invalidFields.length > 0) return res.status(403).json({ error: `Employee2 can only edit stage 2 fields: ${invalidFields.join(", ")}` });
-      }
-    }
-    if (role === "accountant") {
-      const nonAccountingFieldProvided = Object.keys(result.data).some((key) => key !== "paymentStatus");
-      if (nonAccountingFieldProvided) return res.status(403).json({ error: "Accountant can only update paymentStatus via edit endpoint" });
-    }
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
+    if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartTransferEarly;
     let payload: Parameters<typeof updateTransfer>[1] = { ...result.data };
@@ -1245,6 +1250,12 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
           return res.status(400).json({ error: "Cannot add or remove document attachments in Storage stage" });
         }
       } else {
+        if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
+          return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
+        }
+        if (role === "employee" && files.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
+          return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
+        }
         const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, files.length);
         if (files.length > 0 && categories.length !== files.length) return res.status(400).json({ error: "Each uploaded document must have a category" });
         for (const c of categories) {
@@ -1278,9 +1289,12 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
 });
 
 app.delete("/api/transfers/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee"]);
+  if (!role) return;
   const existingTransfer = await getTransfer(req.params.id);
+  if (existingTransfer && role === "employee" && !EMPLOYEE_WORK_STAGES.has(txStageOf(existingTransfer))) {
+    return res.status(403).json({ error: "Employee can only delete during Preparation and Customs clearance" });
+  }
   const ok = await deleteTransfer(req.params.id);
   if (!ok) return res.status(404).json({ error: "Transfer not found" });
   notifyAction(req, {
@@ -1377,13 +1391,16 @@ app.post("/api/exports/:id/release", authenticate, async (req: AuthRequest, res)
 });
 
 app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee2"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee", "employee2"]);
+  if (!role) return;
   const schema = z.object({
     stage: z.enum(["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION"]),
   });
   const result = schema.safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+  if (!roleMaySetTargetStage(role, result.data.stage)) {
+    return res.status(403).json({ error: "Your role cannot move the record to this stage" });
+  }
   if (result.data.stage === "CUSTOMS_CLEARANCE") {
     const tx = await getExport(req.params.id);
     if (!tx) return res.status(404).json({ error: "Export not found" });
@@ -1423,21 +1440,14 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
     if (!result.success) return res.status(400).json({ error: result.error.flatten() });
     if (Object.keys(result.data).length === 0) return res.status(400).json({ error: "No fields to update" });
 
+    const prev = await getExport(req.params.id);
+    if (!prev) return res.status(404).json({ error: "Export not found" });
+
     if ((role === "employee" || role === "employee2") && result.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    if (role === "employee") {
-      const invalidFields = Object.keys(result.data).filter((key) => !stage1EmployeeFields.has(key));
-      if (invalidFields.length > 0) return res.status(403).json({ error: `Employee can only edit stage 1 fields: ${invalidFields.join(", ")}` });
-    }
-    if (role === "employee2") {
-      const invalidFields = Object.keys(result.data).filter((key) => !stage2EmployeeFields.has(key));
-      if (invalidFields.length > 0) return res.status(403).json({ error: `Employee2 can only edit stage 2 fields: ${invalidFields.join(", ")}` });
-    }
-    if (role === "accountant") {
-      const nonAccountingFieldProvided = Object.keys(result.data).some((key) => key !== "paymentStatus");
-      if (nonAccountingFieldProvided) return res.status(403).json({ error: "Accountant can only update paymentStatus via edit endpoint" });
-    }
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
+    if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = (req.headers["content-type"] || "").includes("multipart/form-data");
     let payload: Parameters<typeof updateExport>[1] = { ...result.data };
@@ -1445,9 +1455,13 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
       payload.originCountry = result.data.originCountry.toUpperCase();
     }
     if (hasMultipart) {
-      const prev = await getExport(req.params.id);
-      if (!prev) return res.status(404).json({ error: "Export not found" });
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
+      if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
+        return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
+      }
+      if (role === "employee" && files.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
+        return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
+      }
       const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, files.length);
       if (files.length > 0 && categories.length !== files.length) return res.status(400).json({ error: "Each uploaded document must have a category" });
       for (const c of categories) {
@@ -1480,9 +1494,12 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
 });
 
 app.delete("/api/exports/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee"]);
-  if (!denied) return;
+  const role = ensureRole(req, res, ["manager", "employee"]);
+  if (!role) return;
   const existingExport = await getExport(req.params.id);
+  if (existingExport && role === "employee" && !EMPLOYEE_WORK_STAGES.has(txStageOf(existingExport))) {
+    return res.status(403).json({ error: "Employee can only delete during Preparation and Customs clearance" });
+  }
   const ok = await deleteExport(req.params.id);
   if (!ok) return res.status(404).json({ error: "Export not found" });
   notifyAction(req, {
