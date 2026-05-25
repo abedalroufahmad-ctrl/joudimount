@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "281646090153",
+    "project_id": "joudimount",
+    "storage_bucket": "joudimount.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281646090153:android:11c1629ffc4111be5426b8",
+        "android_client_info": {
+          "package_name": "joudi.mount_2026"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKYNZktLunSag8dxaOcVoyDXXch54Pi5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

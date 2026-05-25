@@ -11,6 +11,7 @@ import 'employees.dart';
 import 'home_dashboard.dart';
 import 'l10n/app_localizations.dart';
 import 'location_map_picker.dart';
+import 'notifications.dart';
 import 'profile.dart';
 import 'shipping_detail.dart';
 import 'transactions_list.dart';
@@ -368,6 +369,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _user = Map<String, dynamic>.from(widget.user);
+    NotificationService.instance.start();
   }
 
   void _onUserUpdated(Map<String, dynamic> user) {
@@ -378,6 +380,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await Api.post('/api/auth/logout', {});
     } catch (_) {}
+    await NotificationService.instance.stop();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('user');

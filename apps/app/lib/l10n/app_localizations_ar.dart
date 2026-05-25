@@ -847,4 +847,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileUpdated => 'تم تحديث الملف الشخصي';
+
+  @override
+  String get notificationsTitle => 'الإشعارات';
+
+  @override
+  String get notificationsMarkAllRead => 'تعليم الكل كمقروء';
+
+  @override
+  String get notificationsClearList => 'مسح القائمة';
 }

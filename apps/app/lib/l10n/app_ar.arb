@@ -279,5 +279,8 @@
   "profileMemberSince": "عضو منذ",
   "profileLastUpdated": "آخر تحديث",
   "profileAccountId": "معرّف الحساب",
-  "profileUpdated": "تم تحديث الملف الشخصي"
+  "profileUpdated": "تم تحديث الملف الشخصي",
+  "notificationsTitle": "الإشعارات",
+  "notificationsMarkAllRead": "تعليم الكل كمقروء",
+  "notificationsClearList": "مسح القائمة"
 }

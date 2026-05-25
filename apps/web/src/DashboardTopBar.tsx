@@ -1,4 +1,5 @@
 import LanguageSwitcher from "./LanguageSwitcher";
+import { NotificationBell } from "./NotificationBell";
 import type { AuthUser } from "./types";
 
 export function DashboardTopBar({
@@ -20,6 +21,7 @@ export function DashboardTopBar({
             <p className="section-subtitle mb-0 mt-1">{subtitle}</p>
           </div>
           <div className="dashboard-top-bar-actions d-flex align-items-center flex-wrap gap-2 ms-md-auto">
+            <NotificationBell />
             <span className="app-header-user badge rounded-pill">{user.name}</span>
             <LanguageSwitcher />
           </div>

@@ -12,6 +12,7 @@ import EmployeeSection from "./EmployeeSection";
 import Login from "./Login";
 import { DashboardTopBar } from "./DashboardTopBar";
 import { stageBadgeClass } from "./stageBadge";
+import { NotificationsProvider } from "./useNotifications";
 import { apiFetch, getCurrentUser, logout } from "./api";
 import { useI18n } from "./i18n/I18nContext";
 import type { MessageKey } from "./i18n/messages";
@@ -237,7 +238,9 @@ export default function App() {
   return !user ? (
     <Login onLogin={setUser} />
   ) : (
-    <AuthenticatedRoutes user={user} onLogout={handleLogout} />
+    <NotificationsProvider>
+      <AuthenticatedRoutes user={user} onLogout={handleLogout} />
+    </NotificationsProvider>
   );
 }
 

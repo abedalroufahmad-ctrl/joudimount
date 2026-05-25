@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
+import { createServer } from "node:http";
 import multer from "multer";
 import { promises as fs } from "fs";
 import path from "path";
@@ -54,6 +55,18 @@ import {
 } from "./store.js";
 import type { DocumentAttachment, Transaction } from "./types.js";
 import { absolutePathFromPublicPath, publicPathForUploadedFile, transactionDocsUpload } from "./uploads.js";
+import {
+  initNotificationSocket,
+  listNotifications,
+  clearAllNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  publishProjectAction,
+  registerFcmToken,
+  unregisterFcmToken,
+  unreadNotificationCount,
+  type ProjectActionInput,
+} from "./notifications.js";
 
 const app = express();
 app.use(cors());
@@ -127,6 +140,18 @@ interface AuthRequest extends Request {
     name: string;
     role: UserRole;
   };
+}
+
+function actionActor(req: AuthRequest): ProjectActionInput["actor"] {
+  return { id: req.user!.id, name: req.user!.name, role: req.user!.role };
+}
+
+function notifyAction(req: AuthRequest, input: Omit<ProjectActionInput, "actor">): void {
+  void publishProjectAction({ ...input, actor: actionActor(req) });
+}
+
+function txLabel(tx: { declarationNumber?: string; clientName?: string }): string {
+  return tx.declarationNumber?.trim() || tx.clientName?.trim() || "transaction";
 }
 
 function authenticate(req: AuthRequest, res: Response, next: () => void) {
@@ -391,6 +416,49 @@ app.get("/api/employees", authenticate, async (_req, res) => {
   res.json(await listEmployees());
 });
 
+app.get("/api/notifications", authenticate, async (req: AuthRequest, res) => {
+  const limit = req.query.limit ? Math.min(Number(req.query.limit), 100) : 50;
+  return res.json(await listNotifications(req.user!.id, limit));
+});
+
+app.get("/api/notifications/unread-count", authenticate, async (req: AuthRequest, res) => {
+  return res.json({ count: await unreadNotificationCount(req.user!.id) });
+});
+
+app.post("/api/notifications/:id/read", authenticate, async (req: AuthRequest, res) => {
+  const ok = await markNotificationRead(req.user!.id, req.params.id);
+  if (!ok) return res.status(404).json({ error: "Notification not found" });
+  return res.json({ ok: true });
+});
+
+app.post("/api/notifications/read-all", authenticate, async (req: AuthRequest, res) => {
+  const count = await markAllNotificationsRead(req.user!.id);
+  return res.json({ count });
+});
+
+app.post("/api/notifications/clear", authenticate, async (req: AuthRequest, res) => {
+  const count = await clearAllNotifications(req.user!.id);
+  return res.json({ count });
+});
+
+app.post("/api/devices/fcm", authenticate, async (req: AuthRequest, res) => {
+  const schema = z.object({ token: z.string().min(10) });
+  const result = schema.safeParse(req.body);
+  if (!result.success) return res.status(400).json({ error: result.error.flatten() });
+  await registerFcmToken(req.user!.id, result.data.token);
+  return res.json({ ok: true });
+});
+
+app.delete("/api/devices/fcm", authenticate, async (req: AuthRequest, res) => {
+  const token =
+    (typeof req.query.token === "string" ? req.query.token : "") ||
+    (typeof req.body?.token === "string" ? req.body.token : "");
+  const parsed = z.string().min(10).safeParse(token);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await unregisterFcmToken(req.user!.id, parsed.data);
+  return res.json({ ok: true });
+});
+
 app.post("/api/employees", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager"]);
   if (!denied) return;
@@ -405,7 +473,14 @@ app.post("/api/employees", authenticate, async (req: AuthRequest, res) => {
     return res.status(400).json({ error: result.error.flatten() });
   }
   try {
-    return res.status(201).json(await createEmployee(result.data));
+    const created = await createEmployee(result.data);
+    notifyAction(req, {
+      action: "created",
+      entityType: "employee",
+      entityId: created.id,
+      entityLabel: created.name,
+    });
+    return res.status(201).json(created);
   } catch (err: unknown) {
     if ((err as { code?: number })?.code === 11000) {
       return res.status(409).json({ error: "email_taken" });
@@ -445,6 +520,12 @@ app.put("/api/employees/:id", authenticate, async (req: AuthRequest, res) => {
   try {
     const updated = await updateEmployee(req.params.id, result.data);
     if (!updated) return res.status(404).json({ error: "Employee not found" });
+    notifyAction(req, {
+      action: "updated",
+      entityType: "employee",
+      entityId: updated.id,
+      entityLabel: updated.name,
+    });
     return res.json(updated);
   } catch (err: unknown) {
     if ((err as { code?: number })?.code === 11000) {
@@ -471,6 +552,12 @@ app.delete("/api/employees/:id", authenticate, async (req: AuthRequest, res) => 
   }
   const ok = await deleteEmployee(req.params.id);
   if (!ok) return res.status(404).json({ error: "Employee not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "employee",
+    entityId: req.params.id,
+    entityLabel: (target as { name?: string }).name ?? req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -509,7 +596,14 @@ app.post("/api/clients", authenticate, async (req, res) => {
   if (!result.success) {
     return res.status(400).json({ error: result.error.flatten() });
   }
-  return res.status(201).json(await createClient(result.data));
+  const created = await createClient(result.data);
+  notifyAction(req, {
+    action: "created",
+    entityType: "client",
+    entityId: created.id,
+    entityLabel: created.companyName,
+  });
+  return res.status(201).json(created);
 });
 
 app.put("/api/clients/:id", authenticate, async (req: AuthRequest, res) => {
@@ -534,14 +628,27 @@ app.put("/api/clients/:id", authenticate, async (req: AuthRequest, res) => {
 
   const client = await updateClient(req.params.id, result.data);
   if (!client) return res.status(404).json({ error: "Client not found" });
+  notifyAction(req, {
+    action: "updated",
+    entityType: "client",
+    entityId: client.id,
+    entityLabel: client.companyName,
+  });
   return res.json(client);
 });
 
 app.delete("/api/clients/:id", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager"]);
   if (!denied) return;
+  const existingClient = await getClientById(req.params.id);
   const ok = await deleteClient(req.params.id);
   if (!ok) return res.status(404).json({ error: "Client not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "client",
+    entityId: req.params.id,
+    entityLabel: existingClient?.companyName ?? req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -584,7 +691,14 @@ app.post("/api/shipping-companies", authenticate, async (req: AuthRequest, res) 
   if (!result.success) {
     return res.status(400).json({ error: result.error.flatten() });
   }
-  return res.status(201).json(await createShippingCompany(result.data));
+  const created = await createShippingCompany(result.data);
+  notifyAction(req, {
+    action: "created",
+    entityType: "shipping_company",
+    entityId: created.id,
+    entityLabel: created.companyName,
+  });
+  return res.status(201).json(created);
 });
 
 app.put("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, res) => {
@@ -620,14 +734,27 @@ app.put("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, re
   }
   const item = await updateShippingCompany(req.params.id, result.data);
   if (!item) return res.status(404).json({ error: "Shipping company not found" });
+  notifyAction(req, {
+    action: "updated",
+    entityType: "shipping_company",
+    entityId: item.id,
+    entityLabel: item.companyName,
+  });
   return res.json(item);
 });
 
 app.delete("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager"]);
   if (!denied) return;
+  const existingShipping = await getShippingCompanyById(req.params.id);
   const ok = await deleteShippingCompany(req.params.id);
   if (!ok) return res.status(404).json({ error: "Shipping company not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "shipping_company",
+    entityId: req.params.id,
+    entityLabel: existingShipping?.companyName ?? req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -667,7 +794,14 @@ app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest
       originCountry: result.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
-    return res.status(201).json(await createTransaction(data));
+    const created = await createTransaction(data);
+    notifyAction(req, {
+      action: "created",
+      entityType: "transaction",
+      entityId: created.id,
+      entityLabel: txLabel(created),
+    });
+    return res.status(201).json(created);
   } catch (e) {
     console.error("POST /api/transactions", e);
     const message = e instanceof Error ? e.message : "Transaction create failed";
@@ -688,6 +822,12 @@ app.post("/api/transactions/:id/original-bl", authenticate, async (req: AuthRequ
   if (!denied) return;
   const tx = await markOriginalBl(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transaction not found" });
+  notifyAction(req, {
+    action: "original_bl",
+    entityType: "transaction",
+    entityId: tx.id,
+    entityLabel: txLabel(tx),
+  });
   return res.json(tx);
 });
 
@@ -696,6 +836,12 @@ app.post("/api/transactions/:id/pay", authenticate, async (req: AuthRequest, res
   if (!denied) return;
   const tx = await markPaid(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transaction not found" });
+  notifyAction(req, {
+    action: "paid",
+    entityType: "transaction",
+    entityId: tx.id,
+    entityLabel: txLabel(tx),
+  });
   return res.json(tx);
 });
 
@@ -705,6 +851,12 @@ app.post("/api/transactions/:id/release", authenticate, async (req: AuthRequest,
   const result = await issueRelease(req.params.id);
   if (result === null) return res.status(404).json({ error: "Transaction not found" });
   if (result === false) return res.status(400).json({ error: "Payment and Original BL/Telex are required before release" });
+  notifyAction(req, {
+    action: "released",
+    entityType: "transaction",
+    entityId: result.id,
+    entityLabel: txLabel(result),
+  });
   return res.json(result);
 });
 
@@ -730,8 +882,15 @@ app.post("/api/transactions/:id/stage", authenticate, async (req: AuthRequest, r
     }
   }
   const updated = await setTransactionStage(req.params.id, result.data.stage);
-  if (updated === null) return res.status(404).json({ error: "Transaction not found" });
   if (updated === false) return res.status(400).json({ error: "Invalid stage transition" });
+  if (!updated) return res.status(404).json({ error: "Transaction not found" });
+  notifyAction(req, {
+    action: "stage_changed",
+    entityType: "transaction",
+    entityId: updated.id,
+    entityLabel: txLabel(updated),
+    detail: result.data.stage,
+  });
   return res.json(updated);
 });
 
@@ -858,6 +1017,12 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 
     const tx = await updateTransaction(req.params.id, payload);
     if (!tx) return res.status(404).json({ error: "Transaction not found" });
+    notifyAction(req, {
+      action: "updated",
+      entityType: "transaction",
+      entityId: tx.id,
+      entityLabel: txLabel(tx),
+    });
     return res.json(tx);
   } catch (e) {
     console.error("PUT /api/transactions/:id", e);
@@ -869,8 +1034,15 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 app.delete("/api/transactions/:id", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
+  const existingTx = await getTransaction(req.params.id);
   const ok = await deleteTransaction(req.params.id);
   if (!ok) return res.status(404).json({ error: "Transaction not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "transaction",
+    entityId: req.params.id,
+    entityLabel: existingTx ? txLabel(existingTx) : req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -906,7 +1078,14 @@ app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, r
       originCountry: result.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
-    return res.status(201).json(await createTransfer(data));
+    const created = await createTransfer(data);
+    notifyAction(req, {
+      action: "created",
+      entityType: "transfer",
+      entityId: created.id,
+      entityLabel: txLabel(created),
+    });
+    return res.status(201).json(created);
   } catch (e) {
     console.error("POST /api/transfers", e);
     const message = e instanceof Error ? e.message : "Transfer create failed";
@@ -927,6 +1106,12 @@ app.post("/api/transfers/:id/pay", authenticate, async (req: AuthRequest, res) =
   if (!denied) return;
   const tx = await markTransferPaid(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transfer not found" });
+  notifyAction(req, {
+    action: "paid",
+    entityType: "transfer",
+    entityId: tx.id,
+    entityLabel: txLabel(tx),
+  });
   return res.json(tx);
 });
 
@@ -936,6 +1121,12 @@ app.post("/api/transfers/:id/release", authenticate, async (req: AuthRequest, re
   const result = await issueTransferRelease(req.params.id);
   if (result === null) return res.status(404).json({ error: "Transfer not found" });
   if (result === false) return res.status(400).json({ error: "Payment and Original BL/Telex are required before release" });
+  notifyAction(req, {
+    action: "released",
+    entityType: "transfer",
+    entityId: result.id,
+    entityLabel: txLabel(result),
+  });
   return res.json(result);
 });
 
@@ -961,8 +1152,15 @@ app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res)
     }
   }
   const updated = await setTransferStage(req.params.id, result.data.stage);
-  if (updated === null) return res.status(404).json({ error: "Transfer not found" });
   if (updated === false) return res.status(400).json({ error: "Invalid stage transition" });
+  if (!updated) return res.status(404).json({ error: "Transfer not found" });
+  notifyAction(req, {
+    action: "stage_changed",
+    entityType: "transfer",
+    entityId: updated.id,
+    entityLabel: txLabel(updated),
+    detail: result.data.stage,
+  });
   return res.json(updated);
 });
 
@@ -1065,6 +1263,12 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
     }
     const tx = await updateTransfer(req.params.id, payload);
     if (!tx) return res.status(404).json({ error: "Transfer not found" });
+    notifyAction(req, {
+      action: "updated",
+      entityType: "transfer",
+      entityId: tx.id,
+      entityLabel: txLabel(tx),
+    });
     return res.json(tx);
   } catch (e) {
     console.error("PUT /api/transfers/:id", e);
@@ -1076,8 +1280,15 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
 app.delete("/api/transfers/:id", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
+  const existingTransfer = await getTransfer(req.params.id);
   const ok = await deleteTransfer(req.params.id);
   if (!ok) return res.status(404).json({ error: "Transfer not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "transfer",
+    entityId: req.params.id,
+    entityLabel: existingTransfer ? txLabel(existingTransfer) : req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -1113,7 +1324,14 @@ app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res
       originCountry: result.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
-    return res.status(201).json(await createExport(data));
+    const created = await createExport(data);
+    notifyAction(req, {
+      action: "created",
+      entityType: "export",
+      entityId: created.id,
+      entityLabel: txLabel(created),
+    });
+    return res.status(201).json(created);
   } catch (e) {
     console.error("POST /api/exports", e);
     const message = e instanceof Error ? e.message : "Export create failed";
@@ -1134,6 +1352,12 @@ app.post("/api/exports/:id/pay", authenticate, async (req: AuthRequest, res) => 
   if (!denied) return;
   const tx = await markExportPaid(req.params.id);
   if (!tx) return res.status(404).json({ error: "Export not found" });
+  notifyAction(req, {
+    action: "paid",
+    entityType: "export",
+    entityId: tx.id,
+    entityLabel: txLabel(tx),
+  });
   return res.json(tx);
 });
 
@@ -1143,6 +1367,12 @@ app.post("/api/exports/:id/release", authenticate, async (req: AuthRequest, res)
   const result = await issueExportRelease(req.params.id);
   if (result === null) return res.status(404).json({ error: "Export not found" });
   if (result === false) return res.status(400).json({ error: "Payment and Original BL/Telex are required before release" });
+  notifyAction(req, {
+    action: "released",
+    entityType: "export",
+    entityId: result.id,
+    entityLabel: txLabel(result),
+  });
   return res.json(result);
 });
 
@@ -1168,9 +1398,17 @@ app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) =
     }
   }
   const updated = await setExportStage(req.params.id, result.data.stage);
-  if (updated === null) return res.status(404).json({ error: "Export not found" });
   if (updated === false) return res.status(400).json({ error: "Invalid stage transition" });
-  return res.json(updated);
+  if (!updated) return res.status(404).json({ error: "Export not found" });
+  const stageTx = updated;
+  notifyAction(req, {
+    action: "stage_changed",
+    entityType: "export",
+    entityId: stageTx.id,
+    entityLabel: txLabel(stageTx),
+    detail: result.data.stage,
+  });
+  return res.json(stageTx);
 });
 
 app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, res) => {
@@ -1227,6 +1465,12 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
     }
     const tx = await updateExport(req.params.id, payload);
     if (!tx) return res.status(404).json({ error: "Export not found" });
+    notifyAction(req, {
+      action: "updated",
+      entityType: "export",
+      entityId: tx.id,
+      entityLabel: txLabel(tx),
+    });
     return res.json(tx);
   } catch (e) {
     console.error("PUT /api/exports/:id", e);
@@ -1238,8 +1482,15 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
 app.delete("/api/exports/:id", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
+  const existingExport = await getExport(req.params.id);
   const ok = await deleteExport(req.params.id);
   if (!ok) return res.status(404).json({ error: "Export not found" });
+  notifyAction(req, {
+    action: "deleted",
+    entityType: "export",
+    entityId: req.params.id,
+    entityLabel: existingExport ? txLabel(existingExport) : req.params.id,
+  });
   return res.status(204).send();
 });
 
@@ -1284,7 +1535,9 @@ connectDb()
         );
       }
     }
-    app.listen(port, () => {
+    const httpServer = createServer(app);
+    initNotificationSocket(httpServer);
+    httpServer.listen(port, () => {
       console.log(`API listening on http://localhost:${port}`);
     });
   })

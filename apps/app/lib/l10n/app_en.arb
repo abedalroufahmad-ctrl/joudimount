@@ -279,5 +279,8 @@
   "profileMemberSince": "Member since",
   "profileLastUpdated": "Last updated",
   "profileAccountId": "Account ID",
-  "profileUpdated": "Profile updated"
+  "profileUpdated": "Profile updated",
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Mark all read",
+  "notificationsClearList": "Clear list"
 }

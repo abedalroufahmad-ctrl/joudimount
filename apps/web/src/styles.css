@@ -1138,3 +1138,29 @@ th {
     padding: 0.75rem;
   }
 }
+
+.notification-bell-btn {
+  min-width: 2.5rem;
+}
+
+.notification-bell-badge {
+  font-size: 0.65rem;
+}
+
+.notification-panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  inset-inline-end: 0;
+  width: min(22rem, 92vw);
+  z-index: 1050;
+  max-height: 24rem;
+}
+
+.notification-panel-list {
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.notification-unread {
+  background: #eff6ff;
+}

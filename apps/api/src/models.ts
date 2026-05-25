@@ -32,6 +32,20 @@ interface EmployeeDoc {
   email: string;
   password: string;
   role: "manager" | "employee" | "employee2" | "accountant";
+  fcmTokens?: string[];
+}
+
+interface NotificationDoc {
+  recipientId: mongoose.Types.ObjectId;
+  actorId: string;
+  actorName: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  entityLabel?: string;
+  title: string;
+  message: string;
+  read: boolean;
 }
 
 interface ShippingCompanyDoc {
@@ -294,8 +308,25 @@ const employeeSchema = new Schema<EmployeeDoc>(
     email: { type: String, required: true, unique: true, index: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["manager", "employee", "employee2", "accountant"], required: true },
+    fcmTokens: { type: [String], default: [] },
   },
   { timestamps: true },
+);
+
+const notificationSchema = new Schema<NotificationDoc>(
+  {
+    recipientId: { type: Schema.Types.ObjectId, ref: "Employee", required: true, index: true },
+    actorId: { type: String, required: true },
+    actorName: { type: String, required: true },
+    action: { type: String, required: true },
+    entityType: { type: String, required: true },
+    entityId: { type: String },
+    entityLabel: { type: String },
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    read: { type: Boolean, default: false, index: true },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } },
 );
 
 const shippingCompanySchema = new Schema<ShippingCompanyDoc>(
@@ -330,6 +361,8 @@ export const TransferModel =
 export const ExportModel =
   mongoose.models.Export || mongoose.model<TransactionDoc>("Export", transactionSchema);
 export const EmployeeModel = mongoose.models.Employee || mongoose.model<EmployeeDoc>("Employee", employeeSchema);
+export const NotificationModel =
+  mongoose.models.Notification || mongoose.model<NotificationDoc>("Notification", notificationSchema);
 export const ShippingCompanyModel =
   mongoose.models.ShippingCompany || mongoose.model<ShippingCompanyDoc>("ShippingCompany", shippingCompanySchema);
 export const CounterModel = mongoose.models.Counter || mongoose.model<CounterDoc>("Counter", counterSchema);

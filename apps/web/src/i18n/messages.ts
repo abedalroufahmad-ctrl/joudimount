@@ -349,6 +349,11 @@ export type MessageKey =
   | "dashboard.transfersDesc"
   | "dashboard.exportsDesc"
   | "dashboard.toolsHeading"
+  | "notifications.title"
+  | "notifications.markAllRead"
+  | "notifications.loading"
+  | "notifications.empty"
+  | "notifications.clearList"
   | "home.title"
   | "home.tagline"
   | "home.modulesHeading"
@@ -724,6 +729,11 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "dashboard.transfersDesc": "عمليات التحويل بسجل مستقل وقواعد مستقلة.",
     "dashboard.exportsDesc": "ملفات التصدير بسجل مستقل وقواعد مستقلة.",
     "dashboard.toolsHeading": "الوحدات والبحث",
+    "notifications.title": "الإشعارات",
+    "notifications.markAllRead": "تعليم الكل كمقروء",
+    "notifications.loading": "جاري التحميل…",
+    "notifications.empty": "لا توجد إشعارات جديدة",
+  "notifications.clearList": "مسح القائمة",
     "home.title": "لوحة المشروع",
     "home.tagline": "ملخص النشاط الأخير عبر الاستيراد والتحويل والتصدير.",
     "home.modulesHeading": "افتح قوائم السجلات",
@@ -1099,6 +1109,11 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "dashboard.transfersDesc": "Transfer operations with independent records and rules.",
     "dashboard.exportsDesc": "Export records with independent workflows and storage.",
     "dashboard.toolsHeading": "Modules & search",
+    "notifications.title": "Notifications",
+    "notifications.markAllRead": "Mark all read",
+    "notifications.loading": "Loading…",
+    "notifications.empty": "No notifications yet",
+  "notifications.clearList": "Clear list",
     "home.title": "Project dashboard",
     "home.tagline": "Cross-module activity snapshot for imports, transfers, and exports.",
     "home.modulesHeading": "Open record lists",

@@ -4,6 +4,7 @@ import 'api.dart';
 import 'app_lang.dart';
 import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'notifications.dart';
 import 'main.dart'; // To access ClientFormPage and ShippingFormPage
 import 'transaction_detail.dart';
 import 'transaction_form.dart';
@@ -276,8 +277,10 @@ class _DashboardHomeState extends State<DashboardHome> {
                     rtl: isRtl,
                     welcomeText: '$welcomePrefix${_userName()}!',
                     avatarLetter: _avatarLetter(),
-                    onBell: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.dashboardNoNewNotifications)),
+                    onBell: () => showNotificationsSheet(
+                      context,
+                      role: widget.role,
+                      onSwitchTab: widget.onSwitchTab,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -572,11 +575,38 @@ class _WelcomeBanner extends StatelessWidget {
             child: InkWell(
               onTap: onBell,
               borderRadius: BorderRadius.circular(10),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 44,
                 height: 44,
-                child:
-                    Icon(Icons.notifications_none_rounded, color: Colors.white),
+                child: ValueListenableBuilder<int>(
+                  valueListenable: NotificationService.instance.unreadCount,
+                  builder: (_, count, __) {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Icon(Icons.notifications_none_rounded, color: Colors.white),
+                        if (count > 0)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              child: Text(
+                                count > 99 ? '99+' : '$count',
+                                style: const TextStyle(color: Colors.white, fontSize: 9),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
