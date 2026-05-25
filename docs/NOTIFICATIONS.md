@@ -53,8 +53,12 @@ Until Firebase is configured, the Flutter app still receives notifications via R
 
 ## Testing
 
-1. Start API: `npm run dev -w customs-api`
+1. Start API from repo root: `npm run dev:api`
 2. Log in as **employee** in one browser/app
 3. Log in as **manager** in another browser
 4. Create or edit a transaction as manager
 5. Employee should see a notification (web: instant via socket; app: within 30s or immediately after opening the bell sheet)
+
+## Current Flutter dependencies
+
+`firebase_core`, `firebase_messaging`, and `flutter_local_notifications` are **not** in `apps/app/pubspec.yaml` yet. Follow steps 5–6 above when adding push notifications. Until then, the app relies on REST polling only.

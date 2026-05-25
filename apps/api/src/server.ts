@@ -52,8 +52,16 @@ import {
   updateClient,
   STORAGE_STAGE_EDITABLE_FIELDS,
   updateTransaction,
+  updateTransactionAccounting,
+  updateTransferAccounting,
+  updateExportAccounting,
 } from "./store.js";
-import type { DocumentAttachment, Transaction, TransactionStage } from "./types.js";
+import {
+  buildAccountingResponse,
+  updateAccountingPayloadSchema,
+  type AccountingFixedPayload,
+} from "./accounting.js";
+import type { AccountingCustomField, DocumentAttachment, Transaction, TransactionStage } from "./types.js";
 import { absolutePathFromPublicPath, publicPathForUploadedFile, transactionDocsUpload } from "./uploads.js";
 import {
   initNotificationSocket,
@@ -152,6 +160,43 @@ function notifyAction(req: AuthRequest, input: Omit<ProjectActionInput, "actor">
 
 function txLabel(tx: { declarationNumber?: string; clientName?: string }): string {
   return tx.declarationNumber?.trim() || tx.clientName?.trim() || "transaction";
+}
+
+function registerAccountingRoutes(
+  apiPrefix: "transactions" | "transfers" | "exports",
+  entityType: "transaction" | "transfer" | "export",
+  getOne: (id: string) => Promise<Transaction | undefined>,
+  updateAccounting: (
+    id: string,
+    fields: AccountingCustomField[],
+    fixed: AccountingFixedPayload,
+  ) => Promise<Transaction | null>,
+) {
+  app.get(`/api/${apiPrefix}/:id/accounting`, authenticate, async (req: AuthRequest, res) => {
+    const denied = ensureRole(req, res, ["manager", "accountant"]);
+    if (!denied) return;
+    const tx = await getOne(req.params.id);
+    if (!tx) return res.status(404).json({ error: "Record not found" });
+    return res.json(buildAccountingResponse(tx));
+  });
+
+  app.put(`/api/${apiPrefix}/:id/accounting`, authenticate, async (req: AuthRequest, res) => {
+    const denied = ensureRole(req, res, ["manager", "accountant"]);
+    if (!denied) return;
+    const parsed = updateAccountingPayloadSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    const existing = await getOne(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Record not found" });
+    const tx = await updateAccounting(req.params.id, parsed.data.customFields, parsed.data.fixed);
+    if (!tx) return res.status(404).json({ error: "Record not found" });
+    notifyAction(req, {
+      action: "updated",
+      entityType,
+      entityId: tx.id,
+      entityLabel: txLabel(tx),
+    });
+    return res.json(buildAccountingResponse(tx));
+  });
 }
 
 const EMPLOYEE_WORK_STAGES = new Set<TransactionStage>(["PREPARATION", "CUSTOMS_CLEARANCE"]);
@@ -876,6 +921,8 @@ app.get("/api/transactions/:id", authenticate, async (req: AuthRequest, res) => 
   return res.json(tx);
 });
 
+registerAccountingRoutes("transactions", "transaction", getTransaction, updateTransactionAccounting);
+
 app.post("/api/transactions/:id/original-bl", authenticate, async (req: AuthRequest, res) => {
   const role = ensureRole(req, res, ["manager", "employee"]);
   if (!role) return;
@@ -1135,6 +1182,8 @@ app.get("/api/transfers/:id", authenticate, async (req: AuthRequest, res) => {
   return res.json(tx);
 });
 
+registerAccountingRoutes("transfers", "transfer", getTransfer, updateTransferAccounting);
+
 app.post("/api/transfers/:id/pay", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "accountant"]);
   if (!denied) return;
@@ -1360,6 +1409,8 @@ app.get("/api/exports/:id", authenticate, async (req: AuthRequest, res) => {
   if (!tx) return res.status(404).json({ error: "Export not found" });
   return res.json(tx);
 });
+
+registerAccountingRoutes("exports", "export", getExport, updateExportAccounting);
 
 app.post("/api/exports/:id/pay", authenticate, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "accountant"]);

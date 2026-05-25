@@ -43,6 +43,27 @@ export type MessageKey =
   | "storagePage.entryContainerNumbers"
   | "storagePage.unitCount"
   | "storagePage.openCard"
+  | "list.col.accounting"
+  | "accountingPage.title"
+  | "accountingPage.backToRecord"
+  | "accountingPage.openCard"
+  | "accountingPage.fixedSection"
+  | "accountingPage.fixedHint"
+  | "accountingPage.customSection"
+  | "accountingPage.fieldTitle"
+  | "accountingPage.fieldValue"
+  | "accountingPage.emptyTitlePlaceholder"
+  | "accountingPage.addField"
+  | "accountingPage.removeField"
+  | "accountingPage.loadError"
+  | "accountingPage.saveError"
+  | "accountingPage.saved"
+  | "accountingPage.fixed.invoiceValue"
+  | "accountingPage.fixed.storageInputWages"
+  | "accountingPage.fixed.storageExitWages"
+  | "accountingPage.fixed.storageSealWages"
+  | "accountingPage.fixed.storageInputFare"
+  | "accountingPage.fixed.storageExitFare"
   | "storagePage.wrongStage"
   | "storagePage.accountantReadOnly"
   | "details.linkStorage"
@@ -427,6 +448,27 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.entryContainerNumbers": "أرقام الحاويات الداخله",
     "storagePage.unitCount": "عدد الوحدات",
     "storagePage.openCard": "بطاقة التخزين",
+    "list.col.accounting": "المحاسبة",
+    "accountingPage.title": "بطاقة المحاسبة",
+    "accountingPage.backToRecord": "العودة إلى السجل",
+    "accountingPage.openCard": "المحاسبة",
+    "accountingPage.fixedSection": "مبالغ مستحقة (من السجل)",
+    "accountingPage.fixedHint": "يمكن للمدير والمحاسب تعديل جميع الحقول وحفظها.",
+    "accountingPage.customSection": "حقول إضافية",
+    "accountingPage.fieldTitle": "عنوان الحقل",
+    "accountingPage.fieldValue": "القيمة",
+    "accountingPage.emptyTitlePlaceholder": "عنوان فارغ",
+    "accountingPage.addField": "إضافة حقل",
+    "accountingPage.removeField": "حذف",
+    "accountingPage.loadError": "تعذر تحميل بطاقة المحاسبة.",
+    "accountingPage.saveError": "تعذر حفظ بطاقة المحاسبة.",
+    "accountingPage.saved": "تم الحفظ.",
+    "accountingPage.fixed.invoiceValue": "قيمة الفاتورة",
+    "accountingPage.fixed.storageInputWages": "أجور عمال الإدخال",
+    "accountingPage.fixed.storageExitWages": "أجور عمال الإخراج",
+    "accountingPage.fixed.storageSealWages": "أجور عمال التبديل",
+    "accountingPage.fixed.storageInputFare": "أجرة معدات التحميل (إدخال)",
+    "accountingPage.fixed.storageExitFare": "أجرة معدات التحميل (إخراج)",
     "storagePage.wrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
     "storagePage.accountantReadOnly": "عرض فقط لدور المحاسب.",
     "details.linkStorage": "بطاقة التخزين",
@@ -808,6 +850,27 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.entryContainerNumbers": "Entry container numbers",
     "storagePage.unitCount": "Number of units",
     "storagePage.openCard": "Storage",
+    "list.col.accounting": "Accounting",
+    "accountingPage.title": "Accounting card",
+    "accountingPage.backToRecord": "Back to record",
+    "accountingPage.openCard": "Accounting",
+    "accountingPage.fixedSection": "Amounts due (from record)",
+    "accountingPage.fixedHint": "Manager and accountant can edit and save all fields.",
+    "accountingPage.customSection": "Additional fields",
+    "accountingPage.fieldTitle": "Field title",
+    "accountingPage.fieldValue": "Value",
+    "accountingPage.emptyTitlePlaceholder": "Empty title",
+    "accountingPage.addField": "Add field",
+    "accountingPage.removeField": "Remove",
+    "accountingPage.loadError": "Could not load accounting card.",
+    "accountingPage.saveError": "Could not save accounting card.",
+    "accountingPage.saved": "Saved.",
+    "accountingPage.fixed.invoiceValue": "Invoice value",
+    "accountingPage.fixed.storageInputWages": "Input workers wages",
+    "accountingPage.fixed.storageExitWages": "Exit workers wages",
+    "accountingPage.fixed.storageSealWages": "Seal workers wages",
+    "accountingPage.fixed.storageInputFare": "Input loading equipment fare",
+    "accountingPage.fixed.storageExitFare": "Exit loading equipment fare",
     "storagePage.wrongStage": "This record is not in the Storage stage.",
     "storagePage.accountantReadOnly": "Accountants can view this page only.",
     "details.linkStorage": "Storage card",

@@ -6,6 +6,7 @@ import 'l10n/app_localizations.dart';
 import 'transaction_detail.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
+import 'transaction_accounting_page.dart';
 
 class TransactionsTab extends StatefulWidget {
   final String role;
@@ -245,6 +246,8 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                 final showStorage = stage == 'STORAGE' &&
                                     (widget.module == 'transactions' ||
                                         widget.module == 'transfers');
+                                final showAccounting = widget.role == 'manager' ||
+                                    widget.role == 'accountant';
                                 return Card(
                                   child: ListTile(
                                     title: Text(
@@ -285,25 +288,53 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                       ],
                                     ),
                                     isThreeLine: true,
-                                    trailing: showStorage
-                                        ? IconButton(
-                                            icon: const Icon(
-                                                Icons.warehouse_outlined),
-                                            tooltip: AppLocalizations.of(context)!
-                                                .storageOpenCard,
-                                            onPressed: () {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute<void>(
-                                                  builder: (_) =>
-                                                      TransactionStoragePage(
-                                                    role: widget.role,
-                                                    transactionId:
-                                                        tx['id'] as String,
-                                                    module: widget.module,
-                                                  ),
+                                    trailing: (showStorage || showAccounting)
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (showAccounting)
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.calculate_outlined),
+                                                  tooltip: AppLocalizations.of(
+                                                          context)!
+                                                      .accountingOpenCard,
+                                                  onPressed: () {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute<void>(
+                                                        builder: (_) =>
+                                                            TransactionAccountingPage(
+                                                          role: widget.role,
+                                                          transactionId:
+                                                              tx['id'] as String,
+                                                          module: widget.module,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
                                                 ),
-                                              );
-                                            },
+                                              if (showStorage)
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.warehouse_outlined),
+                                                  tooltip: AppLocalizations.of(
+                                                          context)!
+                                                      .storageOpenCard,
+                                                  onPressed: () {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute<void>(
+                                                        builder: (_) =>
+                                                            TransactionStoragePage(
+                                                          role: widget.role,
+                                                          transactionId:
+                                                              tx['id'] as String,
+                                                          module: widget.module,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                            ],
                                           )
                                         : null,
                                     onTap: () async {

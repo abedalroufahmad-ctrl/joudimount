@@ -153,6 +153,7 @@ interface TransactionDoc {
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
+  accountingCustomFields?: { id: string; title: string; value: string }[];
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
   createdAt: Date;
   updatedAt: Date;
@@ -292,6 +293,13 @@ const transactionSchema = new Schema<TransactionDoc>(
     storageSealUnitCount: { type: String },
     storageSealWorkersCompany: { type: String },
     storageSealWorkersWages: { type: Number },
+    accountingCustomFields: [
+      {
+        id: { type: String, required: true },
+        title: { type: String, default: "" },
+        value: { type: String, default: "" },
+      },
+    ],
     transactionStage: {
       type: String,
       enum: ["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"],

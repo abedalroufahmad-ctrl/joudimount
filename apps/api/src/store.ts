@@ -1,7 +1,20 @@
 import { promises as fs } from "fs";
 import { assessRisk } from "./risk.js";
+import {
+  sanitizeAccountingCustomFieldsForSave,
+  type AccountingFixedPayload,
+} from "./accounting.js";
 import type { UserRole } from "./auth.js";
-import type { Client, ClearanceStatus, DocumentAttachment, Employee, EmployeeProfile, Transaction, TransactionStage } from "./types.js";
+import type {
+  AccountingCustomField,
+  Client,
+  ClearanceStatus,
+  DocumentAttachment,
+  Employee,
+  EmployeeProfile,
+  Transaction,
+  TransactionStage,
+} from "./types.js";
 import { ClientModel, CounterModel, EmployeeModel, ExportModel, ShippingCompanyModel, TransactionModel, TransferModel } from "./models.js";
 import { absolutePathFromPublicPath } from "./uploads.js";
 import { hashPassword } from "./password.js";
@@ -276,6 +289,13 @@ function mapTransaction(doc: any): Transaction {
     storageSealUnitCount: doc.storageSealUnitCount,
     storageSealWorkersCompany: doc.storageSealWorkersCompany,
     storageSealWorkersWages: doc.storageSealWorkersWages,
+    accountingCustomFields: Array.isArray(doc.accountingCustomFields)
+      ? doc.accountingCustomFields.map((f: { id: string; title?: string; value?: string }) => ({
+          id: f.id,
+          title: f.title ?? "",
+          value: f.value ?? "",
+        }))
+      : undefined,
     transactionStage: doc.transactionStage ?? "PREPARATION",
     createdAt: new Date(doc.createdAt).toISOString(),
     updatedAt: new Date(doc.updatedAt).toISOString(),
@@ -1420,4 +1440,46 @@ export async function issueExportRelease(id: string) {
     { new: true },
   ).lean();
   return updated ? mapTransaction(updated) : null;
+}
+
+async function updateEntityAccounting(
+  model: typeof TransactionModel,
+  id: string,
+  fields: AccountingCustomField[],
+  fixed: AccountingFixedPayload,
+) {
+  const normalized = sanitizeAccountingCustomFieldsForSave(fields);
+  const update: Record<string, unknown> = {
+    accountingCustomFields: normalized,
+    ...fixed,
+  };
+  if (fixed.paymentStatus === "paid") {
+    update.clearanceStatus = "PAID";
+  }
+  const updated = await model.findByIdAndUpdate(id, update, { new: true }).lean();
+  return updated ? mapTransaction(updated) : null;
+}
+
+export async function updateTransactionAccounting(
+  id: string,
+  fields: AccountingCustomField[],
+  fixed: AccountingFixedPayload,
+) {
+  return updateEntityAccounting(TransactionModel, id, fields, fixed);
+}
+
+export async function updateTransferAccounting(
+  id: string,
+  fields: AccountingCustomField[],
+  fixed: AccountingFixedPayload,
+) {
+  return updateEntityAccounting(TransferModel, id, fields, fixed);
+}
+
+export async function updateExportAccounting(
+  id: string,
+  fields: AccountingCustomField[],
+  fixed: AccountingFixedPayload,
+) {
+  return updateEntityAccounting(ExportModel, id, fields, fixed);
 }

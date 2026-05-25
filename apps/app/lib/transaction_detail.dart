@@ -12,6 +12,7 @@ import 'l10n/app_localizations.dart';
 import 'transaction_labels.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
+import 'transaction_accounting_page.dart';
 
 bool roleCanWorkAtStage(String role, String stage) {
   if (role == 'manager') return true;
@@ -189,6 +190,24 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               );
             },
             child: Text(l10n.storageLinkFromDetails),
+          ),
+        ),
+      if (widget.role == 'manager' || widget.role == 'accountant')
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: FilledButton.tonal(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => TransactionAccountingPage(
+                    role: widget.role,
+                    transactionId: widget.id,
+                    module: widget.module,
+                  ),
+                ),
+              );
+            },
+            child: Text(l10n.accountingLinkFromDetails),
           ),
         ),
       _detailRowOptional(l10n.releaseCode, t['releaseCode'], locale),

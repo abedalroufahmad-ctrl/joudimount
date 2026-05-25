@@ -1,85 +1,92 @@
 # Transaction Tracker Monorepo
 
-Internal transaction tracking platform for customs operations with role-based access, staged transaction workflow, and MongoDB persistence.
+Internal transaction tracking platform for customs operations with role-based access, staged workflows across three modules, MongoDB persistence, and real-time notifications.
 
 ## Tech Stack
 
-- Backend: Node.js, Express, TypeScript, Mongoose, MongoDB
-- Auth: JWT (`Authorization: Bearer <token>`)
-- Web: React + Vite + TypeScript + React Router
-- Mobile: Flutter (`apps/app`)
+- **Backend:** Node.js, Express, TypeScript, Mongoose, MongoDB, Socket.IO, optional Firebase Admin (FCM)
+- **Auth:** JWT (`Authorization: Bearer <token>`), bcrypt password hashing
+- **Web:** React 18 + Vite + TypeScript + React Router
+- **Mobile:** Flutter (`apps/app`, package `judi_mount`)
 
 ## Repository Layout
 
-- `apps/api`: REST API, auth, role checks, stage transitions, business rules
-- `apps/web`: login + dashboard + CRUD screens + attachments + stage controls
-- `apps/app`: Flutter client for transactions, details, and form editing
-- `seed-test-data.sh`: bulk seed clients + transactions
-- `seed-shipping-linked-data.sh`: seed shipping companies + linked transactions
+- `apps/api` — REST API, auth, role checks, stage transitions, notifications, uploads
+- `apps/web` — login, dashboard, CRUD for three modules, storage card, notifications bell
+- `apps/app` — Flutter client (dashboard, imports/transfers/exports, clients, shipping, staff, profile)
+- `docs/NOTIFICATIONS.md` — notification and FCM setup
+- `seed-test-data.sh` — bulk seed clients + transactions
+- `seed-shipping-linked-data.sh` — seed shipping companies + linked transactions
 
 ## Roles
 
-- `manager`: full access (transactions, clients, shipping companies, employees, accounting actions)
-- `employee`: create/update/delete transactions and original-BL action; **stage 1** fields only on `PUT`; cannot pay, release, or change `paymentStatus`
-- `employee2`: list/read transactions, change stage (`POST .../stage`), **stage 2** fields only on `PUT` (`containerArrivalDate`, `documentArrivalDate`, `fileNumber`, `documentStatus`, `clearanceStatus`); cannot create/delete transactions, upload attachments on `PUT`, or change `paymentStatus`
-- `accountant`: read transactions; pay and release; `PUT` may **only** set `paymentStatus`
+| Role | Summary |
+|------|---------|
+| `manager` | Full access: all modules, clients, shipping companies, employees, pay/release, storage |
+| `employee` | Create/update/delete records on all modules; **Preparation** and **Customs clearance** stages; preparation-stage fields on `PUT`; original BL action (imports); cannot pay, release, or change `paymentStatus` |
+| `employee2` | Read all modules; change stage (`POST .../stage`); **Transportation** and **Storage** stages; transportation fields on `PUT`, warehouse fields at **Storage**; attachment upload on `PUT` only at **Transportation**; cannot create/delete or change `paymentStatus` |
+| `accountant` | Read all modules; pay and release; `PUT` may **only** set `paymentStatus`; storage card is read-only |
 
-Default accounts are auto-seeded on API startup:
+Default accounts (auto-seeded on API startup, password `123456`):
 
-- `manager@tracker.local` / `123456`
-- `employee@tracker.local` / `123456`
-- `employee2@tracker.local` / `123456`
-- `accountant@tracker.local` / `123456`
+- `manager@tracker.local`
+- `employee@tracker.local`
+- `employee2@tracker.local`
+- `accountant@tracker.local`
+
+## Modules & Stages
+
+Three operational modules share the same record schema:
+
+- **Imports** — `/api/transactions`, web `/transactions`
+- **Transfers** — `/api/transfers`, web `/transfers`
+- **Exports** — `/api/exports`, web `/exports`
+
+Stage workflow:
+
+1. `PREPARATION`
+2. `CUSTOMS_CLEARANCE`
+3. `TRANSPORTATION`
+4. `STORAGE` (imports and transfers only; exports cannot advance to Storage)
+
+Other behavior:
+
+- Preparation completeness is validated before moving from `PREPARATION` to `CUSTOMS_CLEARANCE`
+- Setting `documentArrivalDate` can auto-advance toward customs clearance
+- Risk level and channel are derived from invoice value, HS code, and origin country
+- Pay/release endpoints enforce payment and document-status rules
+- **Storage card** — dedicated UI for warehouse entry/exit/seal fields at Storage stage (imports & transfers)
+- Create/update payloads require **`isStopped`**; if stopped, **`stopReason`** is required before advancing to customs clearance
 
 ## Core Features
 
-- Transaction create/edit/delete with stage model:
-  - `PREPARATION`
-  - `CUSTOMS_CLEARANCE`
-  - `STORAGE`
-  - `INTERNAL_DELIVERY`
-  - `EXTERNAL_TRANSFER`
-- Stage transition endpoint with validation and transition guards
-- Preparation completeness check before moving from `PREPARATION` to `CUSTOMS_CLEARANCE` (server validates required preparation fields on the saved transaction)
-- Auto stage bump: setting `documentArrivalDate` on create/update can move the transaction toward `CUSTOMS_CLEARANCE` per `store.ts` (in addition to explicit `POST .../stage`)
-- Risk simulation and channel mapping
-- Duty calculation (`5% + 100`)
-- Payment + release flow with rule checks
-- Clients and shipping companies management (detail routes in web UI)
-- Staff directory: `GET /api/employees` (all authenticated); create/update/delete employees (manager only)
-- Document attachments upload (images/PDF) with categories; files served under `/uploads` on the API host
+- Unified list/detail/form UX for imports, transfers, and exports (web + mobile)
+- Clients and shipping companies (list + detail routes)
+- Staff directory and employee CRUD (manager)
+- Self-service profile: `GET/PUT /api/auth/me` (mobile profile tab; API only on web today)
+- Document attachments (images/PDF) with categories; served under `/uploads`
+- Real-time notifications (Socket.IO on web; REST polling on mobile) — see `docs/NOTIFICATIONS.md`
 - Arabic/English localization (web and app)
-- Create/update payloads require **`isStopped`** (boolean); if stopped, **`stopReason`** is required before advancing to customs clearance
+- Padded field-card layout on transaction details and edit forms (web)
 
-## API Endpoints
+**Accounting card:** Dedicated page per record for manager and accountant (`GET/PUT /api/{module}/:id/accounting`) with payment-related fixed fields plus custom titled amount rows.
+
+## API Endpoints (summary)
 
 - `GET /health`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `GET /api/employees` (authenticated)
-- `POST /api/employees` (manager)
-- `PUT /api/employees/:id` (manager)
-- `DELETE /api/employees/:id` (manager)
-- `GET /api/clients`
-- `GET /api/clients/:id`
-- `POST /api/clients` (manager)
-- `PUT /api/clients/:id` (manager)
-- `DELETE /api/clients/:id` (manager)
-- `GET /api/shipping-companies`
-- `GET /api/shipping-companies/:id`
-- `POST /api/shipping-companies` (manager)
-- `PUT /api/shipping-companies/:id` (manager)
-- `DELETE /api/shipping-companies/:id` (manager)
-- `GET /api/transactions` (optional query: `?clientId=<id>`)
-- `POST /api/transactions` (manager, employee; multipart supported)
-- `GET /api/transactions/:id`
-- `PUT /api/transactions/:id` (authenticated; role-based field rules; multipart supported except employee2)
-- `DELETE /api/transactions/:id` (manager, employee)
-- `POST /api/transactions/:id/stage` (manager, employee2)
-- `POST /api/transactions/:id/original-bl` (manager, employee)
-- `POST /api/transactions/:id/pay` (manager, accountant)
-- `POST /api/transactions/:id/release` (manager, accountant)
+- Auth: `POST /api/auth/login`, `POST /api/auth/logout`, `GET/PUT /api/auth/me`
+- Employees: `GET/POST /api/employees`, `PUT/DELETE /api/employees/:id`
+- Clients: `GET/POST /api/clients`, `GET/PUT/DELETE /api/clients/:id`
+- Shipping: `GET/POST /api/shipping-companies`, `GET/PUT/DELETE /api/shipping-companies/:id`
+- Notifications: `GET /api/notifications`, `GET /api/notifications/unread-count`, `POST .../read`, `POST .../read-all`, `POST .../clear`
+- FCM devices: `POST/DELETE /api/devices/fcm`
+- Per module (`transactions`, `transfers`, `exports`):
+  - `GET/POST` list/create
+  - `GET/PUT/DELETE /:id`
+  - `POST /:id/stage`
+  - `POST /:id/pay` (manager, accountant)
+  - `POST /:id/release` (manager, accountant)
+- Imports only: `POST /api/transactions/:id/original-bl` (manager, employee)
 
 ## Run Locally
 
@@ -105,6 +112,8 @@ Production build (API + web):
 npm run build
 ```
 
+Default URLs: API `http://localhost:4000`, web `http://localhost:5173`.
+
 Default Mongo URI:
 
 ```bash
@@ -124,12 +133,21 @@ MONGO_URI="mongodb://127.0.0.1:27017/customs_broker_track" JWT_SECRET="change-me
 ./seed-shipping-linked-data.sh
 ```
 
-## Flutter API Host
+## Flutter
 
-For emulator/device usage, configure reachable API host via:
+From `apps/app`:
+
+```bash
+flutter pub get
+flutter run
+```
+
+Configure reachable API host:
 
 ```bash
 flutter run --dart-define=API_BASE=http://<your-lan-ip>:4000
 ```
 
 Android emulator alias: `http://10.0.2.2:4000`.
+
+See `apps/app/README.md` for mobile feature details.

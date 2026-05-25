@@ -4,6 +4,7 @@ import { DashboardHome, DashboardSidebar, DASHBOARD_MODULES } from "./DashboardH
 import TransactionDetails from "./TransactionDetails";
 import TransactionForm from "./TransactionForm";
 import TransactionStoragePage from "./TransactionStoragePage";
+import TransactionAccountingPage from "./TransactionAccountingPage";
 import ClientsPage from "./ClientsPage";
 import ClientDetailPage from "./ClientDetailPage";
 import ShippingCompaniesPage from "./ShippingCompaniesPage";
@@ -40,6 +41,7 @@ function TransactionsList({
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const pageSize = 30;
+  const showAccounting = role === "manager" || role === "accountant";
 
   useEffect(() => {
     apiFetch(`/api/${module}`)
@@ -152,6 +154,7 @@ function TransactionsList({
                     <th>{t("list.col.shippingCompany")}</th>
                     <th>{t("list.col.status")}</th>
                     <th>{t("list.col.storage" as MessageKey)}</th>
+                    {showAccounting ? <th>{t("list.col.accounting" as MessageKey)}</th> : null}
                     <th>{t("list.col.createdAt")}</th>
                   </tr>
                 </thead>
@@ -174,12 +177,19 @@ function TransactionsList({
                           "—"
                         )}
                       </td>
+                      {showAccounting ? (
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <Link to={`${transactionListPath(module)}/${tx.id}/accounting`} className="btn btn-sm btn-outline-primary">
+                            {t("accountingPage.openCard" as MessageKey)}
+                          </Link>
+                        </td>
+                      ) : null}
                       <td className="text-nowrap small">{new Date(tx.createdAt).toLocaleString(numberLocale)}</td>
                     </tr>
                   ))}
                   {!filteredTransactions.length && (
                     <tr>
-                      <td colSpan={5} className="text-center text-muted py-5">
+                      <td colSpan={showAccounting ? 6 : 5} className="text-center text-muted py-5">
                         {t("list.noResults")}
                       </td>
                     </tr>
@@ -280,13 +290,16 @@ function AuthenticatedRoutes({ user, onLogout }: { user: AuthUser; onLogout: () 
       <Route path="/transactions/:id/edit" element={<TransactionForm role={role} module="transactions" />} />
       <Route path="/transactions/:id" element={<TransactionDetails role={role} module="transactions" />} />
       <Route path="/transactions/:id/storage" element={<TransactionStoragePage role={role} module="transactions" />} />
+      <Route path="/transactions/:id/accounting" element={<TransactionAccountingPage role={role} module="transactions" />} />
       <Route path="/transfers/new" element={<TransactionForm role={role} module="transfers" />} />
       <Route path="/transfers/:id/edit" element={<TransactionForm role={role} module="transfers" />} />
       <Route path="/transfers/:id" element={<TransactionDetails role={role} module="transfers" />} />
       <Route path="/transfers/:id/storage" element={<TransactionStoragePage role={role} module="transfers" />} />
+      <Route path="/transfers/:id/accounting" element={<TransactionAccountingPage role={role} module="transfers" />} />
       <Route path="/exports/new" element={<TransactionForm role={role} module="exports" />} />
       <Route path="/exports/:id/edit" element={<TransactionForm role={role} module="exports" />} />
       <Route path="/exports/:id" element={<TransactionDetails role={role} module="exports" />} />
+      <Route path="/exports/:id/accounting" element={<TransactionAccountingPage role={role} module="exports" />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

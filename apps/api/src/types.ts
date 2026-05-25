@@ -35,6 +35,12 @@ export type GoodsUnit = "kg" | "ton" | "piece" | "carton" | "pallet" | "cbm" | "
 export type InvoiceCurrency = "AED" | "USD" | "EUR" | "SAR";
 export type DocumentCategory = "bill_of_lading" | "certificate_of_origin" | "invoice" | "packing_list";
 
+export interface AccountingCustomField {
+  id: string;
+  title: string;
+  value: string;
+}
+
 export interface DocumentAttachment {
   path: string;
   originalName: string;
@@ -185,6 +191,7 @@ export interface Transaction {
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
+  accountingCustomFields?: AccountingCustomField[];
   transactionStage: TransactionStage;
   createdAt: string;
   updatedAt: string;
