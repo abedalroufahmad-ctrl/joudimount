@@ -46,6 +46,7 @@ export type MessageKey =
   | "storagePage.wrongStage"
   | "storagePage.accountantReadOnly"
   | "details.linkStorage"
+  | "details.linkAccounting"
   | "form.storage.openDedicatedPage"
   | "list.empty"
   | "list.searchPlaceholder"
@@ -429,6 +430,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.wrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
     "storagePage.accountantReadOnly": "عرض فقط لدور المحاسب.",
     "details.linkStorage": "بطاقة التخزين",
+    "details.linkAccounting": "بطاقة المحاسبة",
     "form.storage.openDedicatedPage": "فتح بطاقة التخزين (إدخال / إخراج / تبديل)",
     "list.empty": "لا توجد معاملات بعد. أضف أول معاملة.",
     "list.searchPlaceholder": "بحث تلقائي: عميل، شركة شحن، إقرار، بوليصة...",
@@ -809,6 +811,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "storagePage.wrongStage": "This record is not in the Storage stage.",
     "storagePage.accountantReadOnly": "Accountants can view this page only.",
     "details.linkStorage": "Storage card",
+    "details.linkAccounting": "Accounting card",
     "form.storage.openDedicatedPage": "Open storage card (input / output / seal)",
     "list.empty": "No transactions yet. Add your first transaction.",
     "list.searchPlaceholder": "Auto search: client, shipping company, declaration, airway bill...",

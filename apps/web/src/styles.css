@@ -526,10 +526,10 @@ th {
 
 .details-item {
   margin: 0;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid #e5ebf1;
-  border-radius: 8px;
-  background: #fcfdff;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  background: #f8fafc;
 }
 
 .details-item.full-row {
@@ -970,10 +970,23 @@ th {
   max-width: 1200px;
 }
 
+.page-actions.btn-toolbar {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
 .details-hero {
   border-radius: var(--radius-lg);
   background: linear-gradient(135deg, var(--brand-800) 0%, var(--brand-600) 55%, #3b82f6 100%);
   color: #fff;
+}
+
+.details-hero .card-body {
+  padding: 1.25rem 1.5rem;
 }
 
 .details-hero-title {
@@ -996,6 +1009,136 @@ th {
 .details-section-card {
   border-radius: var(--radius-lg);
   background: var(--surface);
+}
+
+.details-section-card .card-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.details-section-title {
+  position: relative;
+  padding-bottom: 0.65rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.details-section-title::before {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  inset-inline-start: 0;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--brand-600);
+  border-radius: 2px;
+}
+
+.details-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .details-fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem 1rem;
+  }
+}
+
+.details-field {
+  padding: 0.8rem 1rem;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  background: #f8fafc;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.details-field:hover {
+  border-color: var(--brand-100);
+  background: #fff;
+}
+
+.details-field--full {
+  grid-column: 1 / -1;
+}
+
+.details-field-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.45rem;
+}
+
+.details-field-value {
+  font-size: 0.9375rem;
+  color: #0f172a;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.details-section-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.transaction-form .details-fields-grid > .autocomplete-field,
+.transaction-form .details-fields-grid > .form-field-box,
+.transaction-form .details-fields-grid > label.form-label {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  background: #f8fafc;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.transaction-form .details-fields-grid > .autocomplete-field:hover,
+.transaction-form .details-fields-grid > .form-field-box:hover,
+.transaction-form .details-fields-grid > label.form-label:hover {
+  border-color: var(--brand-100);
+  background: #fff;
+}
+
+.transaction-form .details-fields-grid > .form-field-box--full,
+.transaction-form .details-fields-grid > .doc-upload-block,
+.transaction-form .details-fields-grid > .col-12 {
+  grid-column: 1 / -1;
+}
+
+.transaction-form .details-fields-grid label.form-label,
+.transaction-form .details-fields-grid .autocomplete-field > label.form-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.transaction-form .details-fields-grid .form-control,
+.transaction-form .details-fields-grid .form-select {
+  margin-top: 0.45rem;
+}
+
+.transaction-form .details-fields-grid .autocomplete-field > label.form-label:hover {
+  background: transparent;
+  border: none;
+}
+
+.transaction-form .details-fields-grid .autocomplete-hint {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
 }
 
 .details-section-card .form-section-title {

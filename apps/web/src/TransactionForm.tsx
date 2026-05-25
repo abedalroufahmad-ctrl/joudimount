@@ -95,14 +95,32 @@ function categoryLabel(category?: DocumentCategory | "", t?: (key: MessageKey) =
   return key && t ? t(key) : category;
 }
 
-function FormSection({ title, children }: { title: string; children: ReactNode }) {
+function FormSection({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   return (
-    <section className="details-section-card card shadow-sm border-0 mb-3">
+    <section className="details-section-card card shadow-sm border-0 mb-4">
       <div className="card-body">
-        <h2 className="form-section-title h5 border-bottom pb-2 mb-3 mt-0">{title}</h2>
-        <div className="row row-cols-1 row-cols-md-2 g-3">{children}</div>
+        <h2 className="details-section-title h5 mb-0">{title}</h2>
+        <div className="details-fields-grid">{children}</div>
+        {footer ? <div className="details-section-footer">{footer}</div> : null}
       </div>
     </section>
+  );
+}
+
+function FormReadonlyField({ label, children, fullWidth }: { label: string; children: ReactNode; fullWidth?: boolean }) {
+  return (
+    <div className={`details-field${fullWidth ? " details-field--full" : ""}`}>
+      <div className="details-field-label">{label}</div>
+      <div className="details-field-value">{children}</div>
+    </div>
   );
 }
 
@@ -596,8 +614,8 @@ export default function TransactionForm({
     const transferWarehouseOnly = isEdit && stage === "STORAGE" && module === "transfers";
     return (
       <main className="container py-2">
-        <div className="page-actions">
-          <Link to={`/${module}`} className="btn btn-outline-secondary btn-sm">
+        <div className="page-actions btn-toolbar gap-2 flex-wrap">
+          <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
             {t("form.back")}
           </Link>
         </div>
@@ -613,8 +631,33 @@ export default function TransactionForm({
         {error ? <p className="error alert alert-danger">{error}</p> : null}
         <form className="transaction-form mb-4" noValidate onSubmit={onSubmit}>
           {isEdit ? (
-            <FormSection title={t("form.snapshotReadOnly")}>
-              <label className="col-12 form-label w-100 mb-0">
+            <FormSection
+              title={t("form.snapshotReadOnly")}
+              footer={
+                transferWarehouseOnly && routeId ? (
+                  <div>
+                    <p className="muted small mb-2" role="status">
+                      {t("form.storage.readOnlyHint" as MessageKey)}
+                    </p>
+                    <div className="d-flex flex-wrap gap-2">
+                      <Link to={`${transactionListPath(module)}/${routeId}/storage`} className="btn btn-primary btn-sm">
+                        {t("form.storage.openDedicatedPage" as MessageKey)}
+                      </Link>
+                      {role === "manager" || role === "accountant" ? (
+                        <Link to={`${transactionListPath(module)}/${routeId}/accounting`} className="btn btn-outline-primary btn-sm">
+                          {t("details.linkAccounting" as MessageKey)}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : role === "manager" || role === "accountant" ? (
+                  <Link to={`${transactionListPath(module)}/${routeId}/accounting`} className="btn btn-outline-primary btn-sm">
+                    {t("details.linkAccounting" as MessageKey)}
+                  </Link>
+                ) : undefined
+              }
+            >
+              <label className="form-field-box form-field-box--full form-label w-100 mb-0">
                 {t("form.stage")}
                 <select className="form-select mt-1"
                   value={stage}
@@ -628,22 +671,8 @@ export default function TransactionForm({
                   ))}
                 </select>
               </label>
-              {transferWarehouseOnly && routeId ? (
-                <div className="col-12">
-                  <p className="muted" role="status">
-                    {t("form.storage.readOnlyHint" as MessageKey)}
-                  </p>
-                  <Link
-                    to={`/${module}/${routeId}/storage`}
-                    className="btn btn-primary btn-sm"
-                    style={{ display: "inline-block", marginTop: 8 }}
-                  >
-                    {t("form.storage.openDedicatedPage" as MessageKey)}
-                  </Link>
-                </div>
-              ) : null}
               {showCustomsDeclarationSection ? (
-                <label className="col-12 col-md-6 form-label w-100 mb-0">
+                <label className="form-field-box form-label w-100 mb-0">
                   {t("form.fileNumber")}
                   <input className="form-control mt-1"
                     disabled={transferWarehouseOnly}
@@ -672,7 +701,7 @@ export default function TransactionForm({
           </FormSection>
 
           <FormSection title={t("form.shipmentCoreSection")}>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.orderDate")}
             <input className="form-control mt-1"
               type="date"
@@ -685,7 +714,7 @@ export default function TransactionForm({
           </FormSection>
 
           <FormSection title={t("form.cargoContainersSection")}>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.containerCount")}
             <input className="form-control mt-1"
               type="number"
@@ -697,7 +726,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.containerSize")}
             <input className="form-control mt-1"
               disabled={transferWarehouseOnly}
@@ -706,7 +735,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.goodsWeightKg")}
             <input className="form-control mt-1"
               type="number"
@@ -718,7 +747,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.origin")}
             <input className="form-control mt-1"
               disabled={transferWarehouseOnly}
@@ -729,7 +758,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.unitNumber")}
             <input className="form-control mt-1"
               type="number"
@@ -741,7 +770,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 form-label w-100 mb-0">
+          <label className="form-field-box form-field-box--full form-label w-100 mb-0">
             {t("form.goodsDescription")}
             <textarea className="form-control mt-1"
               disabled={transferWarehouseOnly}
@@ -751,7 +780,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.goodsUnit")}
             <select className="form-select mt-1"
               disabled={transferWarehouseOnly}
@@ -767,7 +796,7 @@ export default function TransactionForm({
               ))}
             </select>
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.hsCode")}
             <input className="form-control mt-1"
               disabled={transferWarehouseOnly}
@@ -776,7 +805,7 @@ export default function TransactionForm({
               required
             />
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.goodsQuality")}
             <select className="form-select mt-1"
               disabled={transferWarehouseOnly}
@@ -792,7 +821,7 @@ export default function TransactionForm({
               ))}
             </select>
           </label>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.goodsQuantity")}
             <input className="form-control mt-1"
               type="number"
@@ -808,7 +837,7 @@ export default function TransactionForm({
 
           {showCustomsDeclarationSection ? (
             <FormSection title={t("form.customsDeclarationSection")}>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.declarationNumber1")}
                 <input className="form-control mt-1"
                   disabled={transferWarehouseOnly}
@@ -816,7 +845,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, declarationNumber: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.declarationNumber2")}
                 <input className="form-control mt-1"
                   disabled={transferWarehouseOnly}
@@ -824,7 +853,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, declarationNumber2: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.declarationDate")}
                 <input className="form-control mt-1"
                   type="date"
@@ -833,7 +862,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, declarationDate: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.declarationType1")}
                 <select className="form-select mt-1"
                   disabled={transferWarehouseOnly}
@@ -848,7 +877,7 @@ export default function TransactionForm({
                   ))}
                 </select>
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.declarationType2")}
                 <select className="form-select mt-1"
                   disabled={transferWarehouseOnly}
@@ -863,7 +892,7 @@ export default function TransactionForm({
                   ))}
                 </select>
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.portType")}
                 <select className="form-select mt-1"
                   disabled={transferWarehouseOnly}
@@ -884,7 +913,7 @@ export default function TransactionForm({
           <FormSection
             title={module === "exports" ? t("export.form.exportDetails") : t("transfer.details.title" as MessageKey)}
           >
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.portOfLading")}
                 <input className="form-control mt-1"
                   disabled={transferWarehouseOnly}
@@ -892,7 +921,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, portOfLading: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.portOfDischarge")}
                 <input className="form-control mt-1"
                   disabled={transferWarehouseOnly}
@@ -900,7 +929,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, portOfDischarge: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.destination")}
                 <input className="form-control mt-1"
                   disabled={transferWarehouseOnly}
@@ -912,7 +941,7 @@ export default function TransactionForm({
 
           {showTransportationSection ? (
             <FormSection title={t("transportation.sectionTitle" as MessageKey)}>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.toUpper" as MessageKey)}
                 <input className="form-control mt-1"
                   disabled={!transportationEditableEffective}
@@ -920,7 +949,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.trachNo" as MessageKey)}
                 <input className="form-control mt-1"
                   disabled={!transportationEditableEffective}
@@ -928,7 +957,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.company" as MessageKey)}
                 <input className="form-control mt-1"
                   disabled={!transportationEditableEffective}
@@ -936,7 +965,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, transportationCompany: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.from" as MessageKey)}
                 <input className="form-control mt-1"
                   disabled={!transportationEditableEffective}
@@ -944,7 +973,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, transportationFrom: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.to" as MessageKey)}
                 <input className="form-control mt-1"
                   disabled={!transportationEditableEffective}
@@ -952,7 +981,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, transportationToLocation: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.tripCharge" as MessageKey)}
                 <input className="form-control mt-1"
                   type="number"
@@ -963,7 +992,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, tripCharge: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.waitingCharge" as MessageKey)}
                 <input className="form-control mt-1"
                   type="number"
@@ -974,7 +1003,7 @@ export default function TransactionForm({
                   onChange={(e) => setForm({ ...form, waitingCharge: e.target.value })}
                 />
               </label>
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.maccrikCharge" as MessageKey)}
                 <input className="form-control mt-1"
                   type="number"
@@ -989,7 +1018,7 @@ export default function TransactionForm({
           ) : null}
 
           <FormSection title={t("form.workflowStatusSection")}>
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.stopTransaction")}
             <select className="form-select mt-1"
               disabled={transferWarehouseOnly}
@@ -1001,7 +1030,7 @@ export default function TransactionForm({
             </select>
           </label>
           {form.isStopped === "yes" ? (
-            <label className="col-12 form-label w-100 mb-0">
+            <label className="form-field-box form-field-box--full form-label w-100 mb-0">
               {t("form.stopReason")}
               <textarea className="form-control mt-1"
                 disabled={transferWarehouseOnly}
@@ -1035,7 +1064,7 @@ export default function TransactionForm({
             {newDocFiles.length > 0 ? (
               <div className="col-12">
                 {newDocFiles.map((item, idx) => (
-                  <label className="col-12 col-md-6 form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
+                  <label className="form-field-box form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
                     {item.file.name}
                     <select className="form-select mt-1"
                       value={item.category}
@@ -1073,7 +1102,7 @@ export default function TransactionForm({
 
   return (
     <main className="container py-2">
-      <div className="page-actions">
+      <div className="page-actions btn-toolbar gap-2 flex-wrap">
         <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
           {t("form.back")}
         </Link>
@@ -1094,8 +1123,33 @@ export default function TransactionForm({
       {error ? <p className="error alert alert-danger">{error}</p> : null}
       <form className="transaction-form mb-4" noValidate onSubmit={onSubmit}>
         {isEdit && editMeta ? (
-          <FormSection title={t("form.snapshotReadOnly")}>
-            <label className="col-12 form-label w-100 mb-0">
+          <FormSection
+            title={t("form.snapshotReadOnly")}
+            footer={
+              storageOnlyImportTransfer && routeId ? (
+                <div>
+                  <p className="muted small mb-2" role="status">
+                    {t("form.storage.readOnlyHint" as MessageKey)}
+                  </p>
+                  <div className="d-flex flex-wrap gap-2">
+                    <Link to={`${transactionListPath(module)}/${routeId}/storage`} className="btn btn-primary btn-sm">
+                      {t("form.storage.openDedicatedPage" as MessageKey)}
+                    </Link>
+                    {role === "manager" || role === "accountant" ? (
+                      <Link to={`${transactionListPath(module)}/${routeId}/accounting`} className="btn btn-outline-primary btn-sm">
+                        {t("details.linkAccounting" as MessageKey)}
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              ) : role === "manager" || role === "accountant" ? (
+                <Link to={`${transactionListPath(module)}/${routeId}/accounting`} className="btn btn-outline-primary btn-sm">
+                  {t("details.linkAccounting" as MessageKey)}
+                </Link>
+              ) : undefined
+            }
+          >
+            <label className="form-field-box form-field-box--full form-label w-100 mb-0">
               {t("form.stage")}
               <select className="form-select mt-1"
                 value={stage}
@@ -1110,52 +1164,27 @@ export default function TransactionForm({
               </select>
             </label>
             {editMeta.createdAt ? (
-              <p className="details-item col-12 col-md-6 mb-0">
-                <strong>{t("details.createdAt")}:</strong> {new Date(editMeta.createdAt).toLocaleString(numberLocale)}
-              </p>
+              <FormReadonlyField label={t("details.createdAt")}>
+                {new Date(editMeta.createdAt).toLocaleString(numberLocale)}
+              </FormReadonlyField>
             ) : null}
             {editMeta.declarationNumber ? (
-              <p className="details-item col-12 col-md-6 mb-0">
-                <strong>{t("form.declarationNumber1")}:</strong> {editMeta.declarationNumber}
-              </p>
+              <FormReadonlyField label={t("form.declarationNumber1")}>{editMeta.declarationNumber}</FormReadonlyField>
             ) : null}
             {editMeta.declarationNumber2 ? (
-              <p className="details-item col-12 col-md-6 mb-0">
-                <strong>{t("form.declarationNumber2")}:</strong> {editMeta.declarationNumber2}
-              </p>
+              <FormReadonlyField label={t("form.declarationNumber2")}>{editMeta.declarationNumber2}</FormReadonlyField>
             ) : null}
             {showCustomsDeclarationSection ? (
-              <label className="col-12 col-md-6 form-label w-100 mb-0">
+              <label className="form-field-box form-label w-100 mb-0">
                 {t("form.fileNumber")}
                 <input className="form-control mt-1" value={form.fileNumber} disabled={!customsEditableEffective} onChange={(e) => setForm({ ...form, fileNumber: e.target.value })} />
               </label>
             ) : null}
             {editMeta.releaseCode ? (
-              <p className="details-item col-12 col-md-6 mb-0">
-                <strong>{t("details.releaseCode")}:</strong> {editMeta.releaseCode}
-              </p>
+              <FormReadonlyField label={t("details.releaseCode")}>{editMeta.releaseCode}</FormReadonlyField>
             ) : null}
             {editMeta.clearanceStatus ? (
-              <p className="details-item col-12 col-md-6 mb-0">
-                <strong>{t("details.status")}:</strong> {editMeta.clearanceStatus}
-              </p>
-            ) : null}
-            <p className="details-item col-12 col-md-6 mb-0">
-              <strong>{t("form.stage")}:</strong> {stageLabel(stage)}
-            </p>
-            {storageOnlyImportTransfer && routeId ? (
-              <div className="col-12">
-                <p className="muted" role="status">
-                  {t("form.storage.readOnlyHint" as MessageKey)}
-                </p>
-                <Link
-                  to={`/${module}/${routeId}/storage`}
-                  className="btn btn-primary btn-sm"
-                  style={{ display: "inline-block", marginTop: 8 }}
-                >
-                  {t("form.storage.openDedicatedPage" as MessageKey)}
-                </Link>
-              </div>
+              <FormReadonlyField label={t("details.status")}>{editMeta.clearanceStatus}</FormReadonlyField>
             ) : null}
           </FormSection>
         ) : null}
@@ -1187,7 +1216,7 @@ export default function TransactionForm({
           required
           hint={t("form.typeToSearch")}
         />
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.shippingCompanyId")}
           <input className="form-control mt-1"
             disabled={!prepEditableEffective}
@@ -1199,7 +1228,7 @@ export default function TransactionForm({
 
         {showCustomsDeclarationSection ? (
           <FormSection title={t("form.customsDeclarationSection")}>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.declarationNumber1")}
               <input className="form-control mt-1"
                 disabled={!customsEditableEffective}
@@ -1208,7 +1237,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, declarationNumber: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.declarationDate")}
               <input className="form-control mt-1"
                 disabled={!customsEditableEffective}
@@ -1217,7 +1246,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, declarationDate: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.declarationType1")}
               <select className="form-select mt-1" disabled={!customsEditableEffective} value={form.declarationType} onChange={(e) => setForm({ ...form, declarationType: e.target.value })}>
                 <option value="">{t("form.optionalSelect")}</option>
@@ -1228,7 +1257,7 @@ export default function TransactionForm({
                 ))}
               </select>
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.declarationNumber2")}
               <input className="form-control mt-1"
                 disabled={!customsEditableEffective}
@@ -1237,7 +1266,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, declarationNumber2: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.declarationType2")}
               <select className="form-select mt-1" disabled={!customsEditableEffective} value={form.declarationType2} onChange={(e) => setForm({ ...form, declarationType2: e.target.value })}>
                 <option value="">{t("form.optionalSelect")}</option>
@@ -1248,7 +1277,7 @@ export default function TransactionForm({
                 ))}
               </select>
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.portType")}
               <select className="form-select mt-1" disabled={!customsEditableEffective} value={form.portType} onChange={(e) => setForm({ ...form, portType: e.target.value })}>
                 <option value="">{t("form.optionalSelect")}</option>
@@ -1263,15 +1292,15 @@ export default function TransactionForm({
         ) : null}
 
         <FormSection title={t("form.shipmentCoreSection")}>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.airwayBill")}
           <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.airwayBill} onChange={(e) => setForm({ ...form, airwayBill: e.target.value })} required />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.hsCode")}
           <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.hsCode} onChange={(e) => setForm({ ...form, hsCode: e.target.value })} required />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.origin")}
           <input className="form-control mt-1"
             value={form.originCountry}
@@ -1282,7 +1311,7 @@ export default function TransactionForm({
             required
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.currency")}
           <select className="form-select mt-1"
             value={form.invoiceCurrency}
@@ -1296,7 +1325,7 @@ export default function TransactionForm({
             ))}
           </select>
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.invoiceValue")}
           <input className="form-control mt-1"
             type="number"
@@ -1308,7 +1337,7 @@ export default function TransactionForm({
             required
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.invoiceToWeightRate")}
           <input className="form-control mt-1"
             type="number"
@@ -1320,7 +1349,7 @@ export default function TransactionForm({
           />
           <span className="form-text">{t("form.invoiceToWeightRateHint")}</span>
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.orderDate")}
           <input className="form-control mt-1"
             type="date"
@@ -1329,7 +1358,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, orderDate: e.target.value })}
           />
         </label>
-        <label className="col-12 form-label w-100 mb-0">
+        <label className="form-field-box form-field-box--full form-label w-100 mb-0">
           {t("form.goodsDescription")}
           <textarea className="form-control mt-1"
             value={form.goodsDescription}
@@ -1341,7 +1370,7 @@ export default function TransactionForm({
         </label>
         {!isEdit ? (
           <>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.numberOfUnits")}
               <input className="form-control mt-1"
                 type="text"
@@ -1355,7 +1384,7 @@ export default function TransactionForm({
         </FormSection>
 
         <FormSection title={t("form.cargoContainersSection")}>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.goodsWeightKg")}
           <input className="form-control mt-1"
             type="number"
@@ -1367,7 +1396,7 @@ export default function TransactionForm({
             placeholder={derivedWeight != null ? `${t("form.derivedWeight")}: ${derivedWeight.toFixed(3)}` : undefined}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.containerCount")}
           <input className="form-control mt-1"
             type="number"
@@ -1378,7 +1407,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, containerCount: e.target.value })}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.containerArrivalDate")}
           <input className="form-control mt-1"
             type="date"
@@ -1387,7 +1416,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, containerArrivalDate: e.target.value })}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.goodsQuantity")}
           <input className="form-control mt-1"
             type="number"
@@ -1398,7 +1427,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, goodsQuantity: e.target.value })}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.goodsQuality")}
           <select className="form-select mt-1"
             value={form.goodsQuality}
@@ -1415,7 +1444,7 @@ export default function TransactionForm({
         </label>
         {isEdit ? (
           <>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.goodsUnit")}
               <select className="form-select mt-1" disabled={!prepEditableEffective} value={form.goodsUnit} onChange={(e) => setForm({ ...form, goodsUnit: e.target.value as GoodsUnit | "" })}>
                 <option value="">{t("form.optionalSelect")}</option>
@@ -1426,7 +1455,7 @@ export default function TransactionForm({
                 ))}
               </select>
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("form.numberOfUnits")}
               <input className="form-control mt-1"
                 type="text"
@@ -1437,7 +1466,7 @@ export default function TransactionForm({
             </label>
           </>
         ) : null}
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.documentArrivalDate")}
           <input className="form-control mt-1"
             type="date"
@@ -1446,7 +1475,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, documentArrivalDate: e.target.value })}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.containerNumbers")}
           <textarea className="form-control mt-1"
             value={form.containerNumbers}
@@ -1460,7 +1489,7 @@ export default function TransactionForm({
 
         {showTransportationSection ? (
           <FormSection title={t("transportation.sectionTitle" as MessageKey)}>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.toUpper" as MessageKey)}
               <input className="form-control mt-1"
                 disabled={!transportationEditableEffective}
@@ -1468,7 +1497,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, transportationTo: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.trachNo" as MessageKey)}
               <input className="form-control mt-1"
                 disabled={!transportationEditableEffective}
@@ -1476,7 +1505,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.company" as MessageKey)}
               <input className="form-control mt-1"
                 disabled={!transportationEditableEffective}
@@ -1484,7 +1513,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, transportationCompany: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.from" as MessageKey)}
               <input className="form-control mt-1"
                 disabled={!transportationEditableEffective}
@@ -1492,7 +1521,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, transportationFrom: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.to" as MessageKey)}
               <input className="form-control mt-1"
                 disabled={!transportationEditableEffective}
@@ -1500,7 +1529,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, transportationToLocation: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.tripCharge" as MessageKey)}
               <input className="form-control mt-1"
                 type="number"
@@ -1511,7 +1540,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, tripCharge: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.waitingCharge" as MessageKey)}
               <input className="form-control mt-1"
                 type="number"
@@ -1522,7 +1551,7 @@ export default function TransactionForm({
                 onChange={(e) => setForm({ ...form, waitingCharge: e.target.value })}
               />
             </label>
-            <label className="col-12 col-md-6 form-label w-100 mb-0">
+            <label className="form-field-box form-label w-100 mb-0">
               {t("transportation.maccrikCharge" as MessageKey)}
               <input className="form-control mt-1"
                 type="number"
@@ -1537,7 +1566,7 @@ export default function TransactionForm({
         ) : null}
 
         <FormSection title={t("form.workflowStatusSection")}>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.documentPostalNumber")}
           <input className="form-control mt-1"
             disabled={!customsEditableEffective}
@@ -1545,7 +1574,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, documentPostalNumber: e.target.value })}
           />
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.stopTransaction")}
           <select className="form-select mt-1" disabled={!legacyStorageEditable} value={form.isStopped} onChange={(e) => setForm({ ...form, isStopped: e.target.value as "no" | "yes" })}>
             <option value="no">{t("form.no")}</option>
@@ -1553,7 +1582,7 @@ export default function TransactionForm({
           </select>
         </label>
         {form.isStopped === "yes" ? (
-          <label className="col-12 col-md-6 form-label w-100 mb-0">
+          <label className="form-field-box form-label w-100 mb-0">
             {t("form.stopReason")}
             <textarea className="form-control mt-1"
               value={form.stopReason}
@@ -1564,7 +1593,7 @@ export default function TransactionForm({
             />
           </label>
         ) : null}
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.documentStatus")}
           <select className="form-select mt-1"
             value={form.documentStatus}
@@ -1576,7 +1605,7 @@ export default function TransactionForm({
             <option value="telex_release">{t("form.documentStatus.telex_release")}</option>
           </select>
         </label>
-        <label className="col-12 col-md-6 form-label w-100 mb-0">
+        <label className="form-field-box form-label w-100 mb-0">
           {t("form.paymentStatus")}
           <select className="form-select mt-1"
             value={form.paymentStatus}
@@ -1657,7 +1686,7 @@ export default function TransactionForm({
               </p>
               <div className="col-12">
                 {newDocFiles.map((item, idx) => (
-                  <label className="col-12 col-md-6 form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
+                  <label className="form-field-box form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
                     {item.file.name}
                     <select className="form-select mt-1"
                       value={item.category}

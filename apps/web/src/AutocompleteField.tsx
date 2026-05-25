@@ -30,7 +30,7 @@ export default function AutocompleteField({
   hint,
   minChars = 1,
   disabled = false,
-  colClassName = "col-12 col-md-6",
+  colClassName = "form-field-box",
 }: Props) {
   const id = useId();
   const wrapRef = useRef<HTMLDivElement>(null);

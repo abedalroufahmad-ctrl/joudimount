@@ -68,12 +68,21 @@ function portTypeLabel(value: string | undefined, t: (key: MessageKey) => string
 
 type TransactionModule = "transactions" | "transfers" | "exports";
 
-function DetailSection({ title, children }: { title: string; children: ReactNode }) {
+function DetailSection({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   return (
-    <section className="details-section-card card shadow-sm border-0 mb-3">
+    <section className="details-section-card card shadow-sm border-0 mb-4">
       <div className="card-body">
-        <h2 className="form-section-title h5 border-bottom pb-2 mb-3 mt-0">{title}</h2>
-        <div className="row row-cols-1 row-cols-md-2 g-3">{children}</div>
+        <h2 className="details-section-title h5 mb-0">{title}</h2>
+        <div className="details-fields-grid">{children}</div>
+        {footer ? <div className="details-section-footer">{footer}</div> : null}
       </div>
     </section>
   );
@@ -81,9 +90,10 @@ function DetailSection({ title, children }: { title: string; children: ReactNode
 
 function DetailField({ label, children, fullWidth }: { label: string; children: ReactNode; fullWidth?: boolean }) {
   return (
-    <p className={`details-item mb-0${fullWidth ? " col-12" : ""}`}>
-      <strong>{label}:</strong> {children}
-    </p>
+    <div className={`details-field${fullWidth ? " details-field--full" : ""}`}>
+      <div className="details-field-label">{label}</div>
+      <div className="details-field-value">{children}</div>
+    </div>
   );
 }
 
@@ -221,6 +231,11 @@ export default function TransactionDetails({
             {t("details.originalBl")}
           </button>
         ) : null}
+        {id && (role === "manager" || role === "accountant") ? (
+          <Link className="btn btn-outline-primary btn-sm" to={`${transactionListPath(module)}/${id}/accounting`}>
+            {t("details.linkAccounting" as MessageKey)}
+          </Link>
+        ) : null}
         {transaction ? (
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setShippingPaperOpen(true)}>
             {t("details.shippingPaperButton")}
@@ -255,7 +270,29 @@ export default function TransactionDetails({
               </div>
             </div>
           </div>
-        <DetailSection title={t("form.snapshotReadOnly")}>
+        <DetailSection
+          title={t("form.snapshotReadOnly")}
+          footer={
+            (transaction.transactionStage === "STORAGE" &&
+              (module === "transactions" || module === "transfers")) ||
+            role === "manager" ||
+            role === "accountant" ? (
+              <div className="d-flex flex-wrap gap-2">
+                {transaction.transactionStage === "STORAGE" &&
+                (module === "transactions" || module === "transfers") ? (
+                  <Link className="btn btn-primary btn-sm" to={`${transactionListPath(module)}/${transaction.id}/storage`}>
+                    {t("details.linkStorage" as MessageKey)}
+                  </Link>
+                ) : null}
+                {role === "manager" || role === "accountant" ? (
+                  <Link className="btn btn-primary btn-sm" to={`${transactionListPath(module)}/${transaction.id}/accounting`}>
+                    {t("details.linkAccounting" as MessageKey)}
+                  </Link>
+                ) : null}
+              </div>
+            ) : undefined
+          }
+        >
           <DetailField label={t("details.createdAt")}>
             {new Date(transaction.createdAt).toLocaleString(numberLocale)}
           </DetailField>
@@ -268,13 +305,6 @@ export default function TransactionDetails({
           ) : null}
           <DetailField label={t("details.status")}>{transaction.clearanceStatus}</DetailField>
           <DetailField label={t("form.stage")}>{stageLabel(transaction.transactionStage, t)}</DetailField>
-          {transaction.transactionStage === "STORAGE" && (module === "transactions" || module === "transfers") ? (
-            <p className="details-item col-12 mb-0">
-              <Link className="btn btn-primary btn-sm" to={`/${module}/${transaction.id}/storage`}>
-                {t("details.linkStorage" as MessageKey)}
-              </Link>
-            </p>
-          ) : null}
           {transaction.releaseCode ? (
             <DetailField label={t("details.releaseCode")} fullWidth>
               {transaction.releaseCode}
@@ -455,9 +485,9 @@ export default function TransactionDetails({
         </DetailSection>
 
         {transaction.documentAttachments && transaction.documentAttachments.length > 0 ? (
-          <section className="details-section-card card shadow-sm border-0 mb-3">
+          <section className="details-section-card card shadow-sm border-0 mb-4">
             <div className="card-body">
-              <h2 className="form-section-title h5 border-bottom pb-2 mb-3 mt-0">{t("details.documentPhotos")}</h2>
+              <h2 className="details-section-title h5 mb-3">{t("details.documentPhotos")}</h2>
               {Object.entries(groupedAttachments).map(([group, items]) => (
                 <div key={group} className="mb-3">
                   <p className="mb-2 fw-semibold text-secondary">{group}</p>
