@@ -11,6 +11,7 @@
     "rootDir": "src"
   },
   "include": [
-    "src"
+    "src",
+    "src/middlewares"
   ]
 }

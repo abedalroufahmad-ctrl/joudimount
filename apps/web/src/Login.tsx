@@ -4,25 +4,25 @@ import { login } from "./api";
 import { useI18n } from "./i18n/I18nContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { AuthUser } from "./types";
+import { useToast } from "./components/useToast";
 
 export default function Login({ onLogin }: { onLogin: (user: AuthUser) => void }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [email, setEmail] = useState("manager@tracker.local");
   const [password, setPassword] = useState("123456");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    setError("");
     try {
       const user = await login(email, password);
       onLogin(user);
       navigate("/");
-    } catch {
-      setError(t("login.error"));
+    } catch (err: any) {
+      showToast(err.message || t("login.error"), "error");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,6 @@ export default function Login({ onLogin }: { onLogin: (user: AuthUser) => void }
           <h1 className="login-title">{t("login.title")}</h1>
           <p className="login-subtitle">{t("login.subtitle")}</p>
         </div>
-        {error ? <p className="error alert alert-danger mb-0 mx-3 mt-3">{error}</p> : null}
         <form className="card-body pt-4" onSubmit={onSubmit}>
           <div className="row g-3">
             <div className="col-12">

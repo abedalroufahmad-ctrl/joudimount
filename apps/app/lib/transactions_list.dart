@@ -7,6 +7,7 @@ import 'transaction_detail.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
 import 'transaction_accounting_page.dart';
+import 'transaction_model.dart'; // Import the Transaction model
 
 class TransactionsTab extends StatefulWidget {
   final String role;
@@ -19,7 +20,7 @@ class TransactionsTab extends StatefulWidget {
 }
 
 class _TransactionsTabState extends State<TransactionsTab> {
-  List<Map<String, dynamic>> _items = [];
+  List<Transaction> _items = []; // Changed to List<Transaction>
   bool _loading = true;
   String _error = '';
   String _query = '';
@@ -47,7 +48,9 @@ class _TransactionsTabState extends State<TransactionsTab> {
     });
     try {
       final data = await Api.get(_modulePath) as List<dynamic>;
-      _items = data.cast<Map<String, dynamic>>();
+      _items = data
+          .map((e) => Transaction.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList(); // Cast to Transaction objects
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -60,35 +63,25 @@ class _TransactionsTabState extends State<TransactionsTab> {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final statuses = _items
-        .map((e) => (e['clearanceStatus'] ?? '').toString())
+        .map((e) => e.clearanceStatus)
         .where((e) => e.isNotEmpty)
         .toSet()
         .toList();
     final stages = _items
-        .map((e) => (e['transactionStage'] ?? 'PREPARATION').toString())
+        .map((e) => e.transactionStage)
         .where((e) => e.isNotEmpty)
         .toSet()
         .toList();
     final filtered = _items.where((tx) {
       final q = _query.toLowerCase();
       final matchesQ = q.isEmpty ||
-          (tx['clientName'] ?? '').toString().toLowerCase().contains(q) ||
-          (tx['shippingCompanyName'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(q) ||
-          (tx['declarationNumber'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(q) ||
-          (tx['declarationNumber2'] ?? '')
-              .toString()
-              .toLowerCase()
-              .contains(q) ||
-          (tx['airwayBill'] ?? '').toString().toLowerCase().contains(q);
-      final matchesS =
-          _status == 'all' || (tx['clearanceStatus'] ?? '') == _status;
-      final stage = (tx['transactionStage'] ?? 'PREPARATION').toString();
+          tx.clientName.toLowerCase().contains(q) ||
+          tx.shippingCompanyName.toLowerCase().contains(q) ||
+          (tx.declarationNumber).toLowerCase().contains(q) ||
+          (tx.declarationNumber2 ?? '').toLowerCase().contains(q) ||
+          (tx.airwayBill).toLowerCase().contains(q);
+      final matchesS = _status == 'all' || tx.clearanceStatus == _status;
+      final stage = tx.transactionStage;
       final matchesStage = _stage == 'all' || stage == _stage;
       return matchesQ && matchesS && matchesStage;
     }).toList();
@@ -230,9 +223,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                               itemCount: filtered.length,
                               itemBuilder: (context, index) {
                                 final tx = filtered[index];
-                                final stage =
-                                    (tx['transactionStage'] ?? 'PREPARATION')
-                                        .toString();
+                                final stage = tx.transactionStage;
                                 String stageLabel = stage;
                                 if (stage == 'PREPARATION') {
                                   stageLabel = l10n.stagePreparation;
@@ -251,7 +242,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                 return Card(
                                   child: ListTile(
                                     title: Text(
-                                      '${tx['clientName']}',
+                                      tx.clientName,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w600),
                                     ),
@@ -261,7 +252,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                       children: [
                                         const SizedBox(height: 4),
                                         Text(
-                                          '${tx['shippingCompanyName']}',
+                                          tx.shippingCompanyName,
                                           style: TextStyle(
                                             fontSize: 13,
                                             color: Colors.grey.shade700,
@@ -277,7 +268,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                               label: stageLabel,
                                             ),
                                             Text(
-                                              '${tx['clearanceStatus']}',
+                                              tx.clearanceStatus,
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 color: Colors.grey.shade600,
@@ -305,8 +296,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                                         builder: (_) =>
                                                             TransactionAccountingPage(
                                                           role: widget.role,
-                                                          transactionId:
-                                                              tx['id'] as String,
+                                                          transactionId: tx.id,
                                                           module: widget.module,
                                                         ),
                                                       ),
@@ -326,8 +316,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                                         builder: (_) =>
                                                             TransactionStoragePage(
                                                           role: widget.role,
-                                                          transactionId:
-                                                              tx['id'] as String,
+                                                          transactionId: tx.id,
                                                           module: widget.module,
                                                         ),
                                                       ),
@@ -341,7 +330,7 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                       await Navigator.of(context).push<bool>(
                                         MaterialPageRoute(
                                           builder: (_) => TransactionDetailsPage(
-                                            id: tx['id'] as String,
+                                            id: tx.id,
                                             role: widget.role,
                                             module: widget.module,
                                           ),

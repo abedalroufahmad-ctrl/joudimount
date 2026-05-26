@@ -7,11 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api.dart';
 import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'user_model.dart'; // Import the new User model
 
 class ProfileTab extends StatefulWidget {
-  final Map<String, dynamic> user;
+  final User user; // Change to User
   final Future<void> Function() onLogout;
-  final ValueChanged<Map<String, dynamic>> onUserUpdated;
+  final ValueChanged<User> onUserUpdated; // Change to User
 
   const ProfileTab({
     super.key,
@@ -25,7 +26,7 @@ class ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<ProfileTab> {
-  Map<String, dynamic>? _profile;
+  User? _profile; // Change to User?
   bool _loading = true;
   bool _saving = false;
   bool _editing = false;
@@ -61,11 +62,9 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  String _formatDate(String? raw, String locale) {
-    if (raw == null || raw.trim().isEmpty) return '—';
-    final parsed = DateTime.tryParse(raw);
-    if (parsed == null) return raw;
-    return intl.DateFormat.yMMMd(locale).add_jm().format(parsed.toLocal());
+  String _formatDate(DateTime? raw, String locale) {
+    if (raw == null) return '—';
+    return intl.DateFormat.yMMMd(locale).add_jm().format(raw.toLocal());
   }
 
   Future<void> _load() async {
@@ -77,9 +76,9 @@ class _ProfileTabState extends State<ProfileTab> {
       final data = await Api.get('/api/auth/me') as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
-        _profile = data;
-        _name.text = '${data['name'] ?? ''}';
-        _email.text = '${data['email'] ?? ''}';
+        _profile = User.fromJson(data); // Use User.fromJson
+        _name.text = _profile!.name; // Access from User object
+        _email.text = _profile!.email; // Access from User object
         _password.clear();
       });
     } catch (e) {
@@ -95,8 +94,8 @@ class _ProfileTabState extends State<ProfileTab> {
     setState(() {
       _editing = true;
       _error = '';
-      _name.text = '${profile['name'] ?? ''}';
-      _email.text = '${profile['email'] ?? ''}';
+      _name.text = profile.name; // Access from User object
+      _email.text = profile.email; // Access from User object
       _password.clear();
     });
   }
@@ -107,8 +106,8 @@ class _ProfileTabState extends State<ProfileTab> {
       _editing = false;
       _error = '';
       if (profile != null) {
-        _name.text = '${profile['name'] ?? ''}';
-        _email.text = '${profile['email'] ?? ''}';
+        _name.text = profile.name; // Access from User object
+        _email.text = profile.email; // Access from User object
       }
       _password.clear();
     });
@@ -137,19 +136,19 @@ class _ProfileTabState extends State<ProfileTab> {
       };
       if (password.isNotEmpty) body['password'] = password;
       final data = await Api.put('/api/auth/me', body) as Map<String, dynamic>;
-      final user = Map<String, dynamic>.from(data['user'] as Map);
+      final updatedUser = User.fromJson(data['user'] as Map<String, dynamic>); // Use User.fromJson
       final prefs = await SharedPreferences.getInstance();
       if (data['token'] != null) {
         await prefs.setString('token', data['token'] as String);
       }
-      await prefs.setString('user', jsonEncode(user));
+      await prefs.setString('user', jsonEncode(updatedUser.toJson())); // Save User object
       if (!mounted) return;
       setState(() {
-        _profile = user;
+        _profile = updatedUser;
         _editing = false;
         _password.clear();
       });
-      widget.onUserUpdated(user);
+      widget.onUserUpdated(updatedUser); // Pass User object
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
       );
@@ -196,7 +195,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final profile = _profile;
-    final name = (profile?['name'] ?? widget.user['name'] ?? '?').toString().trim();
+    final name = (profile?.name ?? widget.user.name).trim(); // Access from User object
     final initial = name.isEmpty ? '?' : name[0].toUpperCase();
 
     if (_loading && profile == null) {
@@ -228,7 +227,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         initial,
                         style: const TextStyle(
                           fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -245,11 +244,11 @@ class _ProfileTabState extends State<ProfileTab> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
-                          Text('${profile?['email'] ?? widget.user['email']}'),
+                          Text(profile?.email ?? widget.user.email),
                           const SizedBox(height: 4),
                           Text(
                             _roleLabel(
-                              '${profile?['role'] ?? widget.user['role']}',
+                              profile?.role ?? widget.user.role,
                               l10n,
                             ),
                             style: const TextStyle(color: AppColors.textMuted),
@@ -323,20 +322,20 @@ class _ProfileTabState extends State<ProfileTab> {
                     ],
                   ),
                 ] else if (profile != null) ...[
-                  _detailRow(l10n.employeeName, '${profile['name']}'),
-                  _detailRow(l10n.employeeEmail, '${profile['email']}'),
+                  _detailRow(l10n.employeeName, profile.name),
+                  _detailRow(l10n.employeeEmail, profile.email),
                   _detailRow(
                     l10n.employeeRole,
-                    _roleLabel('${profile['role']}', l10n),
+                    _roleLabel(profile.role, l10n),
                   ),
-                  _detailRow(l10n.profileAccountId, '${profile['id']}'),
+                  _detailRow(l10n.profileAccountId, profile.id),
                   _detailRow(
                     l10n.profileMemberSince,
-                    _formatDate(profile['createdAt']?.toString(), locale),
+                    _formatDate(profile.createdAt, locale),
                   ),
                   _detailRow(
                     l10n.profileLastUpdated,
-                    _formatDate(profile['updatedAt']?.toString(), locale),
+                    _formatDate(profile.updatedAt, locale),
                   ),
                 ],
               ],

@@ -6,6 +6,7 @@ import multer from "multer";
 import { promises as fs } from "fs";
 import path from "path";
 import { z } from "zod";
+import { validate } from "./middlewares/validate.js";
 import { signAuthToken, UserRole, verifyAuthToken } from "./auth.js";
 import { connectDb } from "./db.js";
 import { EmployeeModel } from "./models.js";
@@ -421,30 +422,28 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/api/auth/login", async (req, res) => {
-  const schema = z.object({
+app.post("/api/auth/login", validate(z.object({
+  body: z.object({
     email: z.string().email(),
     password: z.string().min(4),
-  });
-  const result = schema.safeParse(req.body);
-  if (!result.success) return res.status(400).json({ error: result.error.flatten() });
-
+  })
+})), async (req, res) => {
   const { verifyPassword, hashPassword, isPasswordHashed } = await import("./password.js");
-  const email = result.data.email.toLowerCase().trim();
+  const email = (req.body as any).email.toLowerCase().trim();
   const user = (await EmployeeModel.findOne({ email }).lean()) as
     | { _id: string; email: string; name: string; role: UserRole; password: string }
     | null;
   if (!user) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
-  const passwordOk = await verifyPassword(result.data.password, user.password);
+  const passwordOk = await verifyPassword((req.body as any).password, user.password);
   if (!passwordOk) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
   if (!isPasswordHashed(user.password)) {
     await EmployeeModel.updateOne(
       { _id: user._id },
-      { $set: { password: await hashPassword(result.data.password) } },
+      { $set: { password: await hashPassword((req.body as any).password) } },
     );
   }
 
@@ -481,22 +480,17 @@ app.get("/api/auth/me", authenticate, async (req: AuthRequest, res) => {
   return res.json(profile);
 });
 
-app.put("/api/auth/me", authenticate, async (req: AuthRequest, res) => {
-  const schema = z
+app.put("/api/auth/me", authenticate, validate(z.object({
+  body: z
     .object({
       name: z.string().min(2).optional(),
       email: z.string().email().optional(),
       password: optionalEmployeePassword,
     })
-    .refine((value) => Object.keys(value).length > 0, "At least one field is required");
-
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-
+    .refine((value) => Object.keys(value).length > 0, "At least one field is required"),
+})), async (req: AuthRequest, res) => {
   try {
-    const updated = await updateEmployee(req.user!.id, result.data);
+    const updated = await updateEmployee(req.user!.id, req.body);
     if (!updated) return res.status(404).json({ error: "User not found" });
     const profile = await getEmployeeProfile(updated.id);
     if (!profile) return res.status(404).json({ error: "User not found" });
@@ -563,21 +557,18 @@ app.delete("/api/devices/fcm", authenticate, async (req: AuthRequest, res) => {
   return res.json({ ok: true });
 });
 
-app.post("/api/employees", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z.object({
+app.post("/api/employees", authenticate, validate(z.object({
+  body: z.object({
     name: z.string().min(2),
     email: z.string().email(),
     password: z.string().min(4),
     role: z.enum(["manager", "employee", "employee2", "accountant"]),
-  });
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
+  }),
+})), async (req: AuthRequest, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
   try {
-    const created = await createEmployee(result.data);
+    const created = await createEmployee(req.body as any);
     notifyAction(req, {
       action: "created",
       entityType: "employee",
@@ -594,24 +585,20 @@ app.post("/api/employees", authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-app.put("/api/employees/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z
+app.put("/api/employees/:id", authenticate, validate(z.object({
+  body: z
     .object({
       name: z.string().min(2).optional(),
       email: z.string().email().optional(),
       password: optionalEmployeePassword,
       role: z.enum(["manager", "employee", "employee2", "accountant"]).optional(),
     })
-    .refine((value) => Object.keys(value).length > 0, "At least one field is required");
+    .refine((value) => Object.keys(value).length > 0, "At least one field is required"),
+})), async (req: AuthRequest, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
 
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-
-  if (result.data.role !== undefined && result.data.role !== "manager") {
+  if (req.body.role !== undefined && req.body.role !== "manager") {
     const current = (await EmployeeModel.findById(req.params.id).lean()) as { role?: UserRole } | null;
     if (current?.role === "manager") {
       const managers = await EmployeeModel.countDocuments({ role: "manager" });
@@ -622,7 +609,7 @@ app.put("/api/employees/:id", authenticate, async (req: AuthRequest, res) => {
   }
 
   try {
-    const updated = await updateEmployee(req.params.id, result.data);
+    const updated = await updateEmployee(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: "Employee not found" });
     notifyAction(req, {
       action: "updated",
@@ -684,10 +671,8 @@ const optionalClientCountry = z.preprocess(
   z.string().optional(),
 );
 
-app.post("/api/clients", authenticate, async (req, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z.object({
+app.post("/api/clients", authenticate, validate(z.object({
+  body: z.object({
     companyName: z.string().min(2),
     trn: z.string().min(2),
     immigrationCode: z.string().optional(),
@@ -695,12 +680,11 @@ app.post("/api/clients", authenticate, async (req, res) => {
     country: optionalClientCountry,
     creditLimit: z.number().nonnegative().default(0),
     status: z.enum(["active", "suspended"]).default("active"),
-  });
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-  const created = await createClient(result.data);
+  }),
+})), async (req, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
+  const created = await createClient(req.body);
   notifyAction(req, {
     action: "created",
     entityType: "client",
@@ -710,10 +694,8 @@ app.post("/api/clients", authenticate, async (req, res) => {
   return res.status(201).json(created);
 });
 
-app.put("/api/clients/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z
+app.put("/api/clients/:id", authenticate, validate(z.object({
+  body: z
     .object({
       companyName: z.string().min(2).optional(),
       trn: z.string().min(2).optional(),
@@ -723,14 +705,12 @@ app.put("/api/clients/:id", authenticate, async (req: AuthRequest, res) => {
       creditLimit: z.number().nonnegative().optional(),
       status: z.enum(["active", "suspended"]).optional(),
     })
-    .refine((value) => Object.keys(value).length > 0, "At least one field is required");
+    .refine((value) => Object.keys(value).length > 0, "At least one field is required"),
+})), async (req: AuthRequest, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
 
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-
-  const client = await updateClient(req.params.id, result.data);
+  const client = await updateClient(req.params.id, req.body);
   if (!client) return res.status(404).json({ error: "Client not found" });
   notifyAction(req, {
     action: "updated",
@@ -766,10 +746,8 @@ app.get("/api/shipping-companies/:id", authenticate, async (req, res) => {
   return res.json(item);
 });
 
-app.post("/api/shipping-companies", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z
+app.post("/api/shipping-companies", authenticate, validate(z.object({
+  body: z
     .object({
       companyName: z.string().min(2),
       code: z.string().min(2),
@@ -790,12 +768,11 @@ app.post("/api/shipping-companies", authenticate, async (req: AuthRequest, res) 
         (d.latitude === undefined && d.longitude === undefined) ||
         (d.latitude !== undefined && d.longitude !== undefined),
       { message: "latitude and longitude must both be set or both omitted", path: ["latitude"] },
-    );
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-  const created = await createShippingCompany(result.data);
+    ),
+})), async (req: AuthRequest, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
+  const created = await createShippingCompany(req.body);
   notifyAction(req, {
     action: "created",
     entityType: "shipping_company",
@@ -805,10 +782,8 @@ app.post("/api/shipping-companies", authenticate, async (req: AuthRequest, res) 
   return res.status(201).json(created);
 });
 
-app.put("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager"]);
-  if (!denied) return;
-  const schema = z
+app.put("/api/shipping-companies/:id", authenticate, validate(z.object({
+  body: z
     .object({
       companyName: z.string().min(2).optional(),
       code: z.string().min(2).optional(),
@@ -831,12 +806,11 @@ app.put("/api/shipping-companies/:id", authenticate, async (req: AuthRequest, re
         (d.latitude !== undefined && d.longitude !== undefined) ||
         (d.latitude === null && d.longitude === null),
       { message: "latitude and longitude must both be set, both omitted, or both null", path: ["latitude"] },
-    );
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-  const item = await updateShippingCompany(req.params.id, result.data);
+    ),
+})), async (req: AuthRequest, res) => {
+  const denied = ensureRole(req, res, ["manager"]);
+  if (!denied) return;
+  const item = await updateShippingCompany(req.params.id, req.body);
   if (!item) return res.status(404).json({ error: "Shipping company not found" });
   notifyAction(req, {
     action: "updated",
@@ -870,14 +844,10 @@ app.get("/api/transactions", authenticate, async (req: AuthRequest, res) => {
   res.json(await listTransactions(clientId, limit));
 });
 
-app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest, res) => {
+app.post("/api/transactions", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
-    const result = createTransactionPayloadSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ error: result.error.flatten() });
-    }
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
     const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
@@ -894,8 +864,8 @@ app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...result.data,
-      originCountry: result.data.originCountry.toUpperCase(),
+      ...req.body,
+      originCountry: (req.body as any).originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransaction(data);
@@ -1050,9 +1020,9 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartEarly;
-    let payload: Parameters<typeof updateTransaction>[1] = { ...result.data };
-    if (result.data.originCountry !== undefined) {
-      payload.originCountry = result.data.originCountry.toUpperCase();
+    let payload: Partial<Transaction> = { ...result.data };
+    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
+      payload.originCountry = payload.originCountry.toUpperCase();
     }
 
     if (hasMultipart) {
@@ -1135,12 +1105,10 @@ app.get("/api/transfers", authenticate, async (req: AuthRequest, res) => {
   res.json(await listTransfers(clientId, limit));
 });
 
-app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, res) => {
+app.post("/api/transfers", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
-    const result = createTransactionPayloadSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: result.error.flatten() });
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
     const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
@@ -1155,8 +1123,8 @@ app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, r
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...result.data,
-      originCountry: result.data.originCountry.toUpperCase(),
+      ...req.body,
+      originCountry: (req.body as any).originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransfer(data);
@@ -1250,7 +1218,7 @@ app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res)
   return res.json(updated);
 });
 
-app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest, res) => {
+app.put("/api/transfers/:id", authenticate, maybeUpload, validate(z.object({ body: updateTransactionPayloadSchema })), async (req: AuthRequest, res) => {
   const role = req.user?.role;
   if (!role) return res.status(401).json({ error: "Unauthorized" });
   try {
@@ -1258,15 +1226,13 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
     const existingRaw = body.existingAttachments;
     const bodyForZod = { ...body };
     delete bodyForZod.existingAttachments;
-    const result = updateTransactionPayloadSchema.safeParse(bodyForZod);
-    if (!result.success) return res.status(400).json({ error: result.error.flatten() });
-
+    
     const hasMultipartTransferEarly = (req.headers["content-type"] || "").includes("multipart/form-data");
     const prev = await getTransfer(req.params.id);
     if (!prev) return res.status(404).json({ error: "Transfer not found" });
     const atStorage = prev.transactionStage === "STORAGE";
 
-    if (Object.keys(result.data).length === 0) {
+    if (Object.keys(req.body).length === 0) {
       if (
         atStorage &&
         hasMultipartTransferEarly &&
@@ -1277,16 +1243,16 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
       return res.status(400).json({ error: "No fields to update" });
     }
 
-    if ((role === "employee" || role === "employee2") && result.data.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && (req.body as any).paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), req.body);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartTransferEarly;
-    let payload: Parameters<typeof updateTransfer>[1] = { ...result.data };
-    if (result.data.originCountry !== undefined) {
-      payload.originCountry = result.data.originCountry.toUpperCase();
+    let payload: Parameters<typeof updateTransfer>[1] = { ...req.body };
+    if ((req.body as any).originCountry !== undefined) {
+      payload.originCountry = (req.body as any).originCountry.toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
@@ -1363,12 +1329,10 @@ app.get("/api/exports", authenticate, async (req: AuthRequest, res) => {
   res.json(await listExports(clientId, limit));
 });
 
-app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res) => {
+app.post("/api/exports", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
-    const result = createTransactionPayloadSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({ error: result.error.flatten() });
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
     const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
@@ -1383,8 +1347,8 @@ app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...result.data,
-      originCountry: result.data.originCountry.toUpperCase(),
+      ...req.body,
+      originCountry: (req.body as any).originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createExport(data);
@@ -1479,7 +1443,7 @@ app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) =
   return res.json(stageTx);
 });
 
-app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, res) => {
+app.put("/api/exports/:id", authenticate, maybeUpload, validate(z.object({ body: updateTransactionPayloadSchema })), async (req: AuthRequest, res) => {
   const role = req.user?.role;
   if (!role) return res.status(401).json({ error: "Unauthorized" });
   try {
@@ -1487,23 +1451,21 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
     const existingRaw = body.existingAttachments;
     const bodyForZod = { ...body };
     delete bodyForZod.existingAttachments;
-    const result = updateTransactionPayloadSchema.safeParse(bodyForZod);
-    if (!result.success) return res.status(400).json({ error: result.error.flatten() });
-    if (Object.keys(result.data).length === 0) return res.status(400).json({ error: "No fields to update" });
+    if (Object.keys(req.body).length === 0) return res.status(400).json({ error: "No fields to update" });
 
     const prev = await getExport(req.params.id);
     if (!prev) return res.status(404).json({ error: "Export not found" });
 
-    if ((role === "employee" || role === "employee2") && result.data.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && (req.body as any).paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), req.body);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = (req.headers["content-type"] || "").includes("multipart/form-data");
-    let payload: Parameters<typeof updateExport>[1] = { ...result.data };
-    if (result.data.originCountry !== undefined) {
-      payload.originCountry = result.data.originCountry.toUpperCase();
+    let payload: Parameters<typeof updateExport>[1] = { ...req.body };
+    if ((req.body as any).originCountry !== undefined) {
+      payload.originCountry = (req.body as any).originCountry.toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
@@ -1588,8 +1550,18 @@ connectDb()
       { name: "Finance Accountant", email: "accountant@tracker.local", password: defaultPasswordHash, role: "accountant" as const },
       { name: "employee2", email: "employee2@tracker.local", password: defaultPasswordHash, role: "employee2" as const },
     ];
+    const isProduction = process.env.NODE_ENV === "production";
     for (const item of defaults) {
-      await EmployeeModel.updateOne({ email: item.email }, { $setOnInsert: item }, { upsert: true });
+      if (isProduction) {
+        await EmployeeModel.updateOne({ email: item.email }, { $setOnInsert: item }, { upsert: true });
+      } else {
+        // Dev/demo: keep default logins working (manager@tracker.local / 123456).
+        await EmployeeModel.updateOne(
+          { email: item.email },
+          { $set: { name: item.name, role: item.role, password: defaultPasswordHash } },
+          { upsert: true },
+        );
+      }
     }
     const legacyEmployees = await EmployeeModel.find({
       password: { $not: { $regex: /^\$2[aby]\$/ } },

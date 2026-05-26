@@ -113,7 +113,10 @@ export interface Transaction {
   updatedAt: string;
 }
 
-export const API_BASE = "http://localhost:4000";
+/** In dev, use same origin so Vite proxies /api to the backend. Override with VITE_API_BASE if needed. */
+export const API_BASE =
+  (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ??
+  (import.meta.env.DEV ? "" : "http://localhost:4000");
 
 export type Role = "manager" | "employee" | "employee2" | "accountant";
 

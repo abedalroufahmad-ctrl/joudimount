@@ -29,13 +29,20 @@ export function clearSession() {
 }
 
 export async function login(email: string, password: string) {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new Error(
+      "Cannot reach the API. Start it from the repo root with: npm run dev:api",
+    );
+  }
   if (!res.ok) {
-    throw new Error("Login failed");
+    throw new Error("Invalid credentials");
   }
   const data = await res.json();
   saveSession(data.token, data.user);

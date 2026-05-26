@@ -9,6 +9,7 @@ import 'date_field.dart';
 import 'l10n/app_localizations.dart';
 import 'transaction_labels.dart';
 import 'transaction_storage_page.dart';
+import 'transaction_model.dart'; // Import the Transaction model
 
 /// New or edit transaction — aligned with web TransactionForm.
 bool roleCanWorkAtStage(String role, String stage) {
@@ -166,6 +167,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   String? _releaseCode;
   String? _clearanceStatus;
   String _stage = 'PREPARATION';
+  Transaction? _existingTransaction; // Added to hold the loaded transaction
+
   String get _modulePath => '/api/${widget.module}';
 
   String _moduleNoun(BuildContext context) {
@@ -208,11 +211,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     } catch (_) {}
   }
 
-  String _isoToDateInput(dynamic iso) {
+  String _isoToDateInput(DateTime? iso) {
     if (iso == null) return '';
-    final s = iso.toString();
-    if (s.length >= 10) return s.substring(0, 10);
-    return '';
+    return iso.toIso8601String().substring(0, 10);
   }
 
   Future<void> _loadTransaction() async {
@@ -221,80 +222,71 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _error = '';
     });
     try {
-      final tx = await Api.get('$_modulePath/${widget.transactionId}')
+      final data = await Api.get('$_modulePath/${widget.transactionId}')
           as Map<String, dynamic>;
-      _client.text = (tx['clientName'] ?? '').toString();
-      _shippingName.text = (tx['shippingCompanyName'] ?? '').toString();
-      _shippingId.text = (tx['shippingCompanyId'] ?? '').toString();
-      _declarationNumberInput.text = (tx['declarationNumber'] ?? '').toString();
-      _declarationNumberInput2.text =
-          (tx['declarationNumber2'] ?? '').toString();
-      _declarationDateInput.text = _isoToDateInput(tx['declarationDate']);
-      final loadedDeclarationType = (tx['declarationType'] ?? '').toString();
-      _declarationType = loadedDeclarationType;
-      final loadedDeclarationType2 = (tx['declarationType2'] ?? '').toString();
-      _declarationType2 = loadedDeclarationType2;
-      final loadedPortType = (tx['portType'] ?? '').toString();
-      _portType = loadedPortType;
-      _orderDate.text = _isoToDateInput(tx['orderDate']);
-      _containerSize.text = (tx['containerSize'] ?? '').toString();
-      _portOfLading.text = (tx['portOfLading'] ?? '').toString();
-      _portOfDischarge.text = (tx['portOfDischarge'] ?? '').toString();
-      _destination.text = (tx['destination'] ?? '').toString();
-      _transportationTo.text = _isoToDateInput(tx['transportationTo']);
-      _trachNo.text = (tx['trachNo'] ?? '').toString();
-      _transportationCompany.text = (tx['transportationCompany'] ?? '').toString();
-      _transportationFrom.text = (tx['transportationFrom'] ?? '').toString();
-      _transportationToLocation.text = (tx['transportationToLocation'] ?? '').toString();
-      if (tx['tripCharge'] != null) _tripCharge.text = tx['tripCharge'].toString();
-      if (tx['waitingCharge'] != null) _waitingCharge.text = tx['waitingCharge'].toString();
-      if (tx['maccrikCharge'] != null) _maccrikCharge.text = tx['maccrikCharge'].toString();
-      _awb.text = (tx['airwayBill'] ?? '').toString();
-      _hs.text = (tx['hsCode'] ?? '').toString();
-      _goods.text = (tx['goodsDescription'] ?? '').toString();
-      _origin.text = (tx['originCountry'] ?? 'AE').toString();
-      _value.text = (tx['invoiceValue'] ?? '').toString();
-      final loadedCurrency =
-          (tx['invoiceCurrency'] ?? 'AED').toString().toUpperCase();
+      final tx = Transaction.fromJson(data);
+      _existingTransaction = tx;
+
+      _client.text = tx.clientName;
+      _shippingName.text = tx.shippingCompanyName;
+      _shippingId.text = tx.shippingCompanyId ?? '';
+      _declarationNumberInput.text = tx.declarationNumber;
+      _declarationNumberInput2.text = tx.declarationNumber2 ?? '';
+      _declarationDateInput.text = _isoToDateInput(tx.declarationDate);
+      _declarationType = tx.declarationType ?? '';
+      _declarationType2 = tx.declarationType2 ?? '';
+      _portType = tx.portType ?? '';
+      _orderDate.text = _isoToDateInput(tx.orderDate);
+      _containerSize.text = tx.containerSize ?? '';
+      _portOfLading.text = tx.portOfLading ?? '';
+      _portOfDischarge.text = tx.portOfDischarge ?? '';
+      _destination.text = tx.destination ?? '';
+      _transportationTo.text = tx.transportationTo ?? '';
+      _trachNo.text = tx.trachNo ?? '';
+      _transportationCompany.text = tx.transportationCompany ?? '';
+      _transportationFrom.text = tx.transportationFrom ?? '';
+      _transportationToLocation.text = tx.transportationToLocation ?? '';
+      _tripCharge.text = (tx.tripCharge ?? '').toString();
+      _waitingCharge.text = (tx.waitingCharge ?? '').toString();
+      _maccrikCharge.text = (tx.maccrikCharge ?? '').toString();
+      _awb.text = tx.airwayBill;
+      _hs.text = tx.hsCode;
+      _goods.text = tx.goodsDescription;
+      _origin.text = tx.originCountry;
+      _value.text = tx.invoiceValue.toString();
+      final loadedCurrency = tx.invoiceCurrency?.toUpperCase() ?? 'AED';
       _currency = const ['AED', 'USD', 'EUR', 'SAR'].contains(loadedCurrency)
           ? loadedCurrency
           : 'AED';
-      _docStatus = (tx['documentStatus'] ?? 'copy_received').toString();
-      _paymentStatus = (tx['paymentStatus'] ?? 'pending').toString();
-      if (tx['invoiceToWeightRateAedPerKg'] != null) {
-        _rate.text = tx['invoiceToWeightRateAedPerKg'].toString();
+      _docStatus = tx.documentStatus;
+      _paymentStatus = tx.paymentStatus;
+      _rate.text = (tx.invoiceToWeightRateAedPerKg ?? '').toString();
+      _weight.text = (tx.goodsWeightKg ?? '').toString();
+      _containers.text = (tx.containerCount ?? '').toString();
+      _containerArrival.text = _isoToDateInput(tx.containerArrivalDate);
+      _documentArrival.text = _isoToDateInput(tx.documentArrivalDate);
+      _fileNumber.text = tx.fileNumber ?? '';
+      _documentPostalNumber.text = tx.documentPostalNumber ?? '';
+      if (tx.containerNumbers != null) {
+        _containerNumbers.text = tx.containerNumbers!.join(', ');
       }
-      if (tx['goodsWeightKg'] != null)
-        _weight.text = tx['goodsWeightKg'].toString();
-      if (tx['containerCount'] != null)
-        _containers.text = tx['containerCount'].toString();
-      _containerArrival.text = _isoToDateInput(tx['containerArrivalDate']);
-      _documentArrival.text = _isoToDateInput(tx['documentArrivalDate']);
-      _fileNumber.text = (tx['fileNumber'] ?? '').toString();
-      _documentPostalNumber.text = (tx['documentPostalNumber'] ?? '').toString();
-      final nums = tx['containerNumbers'];
-      if (nums is List) {
-        _containerNumbers.text = nums.map((e) => e.toString()).join(', ');
-      }
-      if (tx['unitCount'] != null) _unitCount.text = tx['unitCount'].toString();
-      if (tx['unitNumber'] != null) _unitNumber.text = tx['unitNumber'].toString();
-      _isStopped = tx['isStopped'] == true;
-      _stopReason.text = (tx['stopReason'] ?? '').toString();
-      if (tx['goodsQuantity'] != null)
-        _qty.text = tx['goodsQuantity'].toString();
-      _quality = tx['goodsQuality']?.toString();
+      _unitCount.text = tx.unitCount ?? '';
+      _unitNumber.text = (tx.unitNumber ?? '').toString();
+      _isStopped = tx.isStopped ?? false;
+      _stopReason.text = tx.stopReason ?? '';
+      _qty.text = (tx.goodsQuantity ?? '').toString();
+      _quality = tx.goodsQuality;
       if (_quality != null && _quality!.isEmpty) _quality = null;
-      _unit = tx['goodsUnit']?.toString();
+      _unit = tx.goodsUnit;
       if (_unit != null && _unit!.isEmpty) _unit = null;
-      _releaseCode = tx['releaseCode']?.toString();
-      _clearanceStatus = tx['clearanceStatus']?.toString();
-      final loadedStage = (tx['transactionStage'] ?? 'PREPARATION').toString();
+      _releaseCode = tx.releaseCode;
+      _clearanceStatus = tx.clearanceStatus;
+      final loadedStage = tx.transactionStage;
       _stage = _stageOptionsForModule.contains(loadedStage)
           ? loadedStage
           : 'PREPARATION';
-      final att = tx['documentAttachments'];
-      if (att is List) {
-        _retainedDocs = att.cast<Map<String, dynamic>>();
+      if (tx.documentAttachments != null) {
+        _retainedDocs = tx.documentAttachments!.cast<Map<String, dynamic>>();
       }
       _picked = [];
       _pickedCategories = [];
@@ -310,6 +302,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final destination = _destination.text.trim();
     final portOfDischarge = _portOfDischarge.text.trim();
     final portOfLading = _portOfLading.text.trim();
+
+    // Handle computed shipping company name and airway bill for transfers/exports
     final effectiveShippingCompanyName = mod == 'transactions'
         ? _shippingName.text.trim()
         : (destination.isNotEmpty
@@ -318,6 +312,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final effectiveAirwayBill = mod == 'transactions'
         ? _awb.text.trim()
         : (portOfLading.isNotEmpty ? portOfLading : 'N/A');
+
     final parsedInvoice = double.tryParse(_value.text.trim()) ?? 0;
     final effectiveInvoiceValue =
         mod == 'transactions' ? parsedInvoice : math.max(1, parsedInvoice);
@@ -331,6 +326,18 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'declarationType': _declarationType.trim(),
       'declarationType2': _declarationType2.trim(),
       'portType': _portType.trim(),
+      'containerSize': _containerSize.text.trim(),
+      'portOfLading': _portOfLading.text.trim(),
+      'portOfDischarge': _portOfDischarge.text.trim(),
+      'destination': _destination.text.trim(),
+      'transportationTo': _transportationTo.text.trim(),
+      'trachNo': _trachNo.text.trim(),
+      'transportationCompany': _transportationCompany.text.trim(),
+      'transportationFrom': _transportationFrom.text.trim(),
+      'transportationToLocation': _transportationToLocation.text.trim(),
+      'tripCharge': double.tryParse(_tripCharge.text.trim()),
+      'waitingCharge': double.tryParse(_waitingCharge.text.trim()),
+      'maccrikCharge': double.tryParse(_maccrikCharge.text.trim()),
       'airwayBill': effectiveAirwayBill,
       'hsCode': _hs.text.trim(),
       'goodsDescription': _goods.text.trim(),
@@ -339,85 +346,40 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'invoiceCurrency': _currency,
       'documentStatus': _docStatus,
       'paymentStatus': _paymentStatus,
+      'invoiceToWeightRateAedPerKg': double.tryParse(_rate.text.trim()),
+      'goodsWeightKg': double.tryParse(_weight.text.trim()),
+      'containerCount': int.tryParse(_containers.text.trim()),
+      'containerArrivalDate': _containerArrival.text.trim(),
+      'documentArrivalDate': _documentArrival.text.trim(),
+      'fileNumber': _fileNumber.text.trim(),
+      'documentPostalNumber': _documentPostalNumber.text.trim(),
+      'containerNumbers': _containerNumbers.text
+          .split(RegExp(r'[\n,]+'))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList(),
+      'unitCount': _unitCount.text.trim(),
+      'unitNumber': int.tryParse(_unitNumber.text.trim()),
+      'isStopped': _isStopped,
+      'stopReason': _stopReason.text.trim(),
+      'goodsQuantity': double.tryParse(_qty.text.trim()),
+      'goodsQuality': _quality,
+      'goodsUnit': _unit,
+      'transactionStage': _stage, // Add current stage to body
     };
+
+    // Clean up empty fields
+    body.removeWhere((key, value) {
+      if (value is String) return value.isEmpty;
+      if (value == null) return true;
+      if (value is Map) return value.entries.every((e) => e.value == null || (e.value is String && (e.value as String).isEmpty));
+      if (value is List) return value.isEmpty;
+      return false;
+    });
+
     final sid = _shippingId.text.trim();
     if (sid.isNotEmpty) body['shippingCompanyId'] = sid;
-    if (_declarationNumberInput.text.trim().isEmpty)
-      body.remove('declarationNumber');
-    if (_declarationNumberInput2.text.trim().isEmpty)
-      body.remove('declarationNumber2');
-    if (_declarationDateInput.text.trim().isEmpty)
-      body.remove('declarationDate');
-    if (_orderDate.text.trim().isNotEmpty) body['orderDate'] = _orderDate.text.trim();
-    if (_declarationType.trim().isEmpty) body.remove('declarationType');
-    if (_declarationType2.trim().isEmpty) body.remove('declarationType2');
-    if (_portType.trim().isEmpty) body.remove('portType');
-    
-    void addS(String k, TextEditingController c) {
-      final v = c.text.trim();
-      if (v.isNotEmpty) body[k] = v;
-    }
 
-    addS('containerSize', _containerSize);
-    addS('portOfLading', _portOfLading);
-    addS('portOfDischarge', _portOfDischarge);
-    addS('destination', _destination);
-    addS('transportationTo', _transportationTo);
-    addS('trachNo', _trachNo);
-    addS('transportationCompany', _transportationCompany);
-    addS('transportationFrom', _transportationFrom);
-    addS('transportationToLocation', _transportationToLocation);
-
-    void addD(String k, TextEditingController c) {
-      final v = double.tryParse(c.text.trim());
-      if (v != null) body[k] = v;
-    }
-
-    void addI(String k, TextEditingController c) {
-      final v = int.tryParse(c.text.trim());
-      if (v != null) body[k] = v;
-    }
-
-    final parsedWeight = double.tryParse(_weight.text.trim());
-    if (parsedWeight == null) {
-      final invoice = double.tryParse(_value.text.trim());
-      final rate = double.tryParse(_rate.text.trim());
-      if (invoice != null && rate != null && rate > 0) {
-        body['goodsWeightKg'] = invoice / rate;
-      }
-    }
-    addD('invoiceToWeightRateAedPerKg', _rate);
-    addD('goodsWeightKg', _weight);
-    addI('containerCount', _containers);
-    addD('goodsQuantity', _qty);
-    addD('tripCharge', _tripCharge);
-    addD('waitingCharge', _waitingCharge);
-    addD('maccrikCharge', _maccrikCharge);
-    addI('unitNumber', _unitNumber);
-
-    if (_quality != null && _quality!.isNotEmpty)
-      body['goodsQuality'] = _quality;
-    if (_unit != null && _unit!.isNotEmpty) body['goodsUnit'] = _unit;
-    if (_containerArrival.text.trim().isNotEmpty)
-      body['containerArrivalDate'] = _containerArrival.text.trim();
-    if (_documentArrival.text.trim().isNotEmpty)
-      body['documentArrivalDate'] = _documentArrival.text.trim();
-    if (_fileNumber.text.trim().isNotEmpty)
-      body['fileNumber'] = _fileNumber.text.trim();
-    if (_documentPostalNumber.text.trim().isNotEmpty)
-      body['documentPostalNumber'] = _documentPostalNumber.text.trim();
-    final containerNumbers = _containerNumbers.text
-        .split(RegExp(r'[\n,]+'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (containerNumbers.isNotEmpty)
-      body['containerNumbers'] = containerNumbers;
-    final unitCount = _unitCount.text.trim();
-    if (unitCount.isNotEmpty) body['unitCount'] = unitCount;
-    body['isStopped'] = _isStopped;
-    if (_stopReason.text.trim().isNotEmpty)
-      body['stopReason'] = _stopReason.text.trim();
     return body;
   }
 

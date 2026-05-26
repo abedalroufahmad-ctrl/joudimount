@@ -11,6 +11,16 @@ abstract final class AppColors {
   static const textMuted = Color(0xFF64748B);
 }
 
+abstract final class AppDarkColors {
+  static const brand50 = Color(0xFF1E3A8A); // Darker shade of brand for contrast
+  static const brand100 = Color(0xFF1E40AF); // Darker shade
+  static const brand600 = Color(0xFF3B82F6);
+  static const brand700 = Color(0xFF60A5FA);
+  static const brand800 = Color(0xFF93C5FD);
+  static const surface = Color(0xFF111827); // Dark surface
+  static const textMuted = Color(0xFFA1A1AA); // Lighter muted text for dark bg
+}
+
 abstract final class AppGradients {
   static const hero = LinearGradient(
     colors: [AppColors.brand800, AppColors.brand600],
@@ -19,41 +29,54 @@ abstract final class AppGradients {
   );
 }
 
-ThemeData buildAppTheme({required bool isArabic}) {
+ThemeData buildAppTheme({required bool isArabic, required Brightness brightness}) {
+  final isDark = brightness == Brightness.dark;
+  final effectiveBrand800 = isDark ? AppDarkColors.brand800 : AppColors.brand800;
+  final effectiveBrand700 = isDark ? AppDarkColors.brand700 : AppColors.brand700;
+  final effectiveBrand600 = isDark ? AppDarkColors.brand600 : AppColors.brand600;
+  final effectiveSurface = isDark ? AppDarkColors.surface : AppColors.surface;
+  final effectiveTextMuted = isDark ? AppDarkColors.textMuted : AppColors.textMuted;
+  final effectiveError = isDark ? Colors.red.shade700 : Colors.red.shade700; // Define dark mode error color if needed
+  final effectiveErrorContainer = isDark ? Colors.red.shade900 : Colors.red.shade100;
+  final effectiveOnErrorContainer = isDark ? Colors.white : Colors.red.shade900;
+
   final base = ColorScheme.fromSeed(
-    seedColor: AppColors.brand800,
-    brightness: Brightness.light,
+    seedColor: effectiveBrand800,
+    brightness: brightness,
   );
   return ThemeData(
     useMaterial3: true,
     fontFamily: isArabic ? 'NotoSansArabic' : null,
     colorScheme: base.copyWith(
-      primary: AppColors.brand700,
+      primary: effectiveBrand700,
       onPrimary: Colors.white,
-      surface: Colors.white,
+      surface: effectiveSurface,
+      error: effectiveError,
+      errorContainer: effectiveErrorContainer,
+      onErrorContainer: effectiveOnErrorContainer,
     ),
-    scaffoldBackgroundColor: AppColors.surface,
+    scaffoldBackgroundColor: effectiveSurface,
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
         TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       },
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
-      foregroundColor: AppColors.brand800,
+    appBarTheme: AppBarTheme(
+      backgroundColor: isDark ? AppDarkColors.surface : Colors.white,
+      foregroundColor: effectiveBrand800,
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 0.5,
       surfaceTintColor: Colors.transparent,
     ),
     cardTheme: CardThemeData(
-      color: Colors.white,
+      color: isDark ? AppDarkColors.brand50 : Colors.white,
       elevation: 0,
       margin: const EdgeInsets.symmetric(vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
       ),
     ),
     listTileTheme: const ListTileThemeData(
@@ -61,24 +84,24 @@ ThemeData buildAppTheme({required bool isArabic}) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: isDark ? AppDarkColors.brand50 : Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(14)),
-        borderSide: BorderSide(color: AppColors.brand600, width: 1.2),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(color: effectiveBrand600, width: 1.2),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.brand700,
+        backgroundColor: effectiveBrand700,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -86,23 +109,25 @@ ThemeData buildAppTheme({required bool isArabic}) {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.brand800,
-        side: const BorderSide(color: AppColors.brand600),
+        foregroundColor: effectiveBrand800,
+        side: BorderSide(color: effectiveBrand600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: isDark ? AppDarkColors.brand700 : AppColors.brand700,
+      contentTextStyle: TextStyle(color: Colors.white),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Colors.white,
-      selectedItemColor: AppColors.brand700,
-      unselectedItemColor: AppColors.textMuted,
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: isDark ? AppDarkColors.surface : Colors.white,
+      selectedItemColor: effectiveBrand700,
+      unselectedItemColor: effectiveTextMuted,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
-    dividerTheme: DividerThemeData(color: Colors.grey.shade200, thickness: 1),
+    dividerTheme: DividerThemeData(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200, thickness: 1),
   );
 }
 

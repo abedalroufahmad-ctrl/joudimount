@@ -4,7 +4,8 @@ import 'package:intl/intl.dart' as intl;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart'; // Corrected import
+import 'package:path/path.dart' as p; // Import for path operations, if needed, otherwise remove
 
 import 'api.dart';
 import 'app_theme.dart';
@@ -13,6 +14,7 @@ import 'transaction_labels.dart';
 import 'transaction_form.dart';
 import 'transaction_storage_page.dart';
 import 'transaction_accounting_page.dart';
+import 'transaction_model.dart';
 
 bool roleCanWorkAtStage(String role, String stage) {
   if (role == 'manager') return true;
@@ -49,7 +51,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     return l10n.details;
   }
 
-  Map<String, dynamic>? tx;
+  Transaction? tx; // Changed to Transaction?
   String error = '';
   bool loading = true;
 
@@ -60,7 +62,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   }
 
   Map<String, List<Map<String, dynamic>>> _groupAttachments(
-      List<Map<String, dynamic>> attachments) {
+      List<dynamic> attachments) {
     final out = <String, List<Map<String, dynamic>>>{};
     for (final a in attachments) {
       final category = (a['category'] ?? '').toString();
@@ -78,7 +80,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       error = '';
     });
     try {
-      tx = await Api.get('$_modulePath/${widget.id}') as Map<String, dynamic>;
+      final data = await Api.get('$_modulePath/${widget.id}') as Map<String, dynamic>;
+      tx = Transaction.fromJson(data); // Use Transaction.fromJson
     } catch (e) {
       error = e.toString();
     } finally {
@@ -87,9 +90,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   }
 
   String _declarationHeaderTitle(
-      Map<String, dynamic> t, AppLocalizations l10n) {
-    final d1 = (t['declarationNumber'] ?? '').toString().trim();
-    final d2 = (t['declarationNumber2'] ?? '').toString().trim();
+      Transaction t, AppLocalizations l10n) {
+    final d1 = t.declarationNumber.trim();
+    final d2 = (t.declarationNumber2 ?? '').trim();
     if (d1.isEmpty && d2.isEmpty) return l10n.details;
     if (d2.isEmpty) return d1;
     if (d1.isEmpty) return d2;
@@ -135,7 +138,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     if (value == null) return const SizedBox.shrink();
     final text = value.toString().trim();
     if (text.isEmpty) return const SizedBox.shrink();
-  final display = dateTime ? _formatDateTime(text, locale) : text;
+    final display = dateTime ? _formatDateTime(text, locale) : text;
     return _detailRow(label, display);
   }
 
@@ -151,27 +154,27 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     intl.NumberFormat numberFormat,
   ) {
     final t = tx!;
-    final stage = '${t['transactionStage'] ?? 'PREPARATION'}';
+    final stage = t.transactionStage;
     final showCustoms = stage != 'PREPARATION';
     final showTransportation = stage == 'TRANSPORTATION' &&
-        ((t['transportationTo']?.toString().trim().isNotEmpty ?? false) ||
-            (t['trachNo']?.toString().trim().isNotEmpty ?? false) ||
-            (t['transportationCompany']?.toString().trim().isNotEmpty ?? false) ||
-            (t['transportationFrom']?.toString().trim().isNotEmpty ?? false) ||
-            (t['transportationToLocation']?.toString().trim().isNotEmpty ?? false) ||
-            t['tripCharge'] != null ||
-            t['waitingCharge'] != null ||
-            t['maccrikCharge'] != null);
-    final showTransfer = (t['portOfLading']?.toString().trim().isNotEmpty ?? false) ||
-        (t['portOfDischarge']?.toString().trim().isNotEmpty ?? false) ||
-        (t['destination']?.toString().trim().isNotEmpty ?? false);
+        ((t.transportationTo?.trim().isNotEmpty ?? false) ||
+            (t.trachNo?.trim().isNotEmpty ?? false) ||
+            (t.transportationCompany?.trim().isNotEmpty ?? false) ||
+            (t.transportationFrom?.trim().isNotEmpty ?? false) ||
+            (t.transportationToLocation?.trim().isNotEmpty ?? false) ||
+            t.tripCharge != null ||
+            t.waitingCharge != null ||
+            t.maccrikCharge != null);
+    final showTransfer = (t.portOfLading?.trim().isNotEmpty ?? false) ||
+        (t.portOfDischarge?.trim().isNotEmpty ?? false) ||
+        (t.destination?.trim().isNotEmpty ?? false);
 
     final snapshotRows = <Widget>[
-      _detailRow(l10n.createdAt, _formatDateTime('${t['createdAt']}', locale)),
-      _detailRow(l10n.txDeclarationNumber1, '${t['declarationNumber']}'),
-      _detailRowOptional(l10n.txDeclarationNumber2, t['declarationNumber2'], locale),
-      _detailRowOptional(l10n.txFileNumber, t['fileNumber'], locale),
-      _detailRow(l10n.status, '${t['clearanceStatus']}'),
+      _detailRow(l10n.createdAt, _formatDateTime(t.createdAt.toIso8601String(), locale)),
+      _detailRow(l10n.txDeclarationNumber1, t.declarationNumber),
+      _detailRowOptional(l10n.txDeclarationNumber2, t.declarationNumber2, locale),
+      _detailRowOptional(l10n.txFileNumber, t.fileNumber, locale),
+      _detailRow(l10n.status, t.clearanceStatus),
       _detailRow(l10n.txStage, _stageLabel(stage, l10n)),
       if (stage == 'STORAGE' &&
           (widget.module == 'transactions' || widget.module == 'transfers'))
@@ -210,93 +213,92 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             child: Text(l10n.accountingLinkFromDetails),
           ),
         ),
-      _detailRowOptional(l10n.releaseCode, t['releaseCode'], locale),
+      _detailRowOptional(l10n.releaseCode, t.releaseCode, locale),
     ];
 
     final partiesRows = <Widget>[
-      _detailRow(l10n.client, '${t['clientName']}'),
-      _detailRow(l10n.shippingCompany, '${t['shippingCompanyName']}'),
-      _detailRowOptional(l10n.shippingCompanyIdOptional, t['shippingCompanyId'], locale),
+      _detailRow(l10n.client, t.clientName),
+      _detailRow(l10n.shippingCompany, t.shippingCompanyName),
+      _detailRowOptional(l10n.shippingCompanyIdOptional, t.shippingCompanyId, locale),
     ];
 
     final customsRows = <Widget>[
-      _detailRow(l10n.txDeclarationNumber1, '${t['declarationNumber']}'),
-      _detailRowOptional(l10n.txDeclarationNumber2, t['declarationNumber2'], locale),
-      _detailRowOptional(l10n.txDeclarationDate, t['declarationDate'], locale, dateTime: true),
-      if (t['declarationType'] != null && t['declarationType'].toString().isNotEmpty)
+      _detailRow(l10n.txDeclarationNumber1, t.declarationNumber),
+      _detailRowOptional(l10n.txDeclarationNumber2, t.declarationNumber2, locale),
+      _detailRowOptional(l10n.txDeclarationDate, t.declarationDate?.toIso8601String(), locale, dateTime: true),
+      if (t.declarationType != null && t.declarationType!.isNotEmpty)
         _detailRow(l10n.txDeclarationType1,
-            _declarationTypeLabel('${t['declarationType']}', l10n)),
-      if (t['declarationType2'] != null && t['declarationType2'].toString().isNotEmpty)
+            _declarationTypeLabel(t.declarationType!, l10n)),
+      if (t.declarationType2 != null && t.declarationType2!.isNotEmpty)
         _detailRow(l10n.txDeclarationType2,
-            _declarationTypeLabel('${t['declarationType2']}', l10n)),
-      if (t['portType'] != null && t['portType'].toString().isNotEmpty)
-        _detailRow(l10n.txPortType, _portTypeLabel('${t['portType']}', l10n)),
+            _declarationTypeLabel(t.declarationType2!, l10n)),
+      if (t.portType != null && t.portType!.isNotEmpty)
+        _detailRow(l10n.txPortType, _portTypeLabel(t.portType!, l10n)),
     ];
 
     final transferRows = <Widget>[
-      _detailRowOptional(l10n.txPortOfLading, t['portOfLading'], locale),
-      _detailRowOptional(l10n.txPortOfDischarge, t['portOfDischarge'], locale),
-      _detailRowOptional(l10n.txDestination, t['destination'], locale),
+      _detailRowOptional(l10n.txPortOfLading, t.portOfLading, locale),
+      _detailRowOptional(l10n.txPortOfDischarge, t.portOfDischarge, locale),
+      _detailRowOptional(l10n.txDestination, t.destination, locale),
     ];
 
     final shipmentRows = <Widget>[
-      _detailRow(l10n.airwayBill, '${t['airwayBill']}'),
-      _detailRow(l10n.hsCode, '${t['hsCode']}'),
-      _detailRow(l10n.goods, '${t['goodsDescription']}'),
-      _detailRow(l10n.origin, '${t['originCountry']}'),
+      _detailRow(l10n.airwayBill, t.airwayBill),
+      _detailRow(l10n.hsCode, t.hsCode),
+      _detailRow(l10n.goods, t.goodsDescription),
+      _detailRow(l10n.origin, t.originCountry),
       _detailRow(
         l10n.invoiceValue,
-        '${numberFormat.format(t['invoiceValue'] ?? 0)} ${t['invoiceCurrency'] ?? 'AED'}',
+        '${numberFormat.format(t.invoiceValue)} ${t.invoiceCurrency ?? 'AED'}',
       ),
     ];
 
     final cargoRows = <Widget>[
-      _detailRowOptional(l10n.txOrderDate, t['orderDate'], locale, dateTime: true),
-      _detailRowOptional(l10n.txContainerSize, t['containerSize'], locale),
-      _detailRowOptional(l10n.txContainerCount, t['containerCount'], locale),
-      _detailRowOptional(l10n.txGoodsWeightKg, t['goodsWeightKg'], locale),
-      _detailRowOptional(l10n.txRateAedPerKg, t['invoiceToWeightRateAedPerKg'], locale),
-      _detailRowOptional(l10n.txContainerArrival, t['containerArrivalDate'], locale, dateTime: true),
-      _detailRowOptional(l10n.txDocumentArrival, t['documentArrivalDate'], locale, dateTime: true),
-      if (t['containerNumbers'] is List && (t['containerNumbers'] as List).isNotEmpty)
+      _detailRowOptional(l10n.txOrderDate, t.orderDate?.toIso8601String(), locale, dateTime: true),
+      _detailRowOptional(l10n.txContainerSize, t.containerSize, locale),
+      _detailRowOptional(l10n.txContainerCount, t.containerCount, locale),
+      _detailRowOptional(l10n.txGoodsWeightKg, t.goodsWeightKg, locale),
+      _detailRowOptional(l10n.txRateAedPerKg, t.invoiceToWeightRateAedPerKg, locale),
+      _detailRowOptional(l10n.txContainerArrival, t.containerArrivalDate?.toIso8601String(), locale, dateTime: true),
+      _detailRowOptional(l10n.txDocumentArrival, t.documentArrivalDate?.toIso8601String(), locale, dateTime: true),
+      if (t.containerNumbers != null && t.containerNumbers!.isNotEmpty)
         _detailRow(
           l10n.containerNumbers,
-          (t['containerNumbers'] as List).map((e) => '$e').join(', '),
+          (t.containerNumbers!).map((e) => '$e').join(', '),
         ),
-      _detailRowOptional(l10n.txNumberOfUnits, t['unitCount'], locale),
-      _detailRowOptional(l10n.txUnitNumber, t['unitNumber'], locale),
+      _detailRowOptional(l10n.txNumberOfUnits, t.unitCount, locale),
+      _detailRowOptional(l10n.txUnitNumber, t.unitNumber, locale),
     ];
 
     final transportationRows = <Widget>[
-      _detailRowOptional(l10n.txTransportationTo, t['transportationTo'], locale),
-      _detailRowOptional(l10n.txTrachNo, t['trachNo'], locale),
-      _detailRowOptional(l10n.txTransportationCompany, t['transportationCompany'], locale),
-      _detailRowOptional(l10n.txTransportationFrom, t['transportationFrom'], locale),
-      _detailRowOptional(l10n.txTransportationToLocation, t['transportationToLocation'], locale),
-      _detailRowOptional(l10n.txTripCharge, t['tripCharge'], locale),
-      _detailRowOptional(l10n.txWaitingCharge, t['waitingCharge'], locale),
-      _detailRowOptional(l10n.txMaccrikCharge, t['maccrikCharge'], locale),
+      _detailRowOptional(l10n.txTransportationTo, t.transportationTo, locale),
+      _detailRowOptional(l10n.txTrachNo, t.trachNo, locale),
+      _detailRowOptional(l10n.txTransportationCompany, t.transportationCompany, locale),
+      _detailRowOptional(l10n.txTransportationFrom, t.transportationFrom, locale),
+      _detailRowOptional(l10n.txTransportationToLocation, t.transportationToLocation, locale),
+      _detailRowOptional(l10n.txTripCharge, t.tripCharge, locale),
+      _detailRowOptional(l10n.txWaitingCharge, t.waitingCharge, locale),
+      _detailRowOptional(l10n.txMaccrikCharge, t.maccrikCharge, locale),
     ];
 
     final workflowRows = <Widget>[
-      _detailRowOptional(l10n.txDocumentPostalNumber, t['documentPostalNumber'], locale),
-      _detailRow(l10n.document, _docStatusLabel('${t['documentStatus']}', l10n)),
-      _detailRow(l10n.payment, _paymentStatusLabel('${t['paymentStatus']}', l10n)),
+      _detailRowOptional(l10n.txDocumentPostalNumber, t.documentPostalNumber, locale),
+      _detailRow(l10n.document, _docStatusLabel(t.documentStatus, l10n)),
+      _detailRow(l10n.payment, _paymentStatusLabel(t.paymentStatus, l10n)),
       _detailRow(l10n.stopTransaction,
-          t['isStopped'] == true ? l10n.optionYes : l10n.optionNo),
-      _detailRowOptional(l10n.stopReason, t['stopReason'], locale),
-      _detailRowOptional(l10n.txGoodsQty, t['goodsQuantity'], locale),
-      if (t['goodsQuality'] != null)
-        _detailRow(l10n.txGoodsQuality, _qualityLabel('${t['goodsQuality']}', l10n)),
-      if (t['goodsUnit'] != null)
-        _detailRow(l10n.txGoodsUnit, _unitLabel('${t['goodsUnit']}', l10n)),
+          t.isStopped == true ? l10n.optionYes : l10n.optionNo),
+      _detailRowOptional(l10n.stopReason, t.stopReason, locale),
+      _detailRowOptional(l10n.txGoodsQty, t.goodsQuantity, locale), // Changed from t.goods?.goodsQuantity
+      if (t.goodsQuality != null) // Changed from t.goods?.goodsQuality
+        _detailRow(l10n.txGoodsQuality, _qualityLabel(t.goodsQuality!, l10n)), // Changed from t.goods!.goodsQuality!
+      if (t.goodsUnit != null) // Changed from t.goods?.goodsUnit
+        _detailRow(l10n.txGoodsUnit, _unitLabel(t.goodsUnit!, l10n)), // Changed from t.goods!.goodsUnit!
     ];
 
     final attachmentWidgets = <Widget>[];
-    if ((t['documentAttachments'] as List?)?.isNotEmpty ?? false) {
+    if (t.documentAttachments?.isNotEmpty ?? false) {
       attachmentWidgets.addAll(
-        _groupAttachments(
-                (t['documentAttachments'] as List).cast<Map<String, dynamic>>())
+        _groupAttachments(t.documentAttachments!)
             .entries
             .expand(
               (entry) => [
@@ -569,33 +571,33 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     }
 
     final rows = <pw.TableRow>[
-      dataRow('${l10n.toShippingCompany}:', '${t['shippingCompanyName']}'),
-      dataRow('${l10n.fromClient}:', '${t['clientName']}'),
-      dataRow('${l10n.declaration}:', '${t['declarationNumber']}'),
-      if ((t['declarationNumber2'] ?? '').toString().trim().isNotEmpty)
-        dataRow('${l10n.txDeclarationNumber2}:', '${t['declarationNumber2']}'),
-      if ((t['declarationType'] ?? '').toString().trim().isNotEmpty)
+      dataRow('${l10n.toShippingCompany}:', tx!.shippingCompanyName),
+      dataRow('${l10n.fromClient}:', tx!.clientName),
+      dataRow('${l10n.declaration}:', tx!.declarationNumber),
+      if (tx!.declarationNumber2?.trim().isNotEmpty ?? false)
+        dataRow('${l10n.txDeclarationNumber2}:', tx!.declarationNumber2!),
+      if (tx!.declarationType?.trim().isNotEmpty ?? false)
         dataRow(
           '${l10n.txDeclarationType1}:',
-          declarationTypeLabel('${t['declarationType']}', l10n),
+          declarationTypeLabel(tx!.declarationType!, l10n),
         ),
-      if ((t['declarationType2'] ?? '').toString().trim().isNotEmpty)
+      if (tx!.declarationType2?.trim().isNotEmpty ?? false)
         dataRow(
           '${l10n.txDeclarationType2}:',
-          declarationTypeLabel('${t['declarationType2']}', l10n),
+          declarationTypeLabel(tx!.declarationType2!, l10n),
         ),
-      dataRow('${l10n.airwayBillShort}:', '${t['airwayBill']}'),
-      dataRow('${l10n.hsCode}:', '${t['hsCode']}'),
-      dataRow('${l10n.origin}:', '${t['originCountry']}'),
-      dataRow('${l10n.valueAed}:', '${t['invoiceValue']}'),
+      dataRow('${l10n.airwayBillShort}:', tx!.airwayBill),
+      dataRow('${l10n.hsCode}:', tx!.hsCode),
+      dataRow('${l10n.origin}:', tx!.originCountry),
+      dataRow('${l10n.valueAed}:', tx!.invoiceValue.toString()),
       dataRow(
         '${l10n.releaseCode}:',
-        '${t['releaseCode'] ?? l10n.notIssued}',
+        tx!.releaseCode ?? l10n.notIssued,
       ),
-      if (t['goodsWeightKg'] != null)
-        dataRow('${l10n.weightKg}:', '${t['goodsWeightKg']}'),
-      if (t['goodsQuantity'] != null)
-        dataRow('${l10n.quantity}:', '${t['goodsQuantity']}'),
+      if (tx!.goodsWeightKg != null)
+        dataRow('${l10n.weightKg}:', tx!.goodsWeightKg.toString()),
+      if (tx!.goodsQuantity != null) // Changed from tx!.goods?.goodsQuantity
+        dataRow('${l10n.quantity}:', tx!.goodsQuantity.toString()), // Changed from tx!.goods!.goodsQuantity.toString()
     ];
 
     final pdf = pw.Document(
@@ -675,7 +677,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
                   labelCell('${l10n.goods}:'),
-                  valueCell('${t['goodsDescription']}'),
+                  valueCell(tx!.goodsDescription),
                 ],
               ),
             ),
@@ -705,15 +707,15 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final cs = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final numberFormat = intl.NumberFormat.decimalPattern(locale);
-    final stage = '${tx?['transactionStage'] ?? 'PREPARATION'}';
+    final stage = tx?.transactionStage ?? 'PREPARATION';
     final canWorkRecord = tx != null && roleCanWorkAtStage(widget.role, stage);
     final canEdit =
         widget.role == 'manager' || (widget.role != 'accountant' && canWorkRecord);
     final canDelete = widget.role == 'manager' || widget.role == 'employee';
     final canAccounting =
         widget.role == 'manager' || widget.role == 'accountant';
-    final paid = tx?['paymentStatus'] == 'paid';
-    final doc = tx?['documentStatus']?.toString() ?? '';
+    final paid = tx?.paymentStatus == 'paid';
+    final doc = tx?.documentStatus ?? '';
     final canRelease =
         paid && (doc == 'original_received' || doc == 'telex_release');
 
@@ -775,7 +777,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                     PageHeroBanner(
                       icon: Icons.receipt_long_outlined,
                       title: _declarationHeaderTitle(tx!, l10n),
-                      subtitle: '${tx!['clientName']}',
+                      subtitle: tx!.clientName,
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -783,13 +785,13 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
                       runSpacing: 6,
                       children: [
                         StageBadgeChip(
-                          stage: '${tx!['transactionStage'] ?? 'PREPARATION'}',
+                          stage: tx!.transactionStage,
                           label: _stageLabel(
-                              '${tx!['transactionStage'] ?? 'PREPARATION'}',
+                              tx!.transactionStage,
                               l10n),
                         ),
                         Chip(
-                          label: Text('${tx!['clearanceStatus']}'),
+                          label: Text(tx!.clearanceStatus),
                           visualDensity: VisualDensity.compact,
                         ),
                       ],
@@ -951,14 +953,12 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   Future<void> _openAttachment(String path, String name) async {
     try {
       final bytes = await Api.getBytes(path);
-      final ext = name.toLowerCase();
-      final mime = ext.endsWith('.pdf') ? 'application/pdf' : null;
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile.fromData(bytes, name: name, mimeType: mime)],
-          title: name,
-          subject: name,
-        ),
+      final ext = p.extension(name).toLowerCase(); // Use path.extension
+      final mime = ext == '.pdf' ? 'application/pdf' : null;
+
+      await Share.shareXFiles( // Changed to Share.shareXFiles
+        [XFile.fromData(bytes, name: name, mimeType: mime)],
+        subject: name,
       );
     } on UnimplementedError {
       _showUnsupportedShareMessage();

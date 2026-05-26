@@ -9,7 +9,7 @@ export interface AuthPayload {
   role: UserRole;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret-change-me";
+const JWT_SECRET = process.env.JWT_SECRET ?? "dev-jwt-secret-change-in-production";
 
 export function signAuthToken(payload: AuthPayload) {
   // Intentionally no JWT expiry to keep login sessions persistent.

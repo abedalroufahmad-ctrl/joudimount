@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'date_field.dart';
 import 'l10n/app_localizations.dart';
+import 'transaction_model.dart';
 
 /// Warehouse card for imports/transfers in Storage stage (input / output / seal).
 class TransactionStoragePage extends StatefulWidget {
@@ -27,7 +28,7 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
   bool _loading = true;
   bool _saving = false;
   String _error = '';
-  Map<String, dynamic>? _tx;
+  Transaction? _tx; // Changed to Transaction?
 
   String _subStage = 'INPUT';
 
@@ -93,63 +94,61 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
     super.dispose();
   }
 
-  String _iso(dynamic v) {
+  String _iso(DateTime? v) {
     if (v == null) return '';
-    final s = v.toString();
-    if (s.length >= 10) return s.substring(0, 10);
-    return '';
+    return v.toIso8601String().substring(0, 10);
   }
 
-  String _numStr(dynamic v) {
+  String _numStr(num? v) {
     if (v == null) return '';
     return v.toString();
   }
 
-  void _fillFromTx(Map<String, dynamic> tx) {
-    _subStage = (tx['storageSubStage'] ?? 'INPUT').toString();
+  void _fillFromTx(Transaction tx) {
+    _subStage = (tx.storageSubStage ?? 'INPUT');
     if (!['INPUT', 'OUTPUT', 'SEAL'].contains(_subStage)) _subStage = 'INPUT';
 
-    _inDate.text = _iso(tx['storageInputEntryDate'] ?? tx['storageEntryDate']);
+    _inDate.text = _iso(tx.storageInputEntryDate ?? tx.storageEntryDate);
     _inWages.text =
-        _numStr(tx['storageInputWorkersWages'] ?? tx['storageWorkersWages']);
+        _numStr(tx.storageInputWorkersWages ?? tx.storageWorkersWages);
     _inCompany.text =
-        (tx['storageInputWorkersCompany'] ?? tx['storageWorkersCompany'] ?? '')
+        (tx.storageInputWorkersCompany ?? tx.storageWorkersCompany ?? '')
             .toString();
     _inStore.text =
-        (tx['storageInputStoreName'] ?? tx['storageStoreName'] ?? '')
+        (tx.storageInputStoreName ?? tx.storageStoreName ?? '')
             .toString();
-    _inCbm.text = _numStr(tx['storageInputVolumeCbm'] ?? tx['storageSizeCbm']);
-    _inFare.text = _numStr(tx['storageInputLoadingEquipmentFare']);
+    _inCbm.text = _numStr(tx.storageInputVolumeCbm ?? tx.storageSizeCbm);
+    _inFare.text = _numStr(tx.storageInputLoadingEquipmentFare);
 
-    _outDate.text = _iso(tx['storageExitEntryDate'] ?? tx['storageEntryDate']);
+    _outDate.text = _iso(tx.storageExitEntryDate ?? tx.storageEntryDate);
     _outWages.text =
-        _numStr(tx['storageExitWorkersWages'] ?? tx['storageWorkersWages']);
+        _numStr(tx.storageExitWorkersWages ?? tx.storageWorkersWages);
     _outCompany.text =
-        (tx['storageExitWorkersCompany'] ?? tx['storageWorkersCompany'] ?? '')
+        (tx.storageExitWorkersCompany ?? tx.storageWorkersCompany ?? '')
             .toString();
     _outStore.text =
-        (tx['storageExitStoreName'] ?? tx['storageStoreName'] ?? '').toString();
-    _outCbm.text = _numStr(tx['storageExitVolumeCbm'] ?? tx['storageSizeCbm']);
-    _outFare.text = _numStr(tx['storageExitLoadingEquipmentFare']);
-    _outVehicles.text = (tx['storageExitFreightVehicleNumbers'] ??
-            tx['storageFreightVehicleNumbers'] ??
+        (tx.storageExitStoreName ?? tx.storageStoreName ?? '').toString();
+    _outCbm.text = _numStr(tx.storageExitVolumeCbm ?? tx.storageSizeCbm);
+    _outFare.text = _numStr(tx.storageExitLoadingEquipmentFare);
+    _outVehicles.text = (tx.storageExitFreightVehicleNumbers ??
+            tx.storageFreightVehicleNumbers ??
             '')
         .toString();
     _outCross.text =
-        (tx['storageExitCrossPackaging'] ?? tx['storageCrossPackaging'] ?? '')
+        (tx.storageExitCrossPackaging ?? tx.storageCrossPackaging ?? '')
             .toString();
     _outUnity.text =
-        (tx['storageExitUnity'] ?? tx['storageUnity'] ?? '').toString();
+        (tx.storageExitUnity ?? tx.storageUnity ?? '').toString();
 
-    _sealReplace.text = (tx['storageSealReplaceContainers'] ?? '').toString();
-    _sealEntryLock.text = (tx['storageSealEntryLockNumbers'] ?? '').toString();
-    _sealSwitch.text = _iso(tx['storageSealSwitchDate']);
+    _sealReplace.text = (tx.storageSealReplaceContainers ?? '').toString();
+    _sealEntryLock.text = (tx.storageSealEntryLockNumbers ?? '').toString();
+    _sealSwitch.text = _iso(tx.storageSealSwitchDate);
     _sealContainers.text =
-        (tx['storageSealEntryContainerNumbers'] ?? '').toString();
-    _sealOutLock.text = (tx['storageSealOutLockNumbers'] ?? '').toString();
-    _sealUnits.text = _numStr(tx['storageSealUnitCount']);
-    _sealCompany.text = (tx['storageSealWorkersCompany'] ?? '').toString();
-    _sealWages.text = _numStr(tx['storageSealWorkersWages']);
+        (tx.storageSealEntryContainerNumbers ?? '').toString();
+    _sealOutLock.text = (tx.storageSealOutLockNumbers ?? '').toString();
+    _sealUnits.text = _numStr(num.tryParse(tx.storageSealUnitCount ?? ''));
+    _sealCompany.text = (tx.storageSealWorkersCompany ?? '').toString();
+    _sealWages.text = _numStr(tx.storageSealWorkersWages);
   }
 
   Future<void> _load() async {
@@ -158,12 +157,12 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
       _error = '';
     });
     try {
-      final tx = await Api.get('$_modulePath/${widget.transactionId}')
+      final data = await Api.get('$_modulePath/${widget.transactionId}')
           as Map<String, dynamic>;
       if (mounted) {
         setState(() {
-          _tx = tx;
-          _fillFromTx(tx);
+          _tx = Transaction.fromJson(data);
+          _fillFromTx(_tx!);
           _loading = false;
         });
       }
@@ -220,16 +219,16 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
       _putStr(body, 'storageSealSwitchDate', _sealSwitch);
       _putStr(body, 'storageSealEntryContainerNumbers', _sealContainers);
       _putStr(body, 'storageSealOutLockNumbers', _sealOutLock);
-      _putStr(body, 'storageSealUnitCount', _sealUnits);
+      _putNum(body, 'storageSealUnitCount', _sealUnits);
       _putStr(body, 'storageSealWorkersCompany', _sealCompany);
       _putNum(body, 'storageSealWorkersWages', _sealWages);
 
-      final tx = await Api.put('$_modulePath/${widget.transactionId}', body)
+      final data = await Api.put('$_modulePath/${widget.transactionId}', body)
           as Map<String, dynamic>;
       if (mounted) {
         setState(() {
-          _tx = tx;
-          _fillFromTx(tx);
+          _tx = Transaction.fromJson(data);
+          _fillFromTx(_tx!);
         });
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(l10n.save)));
@@ -261,8 +260,8 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
-    final dec = _tx?['declarationNumber']?.toString() ?? '';
-    final atStorage = (_tx?['transactionStage'] ?? '').toString() == 'STORAGE';
+    final dec = _tx?.declarationNumber ?? '';
+    final atStorage = (_tx?.transactionStage ?? '') == 'STORAGE';
 
     return Scaffold(
       appBar: AppBar(
@@ -295,7 +294,7 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
                         style: TextStyle(color: Colors.grey.shade700)),
                   ),
                 if (_tx != null) ...[
-                  _kv(l10n.client, '${_tx!['clientName']}'),
+                  _kv(l10n.client, _tx!.clientName),
                   if (atStorage) ...[
                     const SizedBox(height: 8),
                     Wrap(

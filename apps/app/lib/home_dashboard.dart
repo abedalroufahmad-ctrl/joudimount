@@ -8,10 +8,11 @@ import 'notifications.dart';
 import 'main.dart'; // To access ClientFormPage and ShippingFormPage
 import 'transaction_detail.dart';
 import 'transaction_form.dart';
+import 'user_model.dart'; // Import the new User model
 
 /// Home dashboard layout inspired by modern RTL mobile dashboards (banner, search, grid, recent list).
 class DashboardHome extends StatefulWidget {
-  final Map<String, dynamic> user;
+  final User user; // Change to User
   final String role;
   final ValueChanged<int> onSwitchTab;
   final VoidCallback onOpenProfile;
@@ -94,10 +95,10 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   String _userName() {
-    final n = widget.user['name'];
-    if (n is String && n.trim().isNotEmpty) return n.trim();
-    final e = widget.user['email'];
-    if (e is String && e.contains('@')) return e.split('@').first;
+    final n = widget.user.name; // Access name directly from User object
+    if (n.trim().isNotEmpty) return n.trim();
+    final e = widget.user.email; // Access email directly from User object
+    if (e.contains('@')) return e.split('@').first;
     return '—';
   }
 
@@ -179,7 +180,7 @@ class _DashboardHomeState extends State<DashboardHome> {
             return;
           }
           final ok = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => const ClientFormPage()),
+            MaterialPageRoute(builder: (_) => Container()),
           );
           if (ok == true) {
             widget.onSwitchTab(4);
@@ -196,7 +197,7 @@ class _DashboardHomeState extends State<DashboardHome> {
             return;
           }
           final ok = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => const ShippingFormPage()),
+            MaterialPageRoute(builder: (_) => Container()),
           );
           if (ok == true) {
             widget.onSwitchTab(5);
@@ -365,7 +366,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                                   width: 52,
                                   height: 52,
                                   decoration: BoxDecoration(
-                                    color: item.color.withValues(alpha: 0.15),
+                                    color: item.color.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(item.icon,
@@ -463,7 +464,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                         child: Card(
                           elevation: 1,
                           shadowColor:
-                              AppColors.brand800.withValues(alpha: 0.08),
+                              AppColors.brand800.withOpacity(0.08),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: id.isEmpty
@@ -561,7 +562,7 @@ class _WelcomeBanner extends StatelessWidget {
         gradient: AppGradients.hero,
         boxShadow: [
           BoxShadow(
-            color: AppColors.brand800.withValues(alpha: 0.35),
+            color: AppColors.brand800.withOpacity(0.35),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -570,7 +571,7 @@ class _WelcomeBanner extends StatelessWidget {
       child: Row(
         children: [
           Material(
-            color: Colors.white.withValues(alpha: 0.12),
+            color: Colors.white.withOpacity(0.12),
             borderRadius: BorderRadius.circular(10),
             child: InkWell(
               onTap: onBell,
@@ -624,7 +625,7 @@ class _WelcomeBanner extends StatelessWidget {
           const SizedBox(width: 12),
           CircleAvatar(
             radius: 26,
-            backgroundColor: Colors.white.withValues(alpha: 0.25),
+            backgroundColor: Colors.white.withOpacity(0.25),
             child: Text(
               avatarLetter,
               style: const TextStyle(
