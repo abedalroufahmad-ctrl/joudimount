@@ -49,7 +49,8 @@
   "contactName": "اسم جهة الاتصال",
   "phone": "الهاتف",
   "originCountry": "بلد المنشأ",
-  "airwayBill": "بوليصة الشحن",
+  "airwayBill": "رقم بوليصة الشحن",
+  "airwayBillHint": "رقم بوليصة الشحن / AWB (وليس مرفق المستند في الأسفل)",
   "hsCode": "رمز HS",
   "goodsDescription": "وصف البضائع",
   "invoiceValue": "قيمة الفاتورة",
@@ -179,6 +180,14 @@
   "stopTransaction": "إيقاف المعاملة",
   "stopReason": "سبب الإيقاف",
   "uploadCategoryRequired": "يرجى اختيار فئة لكل مستند مرفوع.",
+  "formMissingRequiredFields": "يرجى إكمال الحقول المطلوبة: {fields}",
+  "@formMissingRequiredFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
   "storageNoUploadAtStage": "لا يمكن رفع مرفقات جديدة في مرحلة التخزين.",
   "storageSectionTitle": "التخزين (إدخال / إخراج / تبديل)",
   "storageEntryDate": "تاريخ الإدخال",
@@ -282,5 +291,22 @@
   "profileUpdated": "تم تحديث الملف الشخصي",
   "notificationsTitle": "الإشعارات",
   "notificationsMarkAllRead": "تعليم الكل كمقروء",
-  "notificationsClearList": "مسح القائمة"
+  "notificationsClearList": "مسح القائمة",
+  "accountingOpenCard": "المحاسبة",
+  "accountingCardTitle": "بطاقة المحاسبة",
+  "accountingLinkFromDetails": "فتح بطاقة المحاسبة",
+  "accountingFixedSection": "مبالغ مستحقة (من السجل)",
+  "accountingFixedHint": "يمكن للمدير والمحاسب تعديل جميع الحقول وحفظها.",
+  "accountingCustomSection": "حقول إضافية",
+  "accountingFieldTitle": "عنوان الحقل",
+  "accountingEmptyTitle": "عنوان فارغ",
+  "accountingFieldValue": "القيمة",
+  "accountingAddField": "إضافة حقل",
+  "accountingRemoveField": "حذف",
+  "accountingSaved": "تم الحفظ.",
+  "accountingStorageInputWages": "أجور عمال الإدخال",
+  "accountingStorageExitWages": "أجور عمال الإخراج",
+  "accountingStorageSealWages": "أجور عمال التبديل",
+  "accountingStorageInputFare": "أجرة معدات التحميل (إدخال)",
+  "accountingStorageExitFare": "أجرة معدات التحميل (إخراج)"
 }

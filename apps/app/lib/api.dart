@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Api {
   static const int _defaultPort = 4000;
-  static const String _defaultLanBase = 'http://192.168.1.109:4000';
+  static const String _defaultLanBase = 'http://192.168.0.108:4000';
 
   static void _clearSessionIfUnauthorized(int statusCode) {
     if (statusCode != 401) return;
@@ -20,7 +20,7 @@ class Api {
   }
 
   /// Optional override: use a **real** LAN IP, e.g.
-  /// `flutter run --dart-define=API_BASE=http://192.168.1.109:4000`
+  /// `flutter run --dart-define=API_BASE=http://192.168.0.108:4000`
   /// (do not use the words `your_pc_lan_ip` — that was documentation, not a hostname).
   static const String _apiBaseFromEnv = String.fromEnvironment('API_BASE');
 
@@ -166,6 +166,22 @@ class Api {
     return _handle(res);
   }
 
+  static Future<void> _attachDocumentPhotos(
+      http.MultipartRequest req, List<PlatformFile> files) async {
+    for (final pf in files) {
+      if (pf.path != null) {
+        req.files.add(
+            await http.MultipartFile.fromPath('documentPhotos', pf.path!));
+      } else if (pf.bytes != null) {
+        req.files.add(http.MultipartFile.fromBytes(
+          'documentPhotos',
+          pf.bytes!,
+          filename: pf.name,
+        ));
+      }
+    }
+  }
+
   static Future<dynamic> postMultipart(
       String path, Map<String, String> fields, List<PlatformFile> files) async {
     final prefs = await SharedPreferences.getInstance();
@@ -176,12 +192,7 @@ class Api {
         req.headers['Authorization'] = 'Bearer $token';
       }
       fields.forEach((k, v) => req.fields[k] = v);
-      for (final pf in files) {
-        if (pf.path != null) {
-          req.files.add(
-              await http.MultipartFile.fromPath('documentPhotos', pf.path!));
-        }
-      }
+      await _attachDocumentPhotos(req, files);
       final streamed = await req.send();
       return http.Response.fromStream(streamed);
     }, path: path);
@@ -198,12 +209,7 @@ class Api {
         req.headers['Authorization'] = 'Bearer $token';
       }
       fields.forEach((k, v) => req.fields[k] = v);
-      for (final pf in files) {
-        if (pf.path != null) {
-          req.files.add(
-              await http.MultipartFile.fromPath('documentPhotos', pf.path!));
-        }
-      }
+      await _attachDocumentPhotos(req, files);
       final streamed = await req.send();
       return http.Response.fromStream(streamed);
     }, path: path);

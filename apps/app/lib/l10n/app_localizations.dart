@@ -392,8 +392,14 @@ abstract class AppLocalizations {
   /// No description provided for @airwayBill.
   ///
   /// In en, this message translates to:
-  /// **'Airway Bill'**
+  /// **'Airway bill number'**
   String get airwayBill;
+
+  /// No description provided for @airwayBillHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AWB / B/L reference number (not the document scan below)'**
+  String get airwayBillHint;
 
   /// No description provided for @hsCode.
   ///
@@ -1169,6 +1175,12 @@ abstract class AppLocalizations {
   /// **'Please select a category for each uploaded document.'**
   String get uploadCategoryRequired;
 
+  /// No description provided for @formMissingRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in required fields: {fields}'**
+  String formMissingRequiredFields(String fields);
+
   /// No description provided for @storageNoUploadAtStage.
   ///
   /// In en, this message translates to:
@@ -1343,114 +1355,6 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get storageOpenCard;
 
-  /// No description provided for @accountingOpenCard.
-  ///
-  /// In en, this message translates to:
-  /// **'Accounting'**
-  String get accountingOpenCard;
-
-  /// No description provided for @accountingCardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Accounting card'**
-  String get accountingCardTitle;
-
-  /// No description provided for @accountingFixedSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Amounts due (from record)'**
-  String get accountingFixedSection;
-
-  /// No description provided for @accountingFixedHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Manager and accountant can edit and save all fields.'**
-  String get accountingFixedHint;
-
-  /// No description provided for @accountingCustomSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Additional fields'**
-  String get accountingCustomSection;
-
-  /// No description provided for @accountingFieldTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Field title'**
-  String get accountingFieldTitle;
-
-  /// No description provided for @accountingFieldValue.
-  ///
-  /// In en, this message translates to:
-  /// **'Value'**
-  String get accountingFieldValue;
-
-  /// No description provided for @accountingEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Empty title'**
-  String get accountingEmptyTitle;
-
-  /// No description provided for @accountingAddField.
-  ///
-  /// In en, this message translates to:
-  /// **'Add field'**
-  String get accountingAddField;
-
-  /// No description provided for @accountingNoCustomFields.
-  ///
-  /// In en, this message translates to:
-  /// **'No additional fields yet. Tap “Add field” to create one.'**
-  String get accountingNoCustomFields;
-
-  /// No description provided for @accountingRemoveField.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get accountingRemoveField;
-
-  /// No description provided for @accountingSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved.'**
-  String get accountingSaved;
-
-  /// No description provided for @accountingTotal.
-  ///
-  /// In en, this message translates to:
-  /// **'Total (amounts + additional fields)'**
-  String get accountingTotal;
-
-  /// No description provided for @accountingStorageInputWages.
-  ///
-  /// In en, this message translates to:
-  /// **'Input workers wages'**
-  String get accountingStorageInputWages;
-
-  /// No description provided for @accountingStorageExitWages.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit workers wages'**
-  String get accountingStorageExitWages;
-
-  /// No description provided for @accountingStorageSealWages.
-  ///
-  /// In en, this message translates to:
-  /// **'Seal workers wages'**
-  String get accountingStorageSealWages;
-
-  /// No description provided for @accountingStorageInputFare.
-  ///
-  /// In en, this message translates to:
-  /// **'Input loading equipment fare'**
-  String get accountingStorageInputFare;
-
-  /// No description provided for @accountingStorageExitFare.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit loading equipment fare'**
-  String get accountingStorageExitFare;
-
   /// No description provided for @storageWrongStage.
   ///
   /// In en, this message translates to:
@@ -1474,12 +1378,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Storage card'**
   String get storageLinkFromDetails;
-
-  /// No description provided for @accountingLinkFromDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'Accounting card'**
-  String get accountingLinkFromDetails;
 
   /// No description provided for @pdfFontLoadErrorPrefix.
   ///
@@ -1906,6 +1804,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear list'**
   String get notificationsClearList;
+
+  /// No description provided for @accountingOpenCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting'**
+  String get accountingOpenCard;
+
+  /// No description provided for @accountingCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting card'**
+  String get accountingCardTitle;
+
+  /// No description provided for @accountingLinkFromDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Open accounting card'**
+  String get accountingLinkFromDetails;
+
+  /// No description provided for @accountingFixedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts due (from record)'**
+  String get accountingFixedSection;
+
+  /// No description provided for @accountingFixedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager and accountant can edit and save all fields.'**
+  String get accountingFixedHint;
+
+  /// No description provided for @accountingCustomSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional fields'**
+  String get accountingCustomSection;
+
+  /// No description provided for @accountingFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field title'**
+  String get accountingFieldTitle;
+
+  /// No description provided for @accountingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty title'**
+  String get accountingEmptyTitle;
+
+  /// No description provided for @accountingFieldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get accountingFieldValue;
+
+  /// No description provided for @accountingAddField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add field'**
+  String get accountingAddField;
+
+  /// No description provided for @accountingRemoveField.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get accountingRemoveField;
+
+  /// No description provided for @accountingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved.'**
+  String get accountingSaved;
+
+  /// No description provided for @accountingStorageInputWages.
+  ///
+  /// In en, this message translates to:
+  /// **'Input workers wages'**
+  String get accountingStorageInputWages;
+
+  /// No description provided for @accountingStorageExitWages.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit workers wages'**
+  String get accountingStorageExitWages;
+
+  /// No description provided for @accountingStorageSealWages.
+  ///
+  /// In en, this message translates to:
+  /// **'Seal workers wages'**
+  String get accountingStorageSealWages;
+
+  /// No description provided for @accountingStorageInputFare.
+  ///
+  /// In en, this message translates to:
+  /// **'Input loading equipment fare'**
+  String get accountingStorageInputFare;
+
+  /// No description provided for @accountingStorageExitFare.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit loading equipment fare'**
+  String get accountingStorageExitFare;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

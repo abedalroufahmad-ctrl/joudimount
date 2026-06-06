@@ -383,9 +383,95 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     return body;
   }
 
+  String _apiFieldLabel(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'clientName':
+        return l10n.client;
+      case 'shippingCompanyName':
+        return l10n.shippingCompany;
+      case 'airwayBill':
+        return l10n.airwayBill;
+      case 'hsCode':
+        return l10n.hsCode;
+      case 'goodsDescription':
+        return l10n.goodsDescription;
+      case 'originCountry':
+        return l10n.originCountry;
+      case 'invoiceValue':
+        return l10n.invoiceValue;
+      default:
+        return key;
+    }
+  }
+
+  String? _validateBeforeSave(AppLocalizations l10n) {
+    final mod = widget.module;
+    final missing = <String>[];
+
+    void require(String label, bool ok) {
+      if (!ok) missing.add(label);
+    }
+
+    require(l10n.client, _client.text.trim().length >= 2);
+
+    if (mod == 'transactions') {
+      require(l10n.shippingCompany, _shippingName.text.trim().length >= 2);
+      require(l10n.airwayBill, _awb.text.trim().isNotEmpty);
+    } else {
+      final shipName = _destination.text.trim().isNotEmpty
+          ? _destination.text.trim()
+          : (_portOfDischarge.text.trim().isNotEmpty
+              ? _portOfDischarge.text.trim()
+              : '');
+      require(l10n.shippingCompany, shipName.length >= 2);
+    }
+
+    require(l10n.hsCode, _hs.text.trim().length >= 2);
+    require(l10n.goodsDescription, _goods.text.trim().length >= 2);
+    require(l10n.originCountry, _origin.text.trim().length == 2);
+
+    if (mod == 'transactions') {
+      final invoice = double.tryParse(_value.text.trim()) ?? 0;
+      require(l10n.invoiceValue, invoice > 0);
+    }
+
+    if (missing.isEmpty) return null;
+    return l10n.formMissingRequiredFields(missing.join(', '));
+  }
+
+  String _formatSaveError(Object e, AppLocalizations l10n) {
+    var msg = e.toString();
+    if (msg.startsWith('Exception: ')) msg = msg.substring(11);
+
+    try {
+      final parsed = jsonDecode(msg);
+      if (parsed is Map && parsed['fieldErrors'] is Map) {
+        final fieldErrors = parsed['fieldErrors'] as Map;
+        final labels = <String>[];
+        for (final entry in fieldErrors.entries) {
+          final issues = entry.value;
+          if (issues is List && issues.isNotEmpty) {
+            labels.add(_apiFieldLabel(entry.key.toString(), l10n));
+          }
+        }
+        if (labels.isNotEmpty) {
+          return l10n.formMissingRequiredFields(labels.join(', '));
+        }
+      }
+    } catch (_) {}
+
+    return msg;
+  }
+
   Map<String, String> _multipartStringFields() {
     final b = _jsonBody();
-    return b.map((k, v) => MapEntry(k, v == null ? '' : v.toString()));
+    return b.map((k, v) {
+      if (v == null) return MapEntry(k, '');
+      if (v is bool) return MapEntry(k, v ? 'true' : 'false');
+      if (v is num) return MapEntry(k, v.toString());
+      if (v is List || v is Map) return MapEntry(k, jsonEncode(v));
+      return MapEntry(k, v.toString());
+    });
   }
 
   List<Map<String, dynamic>> _filterClients() {
@@ -445,6 +531,15 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _error = '';
     });
     try {
+      final validationError = _validateBeforeSave(l10n);
+      if (validationError != null) {
+        setState(() {
+          _saving = false;
+          _error = validationError;
+        });
+        return;
+      }
+
       if (_isEdit) {
         final storageWarehouseOnly = _stage == 'STORAGE' &&
             (widget.module == 'transactions' || widget.module == 'transfers');
@@ -478,7 +573,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = _formatSaveError(e, l10n));
     } finally {
       setState(() => _saving = false);
     }
@@ -804,8 +899,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
               ],
             ),
           sectionCard(l10n.txShipmentCoreSection, [
-          _field(_awb, l10n.airwayBill, enabled: prepEditable),
-          _field(_hs, l10n.hsCode, enabled: prepEditable),
+          _field(_awb, l10n.airwayBill,
+              enabled: prepEditable,
+              required: true,
+              hintText: l10n.airwayBillHint),
+          _field(_hs, l10n.hsCode, enabled: prepEditable, required: true),
           _field(_origin, l10n.originCountry, enabled: prepEditable),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -1197,6 +1295,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       int maxLines = 1,
       int? maxLength,
       bool enabled = true,
+      bool required = false,
+      String? hintText,
       void Function(String)? onChanged}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -1208,7 +1308,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         maxLength: maxLength,
         onChanged: onChanged,
         decoration: InputDecoration(
-          labelText: label,
+          labelText: required ? '$label *' : label,
+          hintText: hintText,
           counterText: maxLength != null ? '' : null,
         ),
       ),

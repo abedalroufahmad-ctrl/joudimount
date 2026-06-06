@@ -156,7 +156,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get originCountry => 'Origin Country';
 
   @override
-  String get airwayBill => 'Airway Bill';
+  String get airwayBill => 'Airway bill number';
+
+  @override
+  String get airwayBillHint => 'AWB / B/L reference number (not the document scan below)';
 
   @override
   String get hsCode => 'HS Code';
@@ -546,6 +549,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadCategoryRequired => 'Please select a category for each uploaded document.';
 
   @override
+  String formMissingRequiredFields(String fields) {
+    return 'Please fill in required fields: $fields';
+  }
+
+  @override
   String get storageNoUploadAtStage => 'New document uploads are not allowed at Storage stage.';
 
   @override
@@ -633,60 +641,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storageOpenCard => 'Storage';
 
   @override
-  String get accountingOpenCard => 'Accounting';
-
-  @override
-  String get accountingCardTitle => 'Accounting card';
-
-  @override
-  String get accountingFixedSection => 'Amounts due (from record)';
-
-  @override
-  String get accountingFixedHint => 'Manager and accountant can edit and save all fields.';
-
-  @override
-  String get accountingCustomSection => 'Additional fields';
-
-  @override
-  String get accountingFieldTitle => 'Field title';
-
-  @override
-  String get accountingFieldValue => 'Value';
-
-  @override
-  String get accountingEmptyTitle => 'Empty title';
-
-  @override
-  String get accountingAddField => 'Add field';
-
-  @override
-  String get accountingNoCustomFields => 'No additional fields yet. Tap “Add field” to create one.';
-
-  @override
-  String get accountingRemoveField => 'Remove';
-
-  @override
-  String get accountingSaved => 'Saved.';
-
-  @override
-  String get accountingTotal => 'Total (amounts + additional fields)';
-
-  @override
-  String get accountingStorageInputWages => 'Input workers wages';
-
-  @override
-  String get accountingStorageExitWages => 'Exit workers wages';
-
-  @override
-  String get accountingStorageSealWages => 'Seal workers wages';
-
-  @override
-  String get accountingStorageInputFare => 'Input loading equipment fare';
-
-  @override
-  String get accountingStorageExitFare => 'Exit loading equipment fare';
-
-  @override
   String get storageWrongStage => 'This record is not in the Storage stage.';
 
   @override
@@ -697,9 +651,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storageLinkFromDetails => 'Storage card';
-
-  @override
-  String get accountingLinkFromDetails => 'Accounting card';
 
   @override
   String get pdfFontLoadErrorPrefix => 'Could not load PDF font';
@@ -913,4 +864,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsClearList => 'Clear list';
+
+  @override
+  String get accountingOpenCard => 'Accounting';
+
+  @override
+  String get accountingCardTitle => 'Accounting card';
+
+  @override
+  String get accountingLinkFromDetails => 'Open accounting card';
+
+  @override
+  String get accountingFixedSection => 'Amounts due (from record)';
+
+  @override
+  String get accountingFixedHint => 'Manager and accountant can edit and save all fields.';
+
+  @override
+  String get accountingCustomSection => 'Additional fields';
+
+  @override
+  String get accountingFieldTitle => 'Field title';
+
+  @override
+  String get accountingEmptyTitle => 'Empty title';
+
+  @override
+  String get accountingFieldValue => 'Value';
+
+  @override
+  String get accountingAddField => 'Add field';
+
+  @override
+  String get accountingRemoveField => 'Remove';
+
+  @override
+  String get accountingSaved => 'Saved.';
+
+  @override
+  String get accountingStorageInputWages => 'Input workers wages';
+
+  @override
+  String get accountingStorageExitWages => 'Exit workers wages';
+
+  @override
+  String get accountingStorageSealWages => 'Seal workers wages';
+
+  @override
+  String get accountingStorageInputFare => 'Input loading equipment fare';
+
+  @override
+  String get accountingStorageExitFare => 'Exit loading equipment fare';
 }

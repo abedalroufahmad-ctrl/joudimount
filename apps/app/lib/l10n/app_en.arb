@@ -49,7 +49,8 @@
   "contactName": "Contact Name",
   "phone": "Phone",
   "originCountry": "Origin Country",
-  "airwayBill": "Airway Bill",
+  "airwayBill": "Airway bill number",
+  "airwayBillHint": "AWB / B/L reference number (not the document scan below)",
   "hsCode": "HS Code",
   "goodsDescription": "Goods Description",
   "invoiceValue": "Invoice Value",
@@ -179,6 +180,14 @@
   "stopTransaction": "Stop Transaction",
   "stopReason": "Stop Reason",
   "uploadCategoryRequired": "Please select a category for each uploaded document.",
+  "formMissingRequiredFields": "Please fill in required fields: {fields}",
+  "@formMissingRequiredFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
   "storageNoUploadAtStage": "New document uploads are not allowed at Storage stage.",
   "storageSectionTitle": "Storage (entry / exit / seal)",
   "storageEntryDate": "Entry date",
@@ -282,5 +291,22 @@
   "profileUpdated": "Profile updated",
   "notificationsTitle": "Notifications",
   "notificationsMarkAllRead": "Mark all read",
-  "notificationsClearList": "Clear list"
+  "notificationsClearList": "Clear list",
+  "accountingOpenCard": "Accounting",
+  "accountingCardTitle": "Accounting card",
+  "accountingLinkFromDetails": "Open accounting card",
+  "accountingFixedSection": "Amounts due (from record)",
+  "accountingFixedHint": "Manager and accountant can edit and save all fields.",
+  "accountingCustomSection": "Additional fields",
+  "accountingFieldTitle": "Field title",
+  "accountingEmptyTitle": "Empty title",
+  "accountingFieldValue": "Value",
+  "accountingAddField": "Add field",
+  "accountingRemoveField": "Remove",
+  "accountingSaved": "Saved.",
+  "accountingStorageInputWages": "Input workers wages",
+  "accountingStorageExitWages": "Exit workers wages",
+  "accountingStorageSealWages": "Seal workers wages",
+  "accountingStorageInputFare": "Input loading equipment fare",
+  "accountingStorageExitFare": "Exit loading equipment fare"
 }

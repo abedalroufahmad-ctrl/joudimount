@@ -80,6 +80,7 @@ import {
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const documentCategoryEnum = z.enum(["bill_of_lading", "certificate_of_origin", "invoice", "packing_list"]);
@@ -282,9 +283,29 @@ function ensureRole(req: AuthRequest, res: Response, allowed: UserRole[]) {
   return role;
 }
 
+function isMultipartRequest(req: Request): boolean {
+  return String(req.headers["content-type"] || "").toLowerCase().includes("multipart/form-data");
+}
+
+function bodyForTransactionZod(req: Request): Record<string, unknown> {
+  const raw = (req.body ?? {}) as Record<string, unknown>;
+  const bodyForZod = { ...raw };
+  delete bodyForZod.documentPhotoCategories;
+  delete bodyForZod.existingAttachments;
+  return bodyForZod;
+}
+
+function createExtrasFromRaw(raw: Record<string, unknown>): Record<string, unknown> {
+  const extras: Record<string, unknown> = {};
+  for (const key of ["documentStatus", "paymentStatus"] as const) {
+    const v = raw[key];
+    if (v !== undefined && v !== "") extras[key] = v;
+  }
+  return extras;
+}
+
 function maybeUpload(req: Request, res: Response, next: () => void) {
-  const ct = req.headers["content-type"] || "";
-  if (ct.includes("multipart/form-data")) {
+  if (isMultipartRequest(req)) {
     transactionDocsUpload.array("documentPhotos", 40)(req, res, next);
   } else {
     next();
@@ -844,12 +865,17 @@ app.get("/api/transactions", authenticate, async (req: AuthRequest, res) => {
   res.json(await listTransactions(clientId, limit));
 });
 
-app.post("/api/transactions", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
+app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const parsed = createTransactionPayloadSchema.safeParse(bodyForTransactionZod(req));
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
-    const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
+    const categories = parseDocumentPhotoCategories(raw.documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
       return res.status(400).json({ error: "Each uploaded document must have a category" });
     }
@@ -864,8 +890,9 @@ app.post("/api/transactions", authenticate, maybeUpload, validate(z.object({ bod
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...req.body,
-      originCountry: (req.body as any).originCountry.toUpperCase(),
+      ...parsed.data,
+      ...createExtrasFromRaw(raw),
+      originCountry: parsed.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransaction(data);
@@ -1105,12 +1132,17 @@ app.get("/api/transfers", authenticate, async (req: AuthRequest, res) => {
   res.json(await listTransfers(clientId, limit));
 });
 
-app.post("/api/transfers", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
+app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const parsed = createTransactionPayloadSchema.safeParse(bodyForTransactionZod(req));
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
-    const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
+    const categories = parseDocumentPhotoCategories(raw.documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
       return res.status(400).json({ error: "Each uploaded document must have a category" });
     }
@@ -1123,8 +1155,9 @@ app.post("/api/transfers", authenticate, maybeUpload, validate(z.object({ body: 
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...req.body,
-      originCountry: (req.body as any).originCountry.toUpperCase(),
+      ...parsed.data,
+      ...createExtrasFromRaw(raw),
+      originCountry: parsed.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransfer(data);
@@ -1218,21 +1251,23 @@ app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res)
   return res.json(updated);
 });
 
-app.put("/api/transfers/:id", authenticate, maybeUpload, validate(z.object({ body: updateTransactionPayloadSchema })), async (req: AuthRequest, res) => {
+app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest, res) => {
   const role = req.user?.role;
   if (!role) return res.status(401).json({ error: "Unauthorized" });
   try {
-    const body = req.body as Record<string, unknown>;
+    const body = (req.body ?? {}) as Record<string, unknown>;
     const existingRaw = body.existingAttachments;
-    const bodyForZod = { ...body };
-    delete bodyForZod.existingAttachments;
-    
-    const hasMultipartTransferEarly = (req.headers["content-type"] || "").includes("multipart/form-data");
+    const parsed = updateTransactionPayloadSchema.safeParse(bodyForTransactionZod(req));
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
+
+    const hasMultipartTransferEarly = isMultipartRequest(req);
     const prev = await getTransfer(req.params.id);
     if (!prev) return res.status(404).json({ error: "Transfer not found" });
     const atStorage = prev.transactionStage === "STORAGE";
 
-    if (Object.keys(req.body).length === 0) {
+    if (Object.keys(body).length === 0) {
       if (
         atStorage &&
         hasMultipartTransferEarly &&
@@ -1243,16 +1278,16 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, validate(z.object({ bod
       return res.status(400).json({ error: "No fields to update" });
     }
 
-    if ((role === "employee" || role === "employee2") && (req.body as any).paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && body.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), req.body);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), body);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartTransferEarly;
-    let payload: Parameters<typeof updateTransfer>[1] = { ...req.body };
-    if ((req.body as any).originCountry !== undefined) {
-      payload.originCountry = (req.body as any).originCountry.toUpperCase();
+    let payload: Parameters<typeof updateTransfer>[1] = { ...body };
+    if (body.originCountry !== undefined) {
+      payload.originCountry = String(body.originCountry).toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
@@ -1329,12 +1364,17 @@ app.get("/api/exports", authenticate, async (req: AuthRequest, res) => {
   res.json(await listExports(clientId, limit));
 });
 
-app.post("/api/exports", authenticate, maybeUpload, validate(z.object({ body: createTransactionPayloadSchema })), async (req: AuthRequest, res) => {
+app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager", "employee"]);
   if (!denied) return;
   try {
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const parsed = createTransactionPayloadSchema.safeParse(bodyForTransactionZod(req));
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
     const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
-    const categories = parseDocumentPhotoCategories((req.body as Record<string, unknown>).documentPhotoCategories, files.length);
+    const categories = parseDocumentPhotoCategories(raw.documentPhotoCategories, files.length);
     if (files.length > 0 && categories.length !== files.length) {
       return res.status(400).json({ error: "Each uploaded document must have a category" });
     }
@@ -1347,8 +1387,9 @@ app.post("/api/exports", authenticate, maybeUpload, validate(z.object({ body: cr
       category: categories[idx] as DocumentAttachment["category"],
     }));
     const data = {
-      ...req.body,
-      originCountry: (req.body as any).originCountry.toUpperCase(),
+      ...parsed.data,
+      ...createExtrasFromRaw(raw),
+      originCountry: parsed.data.originCountry.toUpperCase(),
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createExport(data);
@@ -1443,29 +1484,31 @@ app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) =
   return res.json(stageTx);
 });
 
-app.put("/api/exports/:id", authenticate, maybeUpload, validate(z.object({ body: updateTransactionPayloadSchema })), async (req: AuthRequest, res) => {
+app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, res) => {
   const role = req.user?.role;
   if (!role) return res.status(401).json({ error: "Unauthorized" });
   try {
-    const body = req.body as Record<string, unknown>;
+    const body = (req.body ?? {}) as Record<string, unknown>;
     const existingRaw = body.existingAttachments;
-    const bodyForZod = { ...body };
-    delete bodyForZod.existingAttachments;
-    if (Object.keys(req.body).length === 0) return res.status(400).json({ error: "No fields to update" });
+    const parsed = updateTransactionPayloadSchema.safeParse(bodyForTransactionZod(req));
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
+    if (Object.keys(body).length === 0) return res.status(400).json({ error: "No fields to update" });
 
     const prev = await getExport(req.params.id);
     if (!prev) return res.status(404).json({ error: "Export not found" });
 
-    if ((role === "employee" || role === "employee2") && (req.body as any).paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && body.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), req.body);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), body);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
-    const hasMultipart = (req.headers["content-type"] || "").includes("multipart/form-data");
-    let payload: Parameters<typeof updateExport>[1] = { ...req.body };
-    if ((req.body as any).originCountry !== undefined) {
-      payload.originCountry = (req.body as any).originCountry.toUpperCase();
+    const hasMultipart = isMultipartRequest(req);
+    let payload: Parameters<typeof updateExport>[1] = { ...body };
+    if (body.originCountry !== undefined) {
+      payload.originCountry = String(body.originCountry).toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];

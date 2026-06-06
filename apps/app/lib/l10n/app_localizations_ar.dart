@@ -156,7 +156,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get originCountry => 'بلد المنشأ';
 
   @override
-  String get airwayBill => 'بوليصة الشحن';
+  String get airwayBill => 'رقم بوليصة الشحن';
+
+  @override
+  String get airwayBillHint => 'رقم بوليصة الشحن / AWB (وليس مرفق المستند في الأسفل)';
 
   @override
   String get hsCode => 'رمز HS';
@@ -546,6 +549,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get uploadCategoryRequired => 'يرجى اختيار فئة لكل مستند مرفوع.';
 
   @override
+  String formMissingRequiredFields(String fields) {
+    return 'يرجى إكمال الحقول المطلوبة: $fields';
+  }
+
+  @override
   String get storageNoUploadAtStage => 'لا يمكن رفع مرفقات جديدة في مرحلة التخزين.';
 
   @override
@@ -633,60 +641,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageOpenCard => 'التخزين';
 
   @override
-  String get accountingOpenCard => 'المحاسبة';
-
-  @override
-  String get accountingCardTitle => 'بطاقة المحاسبة';
-
-  @override
-  String get accountingFixedSection => 'مبالغ مستحقة (من السجل)';
-
-  @override
-  String get accountingFixedHint => 'يمكن للمدير والمحاسب تعديل جميع الحقول وحفظها.';
-
-  @override
-  String get accountingCustomSection => 'حقول إضافية';
-
-  @override
-  String get accountingFieldTitle => 'عنوان الحقل';
-
-  @override
-  String get accountingFieldValue => 'القيمة';
-
-  @override
-  String get accountingEmptyTitle => 'عنوان فارغ';
-
-  @override
-  String get accountingAddField => 'إضافة حقل';
-
-  @override
-  String get accountingNoCustomFields => 'لا توجد حقول إضافية بعد. انقر «إضافة حقل» لإنشاء واحد.';
-
-  @override
-  String get accountingRemoveField => 'حذف';
-
-  @override
-  String get accountingSaved => 'تم الحفظ.';
-
-  @override
-  String get accountingTotal => 'الإجمالي (المبالغ + الحقول الإضافية)';
-
-  @override
-  String get accountingStorageInputWages => 'أجور عمال الإدخال';
-
-  @override
-  String get accountingStorageExitWages => 'أجور عمال الإخراج';
-
-  @override
-  String get accountingStorageSealWages => 'أجور عمال التبديل';
-
-  @override
-  String get accountingStorageInputFare => 'أجرة معدات التحميل (إدخال)';
-
-  @override
-  String get accountingStorageExitFare => 'أجرة معدات التحميل (إخراج)';
-
-  @override
   String get storageWrongStage => 'هذه المعاملة ليست في مرحلة التخزين.';
 
   @override
@@ -697,9 +651,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get storageLinkFromDetails => 'بطاقة التخزين';
-
-  @override
-  String get accountingLinkFromDetails => 'بطاقة المحاسبة';
 
   @override
   String get pdfFontLoadErrorPrefix => 'تعذر تحميل خط ملف PDF';
@@ -913,4 +864,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notificationsClearList => 'مسح القائمة';
+
+  @override
+  String get accountingOpenCard => 'المحاسبة';
+
+  @override
+  String get accountingCardTitle => 'بطاقة المحاسبة';
+
+  @override
+  String get accountingLinkFromDetails => 'فتح بطاقة المحاسبة';
+
+  @override
+  String get accountingFixedSection => 'مبالغ مستحقة (من السجل)';
+
+  @override
+  String get accountingFixedHint => 'يمكن للمدير والمحاسب تعديل جميع الحقول وحفظها.';
+
+  @override
+  String get accountingCustomSection => 'حقول إضافية';
+
+  @override
+  String get accountingFieldTitle => 'عنوان الحقل';
+
+  @override
+  String get accountingEmptyTitle => 'عنوان فارغ';
+
+  @override
+  String get accountingFieldValue => 'القيمة';
+
+  @override
+  String get accountingAddField => 'إضافة حقل';
+
+  @override
+  String get accountingRemoveField => 'حذف';
+
+  @override
+  String get accountingSaved => 'تم الحفظ.';
+
+  @override
+  String get accountingStorageInputWages => 'أجور عمال الإدخال';
+
+  @override
+  String get accountingStorageExitWages => 'أجور عمال الإخراج';
+
+  @override
+  String get accountingStorageSealWages => 'أجور عمال التبديل';
+
+  @override
+  String get accountingStorageInputFare => 'أجرة معدات التحميل (إدخال)';
+
+  @override
+  String get accountingStorageExitFare => 'أجرة معدات التحميل (إخراج)';
 }
