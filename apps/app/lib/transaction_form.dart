@@ -402,7 +402,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       case 'invoiceToWeightRateAedPerKg':
         return l10n.txRateAedPerKg;
       case 'goodsQuantity':
-        return l10n.txGoodsQuantity;
+        return l10n.txGoodsQty;
       case 'goodsQuality':
         return l10n.txGoodsQuality;
       case 'goodsUnit':
