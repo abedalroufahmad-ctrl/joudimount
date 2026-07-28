@@ -53,7 +53,7 @@
   "airwayBillHint": "AWB / B/L reference number (not the document scan below)",
   "hsCode": "HS Code",
   "goodsDescription": "Goods Description",
-  "invoiceValue": "Invoice Value",
+  "invoiceValue": "Guaranty and VAT",
   "shippingCompanyIdOptional": "Shipping Company ID (optional)",
   "shippingEmailOptional": "Email (optional)",
   "shippingLocationOptional": "Location (optional)",

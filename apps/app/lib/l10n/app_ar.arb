@@ -53,7 +53,7 @@
   "airwayBillHint": "رقم بوليصة الشحن / AWB (وليس مرفق المستند في الأسفل)",
   "hsCode": "رمز HS",
   "goodsDescription": "وصف البضائع",
-  "invoiceValue": "قيمة الفاتورة",
+  "invoiceValue": "الضمان والضريبة",
   "shippingCompanyIdOptional": "معرف شركة الشحن (اختياري)",
   "shippingEmailOptional": "البريد الإلكتروني (اختياري)",
   "shippingLocationOptional": "الموقع (اختياري)",
