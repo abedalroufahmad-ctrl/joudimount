@@ -554,6 +554,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get formMissingFieldsBeforeClearance => 'Please fill required preparation fields before Customs clearance';
+
+  @override
   String get storageNoUploadAtStage => 'New document uploads are not allowed at Storage stage.';
 
   @override

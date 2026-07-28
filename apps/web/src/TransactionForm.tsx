@@ -571,6 +571,14 @@ export default function TransactionForm({
       body: JSON.stringify({ stage: nextStage }),
     });
     if (!res.ok) {
+      try {
+        const j = await res.clone().json();
+        if (j && j.error === "missing_fields" && Array.isArray(j.missing)) {
+          const labels = j.missing.map((m: string) => t(`form.${m}` as MessageKey)).join(", ");
+          setError(`${t("form.missingFieldsBeforeClearance")}: ${labels}`);
+          return;
+        }
+      } catch (_) {}
       const detail = await parseApiErrorMessage(res);
       setError(detail || t("form.stageChangeError"));
       return;

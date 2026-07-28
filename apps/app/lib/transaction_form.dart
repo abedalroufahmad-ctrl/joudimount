@@ -399,6 +399,20 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         return l10n.originCountry;
       case 'invoiceValue':
         return l10n.invoiceValue;
+      case 'invoiceToWeightRateAedPerKg':
+        return l10n.txRateAedPerKg;
+      case 'goodsQuantity':
+        return l10n.txGoodsQuantity;
+      case 'goodsQuality':
+        return l10n.txGoodsQuality;
+      case 'goodsUnit':
+        return l10n.txGoodsUnit;
+      case 'containerCount':
+        return l10n.txCargoContainersSection;
+      case 'goodsWeightKg':
+        return l10n.txGoodsWeightKg;
+      case 'unitCount':
+        return l10n.txNumberOfUnits;
       default:
         return key;
     }
@@ -439,23 +453,30 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     return l10n.formMissingRequiredFields(missing.join(', '));
   }
 
-  String _formatSaveError(Object e, AppLocalizations l10n) {
+  String _formatApiError(Object e, AppLocalizations l10n) {
     var msg = e.toString();
     if (msg.startsWith('Exception: ')) msg = msg.substring(11);
 
     try {
       final parsed = jsonDecode(msg);
-      if (parsed is Map && parsed['fieldErrors'] is Map) {
-        final fieldErrors = parsed['fieldErrors'] as Map;
-        final labels = <String>[];
-        for (final entry in fieldErrors.entries) {
-          final issues = entry.value;
-          if (issues is List && issues.isNotEmpty) {
-            labels.add(_apiFieldLabel(entry.key.toString(), l10n));
-          }
+      if (parsed is Map) {
+        if (parsed['error'] == 'missing_fields' && parsed['missing'] is List) {
+          final missing = parsed['missing'] as List;
+          final labels = missing.map((m) => _apiFieldLabel(m.toString(), l10n)).join(', ');
+          return '${l10n.formMissingFieldsBeforeClearance}: $labels';
         }
-        if (labels.isNotEmpty) {
-          return l10n.formMissingRequiredFields(labels.join(', '));
+        if (parsed['fieldErrors'] is Map) {
+          final fieldErrors = parsed['fieldErrors'] as Map;
+          final labels = <String>[];
+          for (final entry in fieldErrors.entries) {
+            final issues = entry.value;
+            if (issues is List && issues.isNotEmpty) {
+              labels.add(_apiFieldLabel(entry.key.toString(), l10n));
+            }
+          }
+          if (labels.isNotEmpty) {
+            return l10n.formMissingRequiredFields(labels.join(', '));
+          }
         }
       }
     } catch (_) {}
@@ -573,7 +594,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = _formatSaveError(e, l10n));
+      setState(() => _error = _formatApiError(e, l10n));
     } finally {
       setState(() => _saving = false);
     }
@@ -581,13 +602,20 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
 
   Future<void> _changeStage(String value) async {
     if (!_isEdit) return;
+    final l10n = AppLocalizations.of(context)!;
     try {
       await Api.post(
           '$_modulePath/${widget.transactionId}/stage', {'stage': value});
       if (mounted) await _loadTransaction();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      setState(() {
+        _error = _formatApiError(e, l10n);
+        // Revert dropdown UI since the API call failed
+        _stage = widget.transactionId != null ? _stage : 'PREPARATION'; // This is a bit hacky, but _loadTransaction would fix it normally.
+      });
+      // Actually, better just show the error and reload tx to reset stage state
+      await _loadTransaction();
     }
   }
 

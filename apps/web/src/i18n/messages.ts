@@ -310,6 +310,7 @@ export type MessageKey =
   | "form.stage"
   | "form.snapshotReadOnly"
   | "form.stageChangeError"
+  | "form.missingFieldsBeforeClearance"
   | "form.fileNumber"
   | "form.partiesSection"
   | "form.customsDeclarationSection"
@@ -717,6 +718,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "form.stage": "مرحلة المعاملة",
     "form.snapshotReadOnly": "ملخص المعاملة (للقراءة فقط)",
     "form.stageChangeError": "فشل تغيير المرحلة",
+    "form.missingFieldsBeforeClearance": "يرجى تعبئة الحقول المطلوبة قبل الانتقال إلى التخليص الجمركي",
     "form.fileNumber": "رقم الملف",
     "form.partiesSection": "الأطراف",
     "form.customsDeclarationSection": "الإقرار الجمركي",
@@ -1120,6 +1122,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "form.stage": "Transaction Stage",
     "form.snapshotReadOnly": "Transaction Snapshot (Read-only)",
     "form.stageChangeError": "Failed to change stage",
+    "form.missingFieldsBeforeClearance": "Please fill required preparation fields before Customs clearance",
     "form.fileNumber": "File Number",
     "form.partiesSection": "Parties",
     "form.customsDeclarationSection": "Customs Declaration",

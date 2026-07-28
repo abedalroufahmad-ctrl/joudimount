@@ -188,6 +188,7 @@
       }
     }
   },
+  "formMissingFieldsBeforeClearance": "Please fill required preparation fields before Customs clearance",
   "storageNoUploadAtStage": "New document uploads are not allowed at Storage stage.",
   "storageSectionTitle": "Storage (entry / exit / seal)",
   "storageEntryDate": "Entry date",

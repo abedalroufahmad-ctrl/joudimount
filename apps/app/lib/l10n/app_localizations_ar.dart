@@ -554,6 +554,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get formMissingFieldsBeforeClearance => 'يرجى تعبئة الحقول المطلوبة قبل الانتقال إلى التخليص الجمركي';
+
+  @override
   String get storageNoUploadAtStage => 'لا يمكن رفع مرفقات جديدة في مرحلة التخزين.';
 
   @override

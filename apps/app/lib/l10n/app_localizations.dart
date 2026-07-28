@@ -1181,6 +1181,12 @@ abstract class AppLocalizations {
   /// **'Please fill in required fields: {fields}'**
   String formMissingRequiredFields(String fields);
 
+  /// No description provided for @formMissingFieldsBeforeClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill required preparation fields before Customs clearance'**
+  String get formMissingFieldsBeforeClearance;
+
   /// No description provided for @storageNoUploadAtStage.
   ///
   /// In en, this message translates to:

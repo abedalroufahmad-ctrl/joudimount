@@ -188,6 +188,7 @@
       }
     }
   },
+  "formMissingFieldsBeforeClearance": "يرجى تعبئة الحقول المطلوبة قبل الانتقال إلى التخليص الجمركي",
   "storageNoUploadAtStage": "لا يمكن رفع مرفقات جديدة في مرحلة التخزين.",
   "storageSectionTitle": "التخزين (إدخال / إخراج / تبديل)",
   "storageEntryDate": "تاريخ الإدخال",

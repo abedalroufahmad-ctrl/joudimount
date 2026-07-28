@@ -987,7 +987,8 @@ app.post("/api/transactions/:id/stage", authenticate, async (req: AuthRequest, r
       const missing = getMissingFieldsBeforeCustomsClearance(tx);
       if (missing.length > 0) {
         return res.status(400).json({
-          error: `Fill all required preparation fields before Customs clearance: ${missing.join(", ")}`,
+          error: "missing_fields",
+          missing,
         });
       }
     }
@@ -1233,7 +1234,8 @@ app.post("/api/transfers/:id/stage", authenticate, async (req: AuthRequest, res)
       const missing = getMissingFieldsBeforeCustomsClearanceForTransferOrExport(tx);
       if (missing.length > 0) {
         return res.status(400).json({
-          error: `Fill all required preparation fields before Customs clearance: ${missing.join(", ")}`,
+          error: "missing_fields",
+          missing,
         });
       }
     }
@@ -1465,7 +1467,8 @@ app.post("/api/exports/:id/stage", authenticate, async (req: AuthRequest, res) =
       const missing = getMissingFieldsBeforeCustomsClearanceForTransferOrExport(tx);
       if (missing.length > 0) {
         return res.status(400).json({
-          error: `Fill all required preparation fields before Customs clearance: ${missing.join(", ")}`,
+          error: "missing_fields",
+          missing,
         });
       }
     }
