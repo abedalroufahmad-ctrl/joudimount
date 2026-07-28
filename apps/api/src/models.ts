@@ -62,48 +62,6 @@ interface ShippingCompanyDoc {
   status: "active" | "inactive";
 }
 
-interface GoodsDoc {
-  goodsQuantity?: number;
-  goodsQuality?: GoodsQuality;
-  goodsUnit?: GoodsUnit;
-}
-
-interface StorageDetailsDoc {
-  storageSubStage?: "INPUT" | "OUTPUT" | "SEAL";
-  storageEntryDate?: Date;
-  storageWorkersWages?: number;
-  storageWorkersCompany?: string;
-  storageStoreName?: string;
-  storageSizeCbm?: number;
-  storageFreightVehicleNumbers?: string;
-  storageCrossPackaging?: string;
-  storageUnity?: string;
-  storageSealNumber?: string;
-  storageInputEntryDate?: Date;
-  storageInputWorkersWages?: number;
-  storageInputWorkersCompany?: string;
-  storageInputStoreName?: string;
-  storageInputVolumeCbm?: number;
-  storageInputLoadingEquipmentFare?: number;
-  storageExitEntryDate?: Date;
-  storageExitWorkersWages?: number;
-  storageExitWorkersCompany?: string;
-  storageExitStoreName?: string;
-  storageExitVolumeCbm?: number;
-  storageExitLoadingEquipmentFare?: number;
-  storageExitFreightVehicleNumbers?: string;
-  storageExitCrossPackaging?: string;
-  storageExitUnity?: string;
-  storageSealReplaceContainers?: string;
-  storageSealEntryLockNumbers?: string;
-  storageSealSwitchDate?: Date;
-  storageSealEntryContainerNumbers?: string;
-  storageSealOutLockNumbers?: string;
-  storageSealUnitCount?: string;
-  storageSealWorkersCompany?: string;
-  storageSealWorkersWages?: number;
-}
-
 interface TransactionDoc {
   clientId?: string;
   clientName: string;
@@ -159,8 +117,42 @@ interface TransactionDoc {
   holdReason?: string;
   stopReason?: string;
   documentPostalNumber?: string;
-  goods?: GoodsDoc;
-  storage?: StorageDetailsDoc;
+  goodsQuantity?: number;
+  goodsQuality?: GoodsQuality;
+  goodsUnit?: GoodsUnit;
+  storageSubStage?: "INPUT" | "OUTPUT" | "SEAL";
+  storageEntryDate?: Date;
+  storageWorkersWages?: number;
+  storageWorkersCompany?: string;
+  storageStoreName?: string;
+  storageSizeCbm?: number;
+  storageFreightVehicleNumbers?: string;
+  storageCrossPackaging?: string;
+  storageUnity?: string;
+  storageSealNumber?: string;
+  storageInputEntryDate?: Date;
+  storageInputWorkersWages?: number;
+  storageInputWorkersCompany?: string;
+  storageInputStoreName?: string;
+  storageInputVolumeCbm?: number;
+  storageInputLoadingEquipmentFare?: number;
+  storageExitEntryDate?: Date;
+  storageExitWorkersWages?: number;
+  storageExitWorkersCompany?: string;
+  storageExitStoreName?: string;
+  storageExitVolumeCbm?: number;
+  storageExitLoadingEquipmentFare?: number;
+  storageExitFreightVehicleNumbers?: string;
+  storageExitCrossPackaging?: string;
+  storageExitUnity?: string;
+  storageSealReplaceContainers?: string;
+  storageSealEntryLockNumbers?: string;
+  storageSealSwitchDate?: Date;
+  storageSealEntryContainerNumbers?: string;
+  storageSealOutLockNumbers?: string;
+  storageSealUnitCount?: string;
+  storageSealWorkersCompany?: string;
+  storageSealWorkersWages?: number;
   accountingCustomFields?: { id: string; title: string; value: string }[];
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
   createdAt: Date;
@@ -179,56 +171,6 @@ const clientSchema = new Schema<ClientDoc>(
   },
   { timestamps: true },
 );
-
-// Define schema for GoodsDoc
-const goodsSchema = new Schema<GoodsDoc>({
-  goodsQuantity: { type: Number },
-  goodsQuality: {
-    type: String,
-    enum: ["new", "like_new", "used", "refurbished", "damaged", "mixed"],
-  },
-  goodsUnit: {
-    type: String,
-    enum: ["kg", "ton", "piece", "carton", "pallet", "cbm", "liter", "set"],
-  },
-});
-
-// Define schema for StorageDetailsDoc
-const storageDetailsSchema = new Schema<StorageDetailsDoc>({
-  storageSubStage: { type: String, enum: ["INPUT", "OUTPUT", "SEAL"] },
-  storageEntryDate: { type: Date },
-  storageWorkersWages: { type: Number },
-  storageWorkersCompany: { type: String },
-  storageStoreName: { type: String },
-  storageSizeCbm: { type: Number },
-  storageFreightVehicleNumbers: { type: String },
-  storageCrossPackaging: { type: String },
-  storageUnity: { type: String },
-  storageSealNumber: { type: String },
-  storageInputEntryDate: { type: Date },
-  storageInputWorkersWages: { type: Number },
-  storageInputWorkersCompany: { type: String },
-  storageInputStoreName: { type: String },
-  storageInputVolumeCbm: { type: Number },
-  storageInputLoadingEquipmentFare: { type: Number },
-  storageExitEntryDate: { type: Date },
-  storageExitWorkersWages: { type: Number },
-  storageExitWorkersCompany: { type: String },
-  storageExitStoreName: { type: String },
-  storageExitVolumeCbm: { type: Number },
-  storageExitLoadingEquipmentFare: { type: Number },
-  storageExitFreightVehicleNumbers: { type: String },
-  storageExitCrossPackaging: { type: String },
-  storageExitUnity: { type: String },
-  storageSealReplaceContainers: { type: String },
-  storageSealEntryLockNumbers: { type: String },
-  storageSealSwitchDate: { type: Date },
-  storageSealEntryContainerNumbers: { type: String },
-  storageSealOutLockNumbers: { type: String },
-  storageSealUnitCount: { type: String },
-  storageSealWorkersCompany: { type: String },
-  storageSealWorkersWages: { type: Number },
-});
 
 const transactionSchema = new Schema<TransactionDoc>(
   {
@@ -309,8 +251,48 @@ const transactionSchema = new Schema<TransactionDoc>(
     holdReason: { type: String },
     stopReason: { type: String },
     documentPostalNumber: { type: String },
-    goods: goodsSchema, // Embed the goodsSchema
-    storage: storageDetailsSchema, // Embed the storageDetailsSchema
+    goodsQuantity: { type: Number },
+    goodsQuality: {
+      type: String,
+      enum: ["new", "like_new", "used", "refurbished", "damaged", "mixed"],
+    },
+    goodsUnit: {
+      type: String,
+      enum: ["kg", "ton", "piece", "carton", "pallet", "cbm", "liter", "set"],
+    },
+    storageSubStage: { type: String, enum: ["INPUT", "OUTPUT", "SEAL"] },
+    storageEntryDate: { type: Date },
+    storageWorkersWages: { type: Number },
+    storageWorkersCompany: { type: String },
+    storageStoreName: { type: String },
+    storageSizeCbm: { type: Number },
+    storageFreightVehicleNumbers: { type: String },
+    storageCrossPackaging: { type: String },
+    storageUnity: { type: String },
+    storageSealNumber: { type: String },
+    storageInputEntryDate: { type: Date },
+    storageInputWorkersWages: { type: Number },
+    storageInputWorkersCompany: { type: String },
+    storageInputStoreName: { type: String },
+    storageInputVolumeCbm: { type: Number },
+    storageInputLoadingEquipmentFare: { type: Number },
+    storageExitEntryDate: { type: Date },
+    storageExitWorkersWages: { type: Number },
+    storageExitWorkersCompany: { type: String },
+    storageExitStoreName: { type: String },
+    storageExitVolumeCbm: { type: Number },
+    storageExitLoadingEquipmentFare: { type: Number },
+    storageExitFreightVehicleNumbers: { type: String },
+    storageExitCrossPackaging: { type: String },
+    storageExitUnity: { type: String },
+    storageSealReplaceContainers: { type: String },
+    storageSealEntryLockNumbers: { type: String },
+    storageSealSwitchDate: { type: Date },
+    storageSealEntryContainerNumbers: { type: String },
+    storageSealOutLockNumbers: { type: String },
+    storageSealUnitCount: { type: String },
+    storageSealWorkersCompany: { type: String },
+    storageSealWorkersWages: { type: Number },
     accountingCustomFields: [
       {
         id: { type: String, required: true },
@@ -355,7 +337,7 @@ const notificationSchema = new Schema<NotificationDoc>(
   { timestamps: { createdAt: true, updatedAt: false } },
 );
 
-const shippingCompanySchema = new Schema<ShippingCompanyDoc>( 
+const shippingCompanySchema = new Schema<ShippingCompanyDoc>(
   {
     companyName: { type: String, required: true },
     code: { type: String, required: true, unique: true, index: true },
