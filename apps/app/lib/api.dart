@@ -73,6 +73,8 @@ class Api {
     return Uri.parse('$base$path');
   }
 
+  static String? _workingBaseUrl;
+
   static Future<http.Response> _sendWithFallback(
     Future<http.Response> Function(Uri uri) sender, {
     required String path,
@@ -81,11 +83,24 @@ class Api {
       return sender(Uri.parse(path));
     }
 
+    if (_workingBaseUrl != null) {
+      try {
+        return await sender(_uriFor(_workingBaseUrl!, path));
+      } catch (_) {
+        // If the cached URL fails, clear it and try the fallback loop again.
+        _workingBaseUrl = null;
+      }
+    }
+
     Object? lastError;
     for (final base in _baseUrls) {
       final uri = _uriFor(base, path);
       try {
-        return await sender(uri);
+        // Use a short timeout for the fallback ping so it doesn't hang the app for 60 seconds
+        // when trying an unreachable LAN IP.
+        final res = await sender(uri).timeout(const Duration(seconds: 3));
+        _workingBaseUrl = base;
+        return res;
       } catch (e) {
         lastError = e;
       }
