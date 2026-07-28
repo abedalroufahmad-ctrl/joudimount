@@ -1269,7 +1269,7 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
     if (!prev) return res.status(404).json({ error: "Transfer not found" });
     const atStorage = prev.transactionStage === "STORAGE";
 
-    if (Object.keys(body).length === 0) {
+    if (Object.keys(parsed.data).length === 0) {
       if (
         atStorage &&
         hasMultipartTransferEarly &&
@@ -1280,16 +1280,16 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
       return res.status(400).json({ error: "No fields to update" });
     }
 
-    if ((role === "employee" || role === "employee2") && body.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && parsed.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), body);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), parsed.data);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = hasMultipartTransferEarly;
-    let payload: Parameters<typeof updateTransfer>[1] = { ...body };
-    if (body.originCountry !== undefined) {
-      payload.originCountry = String(body.originCountry).toUpperCase();
+    let payload: Parameters<typeof updateTransfer>[1] = { ...parsed.data };
+    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
+      payload.originCountry = payload.originCountry.toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
@@ -1497,21 +1497,21 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
-    if (Object.keys(body).length === 0) return res.status(400).json({ error: "No fields to update" });
+    if (Object.keys(parsed.data).length === 0) return res.status(400).json({ error: "No fields to update" });
 
     const prev = await getExport(req.params.id);
     if (!prev) return res.status(404).json({ error: "Export not found" });
 
-    if ((role === "employee" || role === "employee2") && body.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2") && parsed.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
-    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), body);
+    const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), parsed.data);
     if (fieldError) return res.status(403).json({ error: fieldError });
 
     const hasMultipart = isMultipartRequest(req);
-    let payload: Parameters<typeof updateExport>[1] = { ...body };
-    if (body.originCountry !== undefined) {
-      payload.originCountry = String(body.originCountry).toUpperCase();
+    let payload: Parameters<typeof updateExport>[1] = { ...parsed.data };
+    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
+      payload.originCountry = payload.originCountry.toUpperCase();
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
