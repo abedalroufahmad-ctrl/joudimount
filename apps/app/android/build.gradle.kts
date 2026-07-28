@@ -5,6 +5,12 @@ allprojects {
         google()
         mavenCentral()
     }
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.annotation:annotation:1.9.1")
+            force("androidx.annotation:annotation-jvm:1.9.1")
+        }
+    }
 }
 
 // Pin NDK + compileSdk for every Android module (app + plugins like :jni).
