@@ -181,15 +181,15 @@ class Api {
     return _handle(res);
   }
 
-  static Future<void> _attachDocumentPhotos(
-      http.MultipartRequest req, List<PlatformFile> files) async {
+  static Future<void> _attachFiles(
+      http.MultipartRequest req, List<PlatformFile> files, String fieldName) async {
     for (final pf in files) {
       if (pf.path != null) {
         req.files.add(
-            await http.MultipartFile.fromPath('documentPhotos', pf.path!));
+            await http.MultipartFile.fromPath(fieldName, pf.path!));
       } else if (pf.bytes != null) {
         req.files.add(http.MultipartFile.fromBytes(
-          'documentPhotos',
+          fieldName,
           pf.bytes!,
           filename: pf.name,
         ));
@@ -198,7 +198,7 @@ class Api {
   }
 
   static Future<dynamic> postMultipart(
-      String path, Map<String, String> fields, List<PlatformFile> files) async {
+      String path, Map<String, String> fields, List<PlatformFile> files, {String fileFieldName = 'documentPhotos'}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     final res = await _sendWithFallback((uri) async {
@@ -207,7 +207,7 @@ class Api {
         req.headers['Authorization'] = 'Bearer $token';
       }
       fields.forEach((k, v) => req.fields[k] = v);
-      await _attachDocumentPhotos(req, files);
+      await _attachFiles(req, files, fileFieldName);
       final streamed = await req.send();
       return http.Response.fromStream(streamed);
     }, path: path);
@@ -215,7 +215,7 @@ class Api {
   }
 
   static Future<dynamic> putMultipart(
-      String path, Map<String, String> fields, List<PlatformFile> files) async {
+      String path, Map<String, String> fields, List<PlatformFile> files, {String fileFieldName = 'documentPhotos'}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     final res = await _sendWithFallback((uri) async {
@@ -224,7 +224,7 @@ class Api {
         req.headers['Authorization'] = 'Bearer $token';
       }
       fields.forEach((k, v) => req.fields[k] = v);
-      await _attachDocumentPhotos(req, files);
+      await _attachFiles(req, files, fileFieldName);
       final streamed = await req.send();
       return http.Response.fromStream(streamed);
     }, path: path);

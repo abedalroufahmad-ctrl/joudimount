@@ -979,6 +979,18 @@ export default function TransactionForm({
                   placeholder={t("transportation.shipmentNumbersPlaceholder" as MessageKey)}
                 />
               </label>
+              {module === "exports" ? (
+                <label className="form-field-box form-field-box--full form-label w-100 mb-0">
+                  {t("form.containerNumbers")}
+                  <textarea className="form-control mt-1"
+                    disabled={!transportationEditableEffective}
+                    value={form.containerNumbers}
+                    onChange={(e) => setForm({ ...form, containerNumbers: e.target.value })}
+                    rows={3}
+                    placeholder={t("form.containerNumbersPlaceholder")}
+                  />
+                </label>
+              ) : null}
               <label className="form-field-box form-label w-100 mb-0">
                 {t("transportation.company" as MessageKey)}
                 <input className="form-control mt-1"

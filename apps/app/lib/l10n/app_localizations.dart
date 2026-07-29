@@ -1373,6 +1373,18 @@ abstract class AppLocalizations {
   /// **'Accountants can view this screen only.'**
   String get storageAccountantReadOnly;
 
+  /// No description provided for @storageProductImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Product images (optional)'**
+  String get storageProductImages;
+
+  /// No description provided for @storageProductImagesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload photos of the product/goods stored in the warehouse'**
+  String get storageProductImagesHelp;
+
   /// No description provided for @storageOpenDedicatedPage.
   ///
   /// In en, this message translates to:

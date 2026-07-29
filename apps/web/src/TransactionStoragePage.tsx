@@ -4,7 +4,7 @@ import { transactionListPath } from "./paths";
 import { apiFetch } from "./api";
 import type { MessageKey } from "./i18n/messages";
 import { useI18n } from "./i18n/I18nContext";
-import { Role, StorageSubStage, Transaction } from "./types";
+import { API_BASE, Role, StorageSubStage, Transaction, DocumentAttachment } from "./types";
 
 type TransactionModule = "transactions" | "transfers";
 
@@ -152,6 +152,8 @@ export default function TransactionStoragePage({
   const [form, setForm] = useState<StorageFormState | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [existingStoragePhotos, setExistingStoragePhotos] = useState<DocumentAttachment[]>([]);
+  const [newStoragePhotos, setNewStoragePhotos] = useState<File[]>([]);
 
   const backHref = transactionListPath(module);
   const detailHref = `/${module}/${id}`;
@@ -169,6 +171,8 @@ export default function TransactionStoragePage({
       .then((data: Transaction) => {
         setTransaction(data);
         setForm(mapTxToForm(data));
+        setExistingStoragePhotos(data.storagePhotos ?? []);
+        setNewStoragePhotos([]);
       })
       .catch(() => setError(t("form.loadError")));
   }, [id, module, t]);
@@ -185,9 +189,24 @@ export default function TransactionStoragePage({
     setLoading(true);
     try {
       const payload = buildPayload(form, transaction?.isStopped);
+      const fd = new FormData();
+      
+      for (const [key, val] of Object.entries(payload)) {
+        fd.append(key, String(val));
+      }
+      
+      // Preserve existing documentAttachments
+      fd.append("existingAttachments", JSON.stringify(transaction?.documentAttachments ?? []));
+      
+      // Handle storagePhotos
+      fd.append("existingStoragePhotos", JSON.stringify(existingStoragePhotos));
+      for (const file of newStoragePhotos) {
+        fd.append("storagePhotos", file);
+      }
+
       const res = await apiFetch(`/api/${module}/${id}`, {
         method: "PUT",
-        body: JSON.stringify(payload),
+        body: fd,
       });
       if (!res.ok) {
         const detail = await parseApiErrorMessage(res);
@@ -197,6 +216,8 @@ export default function TransactionStoragePage({
       const data = (await res.json()) as Transaction;
       setTransaction(data);
       setForm(mapTxToForm(data));
+      setExistingStoragePhotos(data.storagePhotos ?? []);
+      setNewStoragePhotos([]);
     } catch {
       setError(t("form.saveError"));
     } finally {
@@ -495,6 +516,82 @@ export default function TransactionStoragePage({
               </label>
             </>
           ) : null}
+
+          <div className="col-12 border-top pt-3 mt-3">
+            <h3 className="h5 mb-2">{t("storagePage.productImages" as MessageKey)}</h3>
+            <p className="text-muted small mb-3">{t("storagePage.productImagesHelp" as MessageKey)}</p>
+            
+            {/* Existing photos list */}
+            {existingStoragePhotos.length > 0 ? (
+              <div className="mb-3">
+                <div className="d-flex flex-wrap gap-3">
+                  {existingStoragePhotos.map((photo) => (
+                    <div key={photo.path} className="position-relative border rounded p-1 d-flex flex-column align-items-center" style={{ width: 100 }}>
+                      <a href={`${API_BASE}${photo.path}`} target="_blank" rel="noreferrer" className="d-block mb-1">
+                        <img
+                          src={`${API_BASE}${photo.path}`}
+                          alt={photo.originalName}
+                          style={{
+                            width: 80,
+                            height: 80,
+                            objectFit: "cover",
+                            borderRadius: 6,
+                          }}
+                        />
+                      </a>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-link text-danger p-0 mt-auto"
+                        disabled={!canEdit}
+                        onClick={() => setExistingStoragePhotos((prev) => prev.filter((x) => x.path !== photo.path))}
+                      >
+                        {t("form.removeAttachment" as MessageKey)}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* File input for new images */}
+            {canEdit ? (
+              <div className="mb-3">
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    setNewStoragePhotos((prev) => [...prev, ...files]);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+            ) : null}
+
+            {/* New picked photos list */}
+            {newStoragePhotos.length > 0 ? (
+              <div className="mb-3">
+                <ul className="list-group">
+                  {newStoragePhotos.map((file, idx) => (
+                    <li key={`${file.name}-${idx}`} className="list-group-item d-flex justify-content-between align-items-center py-1">
+                      <span className="small text-truncate" style={{ maxWidth: "70%" }}>
+                        {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-link text-danger p-0"
+                        onClick={() => setNewStoragePhotos((prev) => prev.filter((_, i) => i !== idx))}
+                      >
+                        {t("form.removeAttachment" as MessageKey)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
 
           {!canEdit ? (
             <p className="muted col-12" role="status">

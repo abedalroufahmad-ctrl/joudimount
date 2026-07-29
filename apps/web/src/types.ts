@@ -108,6 +108,9 @@ export interface Transaction {
   storageSealUnitCount?: string;
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
+  accountingInvoices?: DocumentAttachment[];
+  isAccountingFinalized?: boolean;
+  storagePhotos?: DocumentAttachment[];
   transactionStage: TransactionStage;
   createdAt: string;
   updatedAt: string;

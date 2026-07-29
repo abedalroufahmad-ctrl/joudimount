@@ -195,6 +195,7 @@ export interface Transaction {
   accountingCustomFields?: AccountingCustomField[];
   accountingInvoices?: DocumentAttachment[];
   isAccountingFinalized?: boolean;
+  storagePhotos?: DocumentAttachment[];
   transactionStage: TransactionStage;
   createdAt: string;
   updatedAt: string;

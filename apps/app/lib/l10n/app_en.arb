@@ -220,6 +220,8 @@
   "storageOpenCard": "Storage",
   "storageWrongStage": "This record is not in the Storage stage.",
   "storageAccountantReadOnly": "Accountants can view this screen only.",
+  "storageProductImages": "Product images (optional)",
+  "storageProductImagesHelp": "Upload photos of the product/goods stored in the warehouse",
   "storageOpenDedicatedPage": "Open storage card (input / output / seal)",
   "storageLinkFromDetails": "Storage card",
   "pdfFontLoadErrorPrefix": "Could not load PDF font",

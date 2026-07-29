@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 
 import 'api.dart';
 import 'date_field.dart';
@@ -31,6 +33,9 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
   Transaction? _tx; // Changed to Transaction?
 
   String _subStage = 'INPUT';
+
+  List<dynamic> _retainedPhotos = [];
+  List<PlatformFile> _newPhotos = [];
 
   final _inDate = TextEditingController();
   final _inWages = TextEditingController();
@@ -149,6 +154,8 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
     _sealUnits.text = _numStr(num.tryParse(tx.storageSealUnitCount ?? ''));
     _sealCompany.text = (tx.storageSealWorkersCompany ?? '').toString();
     _sealWages.text = _numStr(tx.storageSealWorkersWages);
+    _retainedPhotos = List<dynamic>.from(tx.storagePhotos ?? []);
+    _newPhotos = [];
   }
 
   Future<void> _load() async {
@@ -176,16 +183,24 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
     }
   }
 
-  void _putStr(Map<String, dynamic> m, String key, TextEditingController c) {
-    final t = c.text.trim();
-    if (t.isNotEmpty) m[key] = t;
+  Future<void> _pickPhotos() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+    );
+    if (result != null) {
+      setState(() {
+        _newPhotos.addAll(result.files);
+      });
+    }
   }
 
-  void _putNum(Map<String, dynamic> m, String key, TextEditingController c) {
-    final t = c.text.trim();
-    if (t.isEmpty) return;
-    final n = num.tryParse(t);
-    if (n != null) m[key] = n;
+  void _removeNewPhoto(int idx) {
+    setState(() => _newPhotos.removeAt(idx));
+  }
+
+  void _removeRetainedPhoto(String path) {
+    setState(() => _retainedPhotos.removeWhere((e) => e['path'] == path));
   }
 
   Future<void> _save() async {
@@ -196,35 +211,60 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
       _error = '';
     });
     try {
-      final body = <String, dynamic>{'storageSubStage': _subStage};
-      _putStr(body, 'storageInputEntryDate', _inDate);
-      _putNum(body, 'storageInputWorkersWages', _inWages);
-      _putStr(body, 'storageInputWorkersCompany', _inCompany);
-      _putStr(body, 'storageInputStoreName', _inStore);
-      _putNum(body, 'storageInputVolumeCbm', _inCbm);
-      _putNum(body, 'storageInputLoadingEquipmentFare', _inFare);
+      final Map<String, String> stringFields = {};
+      stringFields['storageSubStage'] = _subStage;
 
-      _putStr(body, 'storageExitEntryDate', _outDate);
-      _putNum(body, 'storageExitWorkersWages', _outWages);
-      _putStr(body, 'storageExitWorkersCompany', _outCompany);
-      _putStr(body, 'storageExitStoreName', _outStore);
-      _putNum(body, 'storageExitVolumeCbm', _outCbm);
-      _putNum(body, 'storageExitLoadingEquipmentFare', _outFare);
-      _putStr(body, 'storageExitFreightVehicleNumbers', _outVehicles);
-      _putStr(body, 'storageExitCrossPackaging', _outCross);
-      _putStr(body, 'storageExitUnity', _outUnity);
+      void putStrField(String key, TextEditingController c) {
+        final t = c.text.trim();
+        if (t.isNotEmpty) stringFields[key] = t;
+      }
+      void putNumField(String key, TextEditingController c) {
+        final t = c.text.trim();
+        if (t.isNotEmpty) {
+          final n = num.tryParse(t);
+          if (n != null) stringFields[key] = n.toString();
+        }
+      }
 
-      _putStr(body, 'storageSealReplaceContainers', _sealReplace);
-      _putStr(body, 'storageSealEntryLockNumbers', _sealEntryLock);
-      _putStr(body, 'storageSealSwitchDate', _sealSwitch);
-      _putStr(body, 'storageSealEntryContainerNumbers', _sealContainers);
-      _putStr(body, 'storageSealOutLockNumbers', _sealOutLock);
-      _putNum(body, 'storageSealUnitCount', _sealUnits);
-      _putStr(body, 'storageSealWorkersCompany', _sealCompany);
-      _putNum(body, 'storageSealWorkersWages', _sealWages);
+      putStrField('storageInputEntryDate', _inDate);
+      putNumField('storageInputWorkersWages', _inWages);
+      putStrField('storageInputWorkersCompany', _inCompany);
+      putStrField('storageInputStoreName', _inStore);
+      putNumField('storageInputVolumeCbm', _inCbm);
+      putNumField('storageInputLoadingEquipmentFare', _inFare);
 
-      final data = await Api.put('$_modulePath/${widget.transactionId}', body)
-          as Map<String, dynamic>;
+      putStrField('storageExitEntryDate', _outDate);
+      putNumField('storageExitWorkersWages', _outWages);
+      putStrField('storageExitWorkersCompany', _outCompany);
+      putStrField('storageExitStoreName', _outStore);
+      putNumField('storageExitVolumeCbm', _outCbm);
+      putNumField('storageExitLoadingEquipmentFare', _outFare);
+      putStrField('storageExitFreightVehicleNumbers', _outVehicles);
+      putStrField('storageExitCrossPackaging', _outCross);
+      putStrField('storageExitUnity', _outUnity);
+
+      putStrField('storageSealReplaceContainers', _sealReplace);
+      putStrField('storageSealEntryLockNumbers', _sealEntryLock);
+      putStrField('storageSealSwitchDate', _sealSwitch);
+      putStrField('storageSealEntryContainerNumbers', _sealContainers);
+      putStrField('storageSealOutLockNumbers', _sealOutLock);
+      putNumField('storageSealUnitCount', _sealUnits);
+      putStrField('storageSealWorkersCompany', _sealCompany);
+      putNumField('storageSealWorkersWages', _sealWages);
+
+      // Preserve existing document attachments
+      stringFields['existingAttachments'] = jsonEncode(_tx?.documentAttachments ?? []);
+
+      // Retained storage photos
+      stringFields['existingStoragePhotos'] = jsonEncode(_retainedPhotos);
+
+      final data = await Api.putMultipart(
+        '$_modulePath/${widget.transactionId}',
+        stringFields,
+        _newPhotos,
+        fileFieldName: 'storagePhotos',
+      ) as Map<String, dynamic>;
+
       if (mounted) {
         setState(() {
           _tx = Transaction.fromJson(data);
@@ -415,6 +455,48 @@ class _TransactionStoragePageState extends State<TransactionStoragePage> {
                               decimal: true),
                           enabled: _canEdit),
                     ],
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.storageProductImages,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.storageProductImagesHelp,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_retainedPhotos.isNotEmpty)
+                      Column(
+                        children: _retainedPhotos.map((photo) => ListTile(
+                          leading: const Icon(Icons.image, color: Colors.blue),
+                          title: Text(photo['originalName']?.toString() ?? ''),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.red),
+                            onPressed: _canEdit ? () => _removeRetainedPhoto(photo['path'].toString()) : null,
+                          ),
+                        )).toList(),
+                      ),
+                    if (_newPhotos.isNotEmpty)
+                      Column(
+                        children: _newPhotos.asMap().entries.map((e) => ListTile(
+                          leading: const Icon(Icons.add_photo_alternate, color: Colors.green),
+                          title: Text(e.value.name),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.red),
+                            onPressed: () => _removeNewPhoto(e.key),
+                          ),
+                        )).toList(),
+                      ),
+                    if (_canEdit)
+                      OutlinedButton.icon(
+                        onPressed: _pickPhotos,
+                        icon: const Icon(Icons.add_a_photo),
+                        label: Text(l10n.storageProductImages),
+                      ),
+                    const SizedBox(height: 16),
                     if (!_canEdit)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),

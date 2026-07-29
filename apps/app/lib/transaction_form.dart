@@ -167,7 +167,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   String? _releaseCode;
   String? _clearanceStatus;
   String _stage = 'PREPARATION';
-  Transaction? _existingTransaction; // Added to hold the loaded transaction
 
   String get _modulePath => '/api/${widget.module}';
 
@@ -225,7 +224,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       final data = await Api.get('$_modulePath/${widget.transactionId}')
           as Map<String, dynamic>;
       final tx = Transaction.fromJson(data);
-      _existingTransaction = tx;
 
       _client.text = tx.clientName;
       _shippingName.text = tx.shippingCompanyName;
@@ -650,7 +648,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     _goods.dispose();
     _origin.dispose();
     _value.dispose();
-    _rate.dispose();
     _weight.dispose();
     _containers.dispose();
     _containerArrival.dispose();
@@ -693,10 +690,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
 
     final clientOpts = _filterClients();
     final shipOpts = _filterShipping();
-    final invoice = double.tryParse(_value.text.trim());
-    final rate = double.tryParse(_rate.text.trim());
-    final derivedWeight =
-        (invoice != null && rate != null && rate > 0) ? (invoice / rate) : null;
     final storageWarehouseOnly = _isEdit &&
         _stage == 'STORAGE' &&
         (widget.module == 'transactions' || widget.module == 'transfers');
@@ -978,13 +971,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           _field(_weight, l10n.txGoodsWeightKg,
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
-          if (derivedWeight != null && _weight.text.trim().isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                  '${l10n.weightKg}: ${derivedWeight.toStringAsFixed(3)}',
-                  style: Theme.of(context).textTheme.bodySmall),
-            ),
           _field(_containers, l10n.txContainerCount,
               keyboard: TextInputType.number, enabled: prepEditable),
           ApiDateField(
@@ -1084,8 +1070,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             label: l10n.txDocumentArrival,
             enabled: customsEditable,
           ),
-          _field(_containerNumbers, l10n.containerNumbers,
-              maxLines: 3, enabled: storageEditable),
+          if (widget.module != 'exports')
+            _field(_containerNumbers, l10n.containerNumbers,
+                maxLines: 3, enabled: storageEditable),
           if (isTransferOrExport)
             _field(_unitNumber, l10n.txUnitNumber,
                 keyboard: TextInputType.number, enabled: storageEditable),
@@ -1179,6 +1166,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 maxLines: 2,
                 enabled: transportationEditableEffective,
                 hintText: l10n.txShipmentNumbersHint),
+            if (widget.module == 'exports')
+              _field(_containerNumbers, l10n.containerNumbers,
+                  maxLines: 3,
+                  enabled: transportationEditableEffective),
             _field(_transportationCompany, l10n.txTransportationCompany,
                 enabled: transportationEditableEffective),
             _field(_transportationFrom, l10n.txTransportationFrom,

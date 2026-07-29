@@ -38,6 +38,7 @@ class Transaction {
   final String xrayResult;
   final String? releaseCode;
   final List<dynamic>? documentAttachments;
+  final List<dynamic>? storagePhotos;
   final int? containerCount;
   final double? goodsWeightKg;
   final DateTime? containerArrivalDate;
@@ -131,6 +132,7 @@ class Transaction {
     required this.xrayResult,
     this.releaseCode,
     this.documentAttachments,
+    this.storagePhotos,
     this.containerCount,
     this.goodsWeightKg,
     this.containerArrivalDate,
@@ -265,6 +267,9 @@ class Transaction {
       releaseCode: optStr(json['releaseCode']),
       documentAttachments: json['documentAttachments'] is List
           ? List<dynamic>.from(json['documentAttachments'] as List)
+          : null,
+      storagePhotos: json['storagePhotos'] is List
+          ? List<dynamic>.from(json['storagePhotos'] as List)
           : null,
       containerCount: optInt(json['containerCount']),
       goodsWeightKg: optDouble(json['goodsWeightKg']),

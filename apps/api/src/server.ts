@@ -328,6 +328,8 @@ function bodyForTransactionZod(req: Request): Record<string, unknown> {
   const bodyForZod = { ...raw };
   delete bodyForZod.documentPhotoCategories;
   delete bodyForZod.existingAttachments;
+  delete bodyForZod.existingStoragePhotos;
+  delete bodyForZod.storagePhotos;
   return bodyForZod;
 }
 
@@ -342,7 +344,7 @@ function createExtrasFromRaw(raw: Record<string, unknown>): Record<string, unkno
 
 function maybeUpload(req: Request, res: Response, next: () => void) {
   if (isMultipartRequest(req)) {
-    transactionDocsUpload.array("documentPhotos", 40)(req, res, next);
+    transactionDocsUpload.any()(req, res, next);
   } else {
     next();
   }
@@ -1048,6 +1050,8 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
     const existingRaw = body.existingAttachments;
     const bodyForZod = { ...body };
     delete bodyForZod.existingAttachments;
+    delete bodyForZod.existingStoragePhotos;
+    delete bodyForZod.storagePhotos;
 
     const result = updateTransactionPayloadSchema.safeParse(bodyForZod);
     if (!result.success) {
@@ -1088,14 +1092,18 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
-      if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
+      const documentPhotoFiles = files.filter((f) => f.fieldname === "documentPhotos");
+      const storagePhotoFiles = files.filter((f) => f.fieldname === "storagePhotos");
+
+      if (role === "employee2" && documentPhotoFiles.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
         return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
       }
-      if (role === "employee" && files.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
+      if (role === "employee" && documentPhotoFiles.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
         return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
       }
+
       if (atStorage) {
-        if (files.length > 0) {
+        if (documentPhotoFiles.length > 0) {
           return res.status(400).json({ error: "Cannot upload new documents while the transaction is in Storage stage" });
         }
         const retained = parseExistingAttachmentsJson(existingRaw);
@@ -1103,8 +1111,8 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
           return res.status(400).json({ error: "Cannot add or remove document attachments in Storage stage" });
         }
       } else {
-        const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, files.length);
-        if (files.length > 0 && categories.length !== files.length) {
+        const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, documentPhotoFiles.length);
+        if (documentPhotoFiles.length > 0 && categories.length !== documentPhotoFiles.length) {
           return res.status(400).json({ error: "Each uploaded document must have a category" });
         }
         for (const c of categories) {
@@ -1112,7 +1120,7 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
             return res.status(400).json({ error: "Invalid document category" });
           }
         }
-        const uploaded: DocumentAttachment[] = files.map((f, idx) => ({
+        const uploaded: DocumentAttachment[] = documentPhotoFiles.map((f, idx) => ({
           path: publicPathForUploadedFile(f.filename),
           originalName: attachmentDisplayNameFromStoredFilename(f.filename),
           category: categories[idx] as DocumentAttachment["category"],
@@ -1121,6 +1129,18 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
         const merged = [...retained, ...uploaded];
         await removeOrphanFiles(prev.documentAttachments, merged);
         payload = { ...payload, documentAttachments: merged };
+      }
+
+      const existingStoragePhotosRaw = body.existingStoragePhotos;
+      if (existingStoragePhotosRaw !== undefined || storagePhotoFiles.length > 0) {
+        const retainedStoragePhotos = parseExistingAttachmentsJson(existingStoragePhotosRaw);
+        const uploadedStoragePhotos: DocumentAttachment[] = storagePhotoFiles.map((f) => ({
+          path: publicPathForUploadedFile(f.filename),
+          originalName: attachmentDisplayNameFromStoredFilename(f.filename),
+        }));
+        const mergedStoragePhotos = [...retainedStoragePhotos, ...uploadedStoragePhotos];
+        await removeOrphanFiles(prev.storagePhotos, mergedStoragePhotos);
+        payload = { ...payload, storagePhotos: mergedStoragePhotos };
       }
     }
 
@@ -1326,8 +1346,18 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
     }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
+      const documentPhotoFiles = files.filter((f) => f.fieldname === "documentPhotos");
+      const storagePhotoFiles = files.filter((f) => f.fieldname === "storagePhotos");
+
+      if (role === "employee2" && documentPhotoFiles.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
+        return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
+      }
+      if (role === "employee" && documentPhotoFiles.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
+        return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
+      }
+
       if (atStorage) {
-        if (files.length > 0) {
+        if (documentPhotoFiles.length > 0) {
           return res.status(400).json({ error: "Cannot upload new documents while the transfer is in Storage stage" });
         }
         const retained = parseExistingAttachmentsJson(existingRaw);
@@ -1335,18 +1365,16 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
           return res.status(400).json({ error: "Cannot add or remove document attachments in Storage stage" });
         }
       } else {
-        if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {
-          return res.status(403).json({ error: "Employee2 can upload attachments only during Transportation stage" });
+        const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, documentPhotoFiles.length);
+        if (documentPhotoFiles.length > 0 && categories.length !== documentPhotoFiles.length) {
+          return res.status(400).json({ error: "Each uploaded document must have a category" });
         }
-        if (role === "employee" && files.length > 0 && !EMPLOYEE_WORK_STAGES.has(txStageOf(prev))) {
-          return res.status(403).json({ error: "Employee can upload attachments only during Preparation and Customs clearance" });
-        }
-        const categories = parseDocumentPhotoCategories(body.documentPhotoCategories, files.length);
-        if (files.length > 0 && categories.length !== files.length) return res.status(400).json({ error: "Each uploaded document must have a category" });
         for (const c of categories) {
-          if (!documentCategoryEnum.safeParse(c).success) return res.status(400).json({ error: "Invalid document category" });
+          if (!documentCategoryEnum.safeParse(c).success) {
+            return res.status(400).json({ error: "Invalid document category" });
+          }
         }
-        const uploaded: DocumentAttachment[] = files.map((f, idx) => ({
+        const uploaded: DocumentAttachment[] = documentPhotoFiles.map((f, idx) => ({
           path: publicPathForUploadedFile(f.filename),
           originalName: attachmentDisplayNameFromStoredFilename(f.filename),
           category: categories[idx] as DocumentAttachment["category"],
@@ -1355,6 +1383,18 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
         const merged = [...retained, ...uploaded];
         await removeOrphanFiles(prev.documentAttachments, merged);
         payload = { ...payload, documentAttachments: merged };
+      }
+
+      const existingStoragePhotosRaw = body.existingStoragePhotos;
+      if (existingStoragePhotosRaw !== undefined || storagePhotoFiles.length > 0) {
+        const retainedStoragePhotos = parseExistingAttachmentsJson(existingStoragePhotosRaw);
+        const uploadedStoragePhotos: DocumentAttachment[] = storagePhotoFiles.map((f) => ({
+          path: publicPathForUploadedFile(f.filename),
+          originalName: attachmentDisplayNameFromStoredFilename(f.filename),
+        }));
+        const mergedStoragePhotos = [...retainedStoragePhotos, ...uploadedStoragePhotos];
+        await removeOrphanFiles(prev.storagePhotos, mergedStoragePhotos);
+        payload = { ...payload, storagePhotos: mergedStoragePhotos };
       }
     }
     const tx = await updateTransfer(req.params.id, payload);

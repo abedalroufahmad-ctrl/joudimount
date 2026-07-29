@@ -66,6 +66,8 @@ export type MessageKey =
   | "accountingPage.fixed.storageExitFare"
   | "storagePage.wrongStage"
   | "storagePage.accountantReadOnly"
+  | "storagePage.productImages"
+  | "storagePage.productImagesHelp"
   | "details.linkStorage"
   | "details.linkAccounting"
   | "form.storage.openDedicatedPage"
@@ -474,6 +476,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "accountingPage.fixed.storageExitFare": "أجرة معدات التحميل (إخراج)",
     "storagePage.wrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
     "storagePage.accountantReadOnly": "عرض فقط لدور المحاسب.",
+    "storagePage.productImages": "صور المنتج (اختياري)",
+    "storagePage.productImagesHelp": "تحميل صور المنتج / البضائع المخزنة في المستودع",
     "details.linkStorage": "بطاقة التخزين",
     "details.linkAccounting": "بطاقة المحاسبة",
     "form.storage.openDedicatedPage": "فتح بطاقة التخزين (إدخال / إخراج / تبديل)",
@@ -879,6 +883,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "accountingPage.fixed.storageExitFare": "Exit loading equipment fare",
     "storagePage.wrongStage": "This record is not in the Storage stage.",
     "storagePage.accountantReadOnly": "Accountants can view this page only.",
+    "storagePage.productImages": "Product images (optional)",
+    "storagePage.productImagesHelp": "Upload photos of the product/goods stored in the warehouse",
     "details.linkStorage": "Storage card",
     "details.linkAccounting": "Accounting card",
     "form.storage.openDedicatedPage": "Open storage card (input / output / seal)",

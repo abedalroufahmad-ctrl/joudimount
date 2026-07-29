@@ -650,6 +650,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storageAccountantReadOnly => 'Accountants can view this screen only.';
 
   @override
+  String get storageProductImages => 'Product images (optional)';
+
+  @override
+  String get storageProductImagesHelp => 'Upload photos of the product/goods stored in the warehouse';
+
+  @override
   String get storageOpenDedicatedPage => 'Open storage card (input / output / seal)';
 
   @override

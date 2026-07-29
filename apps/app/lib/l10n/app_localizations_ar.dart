@@ -650,6 +650,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storageAccountantReadOnly => 'عرض فقط لدور المحاسب.';
 
   @override
+  String get storageProductImages => 'صور المنتج (اختياري)';
+
+  @override
+  String get storageProductImagesHelp => 'تحميل صور المنتج / البضائع المخزنة في المستودع';
+
+  @override
   String get storageOpenDedicatedPage => 'فتح بطاقة التخزين (إدخال / إخراج / تبديل)';
 
   @override

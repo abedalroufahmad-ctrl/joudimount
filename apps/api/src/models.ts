@@ -156,6 +156,7 @@ interface TransactionDoc {
   accountingCustomFields?: { id: string; title: string; value: string }[];
   accountingInvoices?: { path: string; originalName: string; category?: string }[];
   isAccountingFinalized?: boolean;
+  storagePhotos?: { path: string; originalName: string }[];
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
   createdAt: Date;
   updatedAt: Date;
@@ -312,6 +313,12 @@ const transactionSchema = new Schema<TransactionDoc>(
       },
     ],
     isAccountingFinalized: { type: Boolean, default: false },
+    storagePhotos: [
+      {
+        path: { type: String, required: true },
+        originalName: { type: String, required: true },
+      },
+    ],
     transactionStage: {
       type: String,
       enum: ["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"],

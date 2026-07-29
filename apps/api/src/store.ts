@@ -304,6 +304,12 @@ function mapTransaction(doc: any): Transaction {
         }))
       : undefined,
     isAccountingFinalized: doc.isAccountingFinalized ?? false,
+    storagePhotos: Array.isArray(doc.storagePhotos)
+      ? doc.storagePhotos.map((a: { path: string; originalName: string }) => ({
+          path: a.path,
+          originalName: a.originalName,
+        }))
+      : undefined,
     transactionStage: doc.transactionStage ?? "PREPARATION",
     createdAt: new Date(doc.createdAt).toISOString(),
     updatedAt: new Date(doc.updatedAt).toISOString(),
@@ -413,6 +419,7 @@ export const STORAGE_STAGE_EDITABLE_FIELDS = new Set<keyof Transaction>([
   "storageSealUnitCount",
   "storageSealWorkersCompany",
   "storageSealWorkersWages",
+  "storagePhotos",
 ]);
 
 const TRANSACTION_PATCH_KEYS: (keyof Transaction)[] = [
@@ -499,6 +506,7 @@ const TRANSACTION_PATCH_KEYS: (keyof Transaction)[] = [
   "storageSealUnitCount",
   "storageSealWorkersCompany",
   "storageSealWorkersWages",
+  "storagePhotos",
 ];
 
 function getLockedFieldsForStage(stage: TransactionStage, model: typeof TransactionModel): Set<keyof Transaction> {
@@ -956,6 +964,7 @@ async function updateEntity(
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
+      | "storagePhotos"
       | "transactionStage"
     >
   >,
@@ -1165,6 +1174,7 @@ export async function updateTransaction(
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
+      | "storagePhotos"
       | "transactionStage"
     >
   >,
@@ -1288,6 +1298,7 @@ export async function updateTransfer(
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
+      | "storagePhotos"
       | "transactionStage"
     >
   >,
@@ -1415,6 +1426,7 @@ export async function updateExport(
       | "storageSealUnitCount"
       | "storageSealWorkersCompany"
       | "storageSealWorkersWages"
+      | "storagePhotos"
       | "transactionStage"
     >
   >,

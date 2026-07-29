@@ -220,6 +220,8 @@
   "storageOpenCard": "التخزين",
   "storageWrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
   "storageAccountantReadOnly": "عرض فقط لدور المحاسب.",
+  "storageProductImages": "صور المنتج (اختياري)",
+  "storageProductImagesHelp": "تحميل صور المنتج / البضائع المخزنة في المستودع",
   "storageOpenDedicatedPage": "فتح بطاقة التخزين (إدخال / إخراج / تبديل)",
   "storageLinkFromDetails": "بطاقة التخزين",
   "pdfFontLoadErrorPrefix": "تعذر تحميل خط ملف PDF",
