@@ -157,7 +157,6 @@ type FormState = {
   paymentStatus: "pending" | "paid";
   containerCount: string;
   goodsWeightKg: string;
-  invoiceToWeightRateAedPerKg: string;
   containerArrivalDate: string;
   documentArrivalDate: string;
   fileNumber: string;
@@ -205,7 +204,6 @@ const emptyForm: FormState = {
   paymentStatus: "pending",
   containerCount: "",
   goodsWeightKg: "",
-  invoiceToWeightRateAedPerKg: "",
   containerArrivalDate: "",
   documentArrivalDate: "",
   fileNumber: "",
@@ -347,8 +345,6 @@ export default function TransactionForm({
           paymentStatus: data.paymentStatus,
           containerCount: data.containerCount != null ? String(data.containerCount) : "",
           goodsWeightKg: data.goodsWeightKg != null ? String(data.goodsWeightKg) : "",
-          invoiceToWeightRateAedPerKg:
-            data.invoiceToWeightRateAedPerKg != null ? String(data.invoiceToWeightRateAedPerKg) : "",
           containerArrivalDate: isoToDateInput(data.containerArrivalDate),
           documentArrivalDate: isoToDateInput(data.documentArrivalDate),
           fileNumber: data.fileNumber ?? "",
@@ -369,11 +365,8 @@ export default function TransactionForm({
   }, [routeId, isEdit, t, module]);
 
   const derivedWeight = useMemo(() => {
-    const inv = Number(form.invoiceValue);
-    const rate = Number(form.invoiceToWeightRateAedPerKg);
-    if (!Number.isFinite(inv) || !Number.isFinite(rate) || rate <= 0) return null;
-    return inv / rate;
-  }, [form.invoiceValue, form.invoiceToWeightRateAedPerKg]);
+    return null;
+  }, []);
 
   const clientSuggestions: AutocompleteSuggestion[] = useMemo(() => {
     const q = form.clientName.trim().toLowerCase();
@@ -490,7 +483,6 @@ export default function TransactionForm({
             ? String(Math.round(derivedWeight * 1000) / 1000)
             : "";
       putOptionalNumber("goodsWeightKg", weightStr);
-      putOptionalNumber("invoiceToWeightRateAedPerKg", form.invoiceToWeightRateAedPerKg);
       if (form.containerArrivalDate) put("containerArrivalDate", form.containerArrivalDate);
       if (form.documentArrivalDate) put("documentArrivalDate", form.documentArrivalDate);
       putIfPresent("fileNumber", form.fileNumber);
@@ -1346,18 +1338,6 @@ export default function TransactionForm({
           />
         </label>
         <label className="form-field-box form-label w-100 mb-0">
-          {t("form.invoiceToWeightRate")}
-          <input className="form-control mt-1"
-            type="number"
-            min={0}
-            step="any"
-            disabled={!prepEditableEffective}
-            value={form.invoiceToWeightRateAedPerKg}
-            onChange={(e) => setForm({ ...form, invoiceToWeightRateAedPerKg: e.target.value })}
-          />
-          <span className="form-text">{t("form.invoiceToWeightRateHint")}</span>
-        </label>
-        <label className="form-field-box form-label w-100 mb-0">
           {t("form.orderDate")}
           <input className="form-control mt-1"
             type="date"
@@ -1401,7 +1381,7 @@ export default function TransactionForm({
             step="any"
             value={form.goodsWeightKg}
             onChange={(e) => setForm({ ...form, goodsWeightKg: e.target.value })}
-            placeholder={derivedWeight != null ? `${t("form.derivedWeight")}: ${derivedWeight.toFixed(3)}` : undefined}
+            placeholder={undefined}
           />
         </label>
         <label className="form-field-box form-label w-100 mb-0">

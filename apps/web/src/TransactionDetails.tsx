@@ -388,11 +388,6 @@ export default function TransactionDetails({
               {transaction.goodsWeightKg.toLocaleString(numberLocale)}
             </DetailField>
           ) : null}
-          {transaction.invoiceToWeightRateAedPerKg != null ? (
-            <DetailField label={t("details.invoiceToWeightRate")}>
-              {transaction.invoiceToWeightRateAedPerKg.toLocaleString(numberLocale)}
-            </DetailField>
-          ) : null}
           {transaction.containerArrivalDate ? (
             <DetailField label={t("details.containerArrivalDate")}>
               {new Date(transaction.containerArrivalDate).toLocaleString(numberLocale)}
