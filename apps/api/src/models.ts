@@ -153,6 +153,8 @@ interface TransactionDoc {
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
   accountingCustomFields?: { id: string; title: string; value: string }[];
+  accountingInvoices?: { path: string; originalName: string; category?: string }[];
+  isAccountingFinalized?: boolean;
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
   createdAt: Date;
   updatedAt: Date;
