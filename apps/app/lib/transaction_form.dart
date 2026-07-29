@@ -139,7 +139,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   final _origin = TextEditingController(text: 'AE');
   final _value = TextEditingController(text: '1000');
   String _currency = 'AED';
-  final _rate = TextEditingController();
   final _weight = TextEditingController();
   final _containers = TextEditingController();
   final _containerArrival = TextEditingController();
@@ -260,7 +259,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           : 'AED';
       _docStatus = tx.documentStatus;
       _paymentStatus = tx.paymentStatus;
-      _rate.text = (tx.invoiceToWeightRateAedPerKg ?? '').toString();
       _weight.text = (tx.goodsWeightKg ?? '').toString();
       _containers.text = (tx.containerCount ?? '').toString();
       _containerArrival.text = _isoToDateInput(tx.containerArrivalDate);
@@ -346,7 +344,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'invoiceCurrency': _currency,
       'documentStatus': _docStatus,
       'paymentStatus': _paymentStatus,
-      'invoiceToWeightRateAedPerKg': double.tryParse(_rate.text.trim()),
       'goodsWeightKg': double.tryParse(_weight.text.trim()),
       'containerCount': int.tryParse(_containers.text.trim()),
       'containerArrivalDate': _containerArrival.text.trim(),
@@ -399,8 +396,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         return l10n.originCountry;
       case 'invoiceValue':
         return l10n.invoiceValue;
-      case 'invoiceToWeightRateAedPerKg':
-        return l10n.txRateAedPerKg;
       case 'goodsQuantity':
         return l10n.txGoodsQty;
       case 'goodsQuality':
@@ -950,9 +945,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     : null,
               )),
           _field(_value, l10n.invoiceValue,
-              keyboard: const TextInputType.numberWithOptions(decimal: true),
-              enabled: prepEditable),
-          _field(_rate, l10n.txRateAedPerKg,
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
           ApiDateField(

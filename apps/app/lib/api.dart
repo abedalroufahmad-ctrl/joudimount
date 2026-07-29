@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Api {
   static const int _defaultPort = 4000;
-  static const String _defaultLanBase = 'http://192.168.0.110:4000';
+  static const String _defaultLanBase = 'http://192.168.227.197:4000';
 
   static void _clearSessionIfUnauthorized(int statusCode) {
     if (statusCode != 401) return;

@@ -139,7 +139,6 @@ export interface Transaction {
   documentAttachments?: DocumentAttachment[];
   containerCount?: number;
   goodsWeightKg?: number;
-  invoiceToWeightRateAedPerKg?: number;
   containerArrivalDate?: string;
   documentArrivalDate?: string;
   fileNumber?: string;

@@ -258,7 +258,6 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       _detailRowOptional(l10n.txContainerSize, t.containerSize, locale),
       _detailRowOptional(l10n.txContainerCount, t.containerCount, locale),
       _detailRowOptional(l10n.txGoodsWeightKg, t.goodsWeightKg, locale),
-      _detailRowOptional(l10n.txRateAedPerKg, t.invoiceToWeightRateAedPerKg, locale),
       _detailRowOptional(l10n.txContainerArrival, t.containerArrivalDate?.toIso8601String(), locale, dateTime: true),
       _detailRowOptional(l10n.txDocumentArrival, t.documentArrivalDate?.toIso8601String(), locale, dateTime: true),
       if (t.containerNumbers != null && t.containerNumbers!.isNotEmpty)

@@ -26,7 +26,6 @@ export const EMPLOYEE1_EDIT_FIELDS = new Set<string>([
   "originCountry",
   "containerCount",
   "goodsWeightKg",
-  "invoiceToWeightRateAedPerKg",
   "goodsQuantity",
   "unitNumber",
   "goodsQuality",

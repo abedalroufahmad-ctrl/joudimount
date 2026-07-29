@@ -106,7 +106,6 @@ interface TransactionDoc {
   }[];
   containerCount?: number;
   goodsWeightKg?: number;
-  invoiceToWeightRateAedPerKg?: number;
   containerArrivalDate?: Date;
   documentArrivalDate?: Date;
   fileNumber?: string;
@@ -240,7 +239,6 @@ const transactionSchema = new Schema<TransactionDoc>(
     ],
     containerCount: { type: Number },
     goodsWeightKg: { type: Number },
-    invoiceToWeightRateAedPerKg: { type: Number },
     containerArrivalDate: { type: Date },
     documentArrivalDate: { type: Date },
     fileNumber: { type: String },

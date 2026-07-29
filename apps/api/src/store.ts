@@ -242,7 +242,6 @@ function mapTransaction(doc: any): Transaction {
     documentAttachments: attachments,
     containerCount: doc.containerCount,
     goodsWeightKg: doc.goodsWeightKg,
-    invoiceToWeightRateAedPerKg: doc.invoiceToWeightRateAedPerKg,
     containerArrivalDate: mapOptionalDate(doc.containerArrivalDate),
     documentArrivalDate: mapOptionalDate(doc.documentArrivalDate),
     fileNumber: doc.fileNumber,
@@ -332,7 +331,6 @@ const preparationFields = new Set<keyof Transaction>([
   "invoiceCurrency",
   "originCountry",
   "goodsWeightKg",
-  "invoiceToWeightRateAedPerKg",
   "containerCount",
   "goodsQuantity",
   "goodsQuality",
@@ -443,7 +441,6 @@ const TRANSACTION_PATCH_KEYS: (keyof Transaction)[] = [
   "documentAttachments",
   "containerCount",
   "goodsWeightKg",
-  "invoiceToWeightRateAedPerKg",
   "containerArrivalDate",
   "documentArrivalDate",
   "fileNumber",
@@ -701,7 +698,6 @@ type CreateTransactionFields = Pick<
       | "documentAttachments"
       | "containerCount"
       | "goodsWeightKg"
-      | "invoiceToWeightRateAedPerKg"
       | "containerArrivalDate"
       | "documentArrivalDate"
       | "fileNumber"
@@ -899,7 +895,6 @@ async function updateEntity(
       | "documentAttachments"
       | "containerCount"
       | "goodsWeightKg"
-      | "invoiceToWeightRateAedPerKg"
       | "containerArrivalDate"
       | "documentArrivalDate"
       | "fileNumber"
@@ -1107,7 +1102,6 @@ export async function updateTransaction(
       | "documentAttachments"
       | "containerCount"
       | "goodsWeightKg"
-      | "invoiceToWeightRateAedPerKg"
       | "containerArrivalDate"
       | "documentArrivalDate"
       | "fileNumber"
@@ -1229,7 +1223,6 @@ export async function updateTransfer(
       | "documentAttachments"
       | "containerCount"
       | "goodsWeightKg"
-      | "invoiceToWeightRateAedPerKg"
       | "containerArrivalDate"
       | "documentArrivalDate"
       | "fileNumber"
@@ -1358,7 +1351,6 @@ export async function updateExport(
       | "documentAttachments"
       | "containerCount"
       | "goodsWeightKg"
-      | "invoiceToWeightRateAedPerKg"
       | "containerArrivalDate"
       | "documentArrivalDate"
       | "fileNumber"

@@ -39,7 +39,6 @@ class Transaction {
   final List<dynamic>? documentAttachments;
   final int? containerCount;
   final double? goodsWeightKg;
-  final double? invoiceToWeightRateAedPerKg;
   final DateTime? containerArrivalDate;
   final DateTime? documentArrivalDate;
   final String? fileNumber;
@@ -132,7 +131,6 @@ class Transaction {
     this.documentAttachments,
     this.containerCount,
     this.goodsWeightKg,
-    this.invoiceToWeightRateAedPerKg,
     this.containerArrivalDate,
     this.documentArrivalDate,
     this.fileNumber,
@@ -267,7 +265,6 @@ class Transaction {
           : null,
       containerCount: optInt(json['containerCount']),
       goodsWeightKg: optDouble(json['goodsWeightKg']),
-      invoiceToWeightRateAedPerKg: optDouble(json['invoiceToWeightRateAedPerKg']),
       containerArrivalDate: json['containerArrivalDate'] != null
           ? parseDate(json['containerArrivalDate'])
           : null,

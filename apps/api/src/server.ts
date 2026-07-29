@@ -108,7 +108,6 @@ const stage1EmployeeFields = new Set([
   "originCountry",
   "containerCount",
   "goodsWeightKg",
-  "invoiceToWeightRateAedPerKg",
   "goodsQuantity",
   "unitNumber",
   "goodsQuality",
@@ -388,9 +387,6 @@ function getMissingFieldsBeforeCustomsClearance(tx: Transaction): string[] {
   if (!Number.isFinite(tx.invoiceValue) || tx.invoiceValue <= 0) missing.push("invoiceValue");
   if (tx.containerCount === undefined || tx.containerCount < 0) missing.push("containerCount");
   if (tx.goodsWeightKg === undefined || tx.goodsWeightKg < 0) missing.push("goodsWeightKg");
-  if (tx.invoiceToWeightRateAedPerKg === undefined || tx.invoiceToWeightRateAedPerKg <= 0) {
-    missing.push("invoiceToWeightRateAedPerKg");
-  }
   if (tx.goodsQuantity === undefined || tx.goodsQuantity < 0) missing.push("goodsQuantity");
   if (isBlankString(tx.goodsQuality)) missing.push("goodsQuality");
   if (isBlankString(tx.goodsUnit)) missing.push("goodsUnit");
