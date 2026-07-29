@@ -17,6 +17,7 @@ class Transaction {
   final String? destination;
   final String? transportationTo;
   final String? trachNo;
+  final List<String>? shipmentNumbers;
   final String? transportationCompany;
   final String? transportationFrom;
   final String? transportationToLocation;
@@ -109,6 +110,7 @@ class Transaction {
     this.destination,
     this.transportationTo,
     this.trachNo,
+    this.shipmentNumbers,
     this.transportationCompany,
     this.transportationFrom,
     this.transportationToLocation,
@@ -241,6 +243,7 @@ class Transaction {
       destination: optStr(json['destination']),
       transportationTo: optStr(json['transportationTo']),
       trachNo: optStr(json['trachNo']),
+      shipmentNumbers: parseStringList(json['shipmentNumbers']),
       transportationCompany: optStr(json['transportationCompany']),
       transportationFrom: optStr(json['transportationFrom']),
       transportationToLocation: optStr(json['transportationToLocation']),

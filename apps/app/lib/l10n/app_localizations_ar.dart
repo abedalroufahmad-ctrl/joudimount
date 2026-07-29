@@ -168,7 +168,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goodsDescription => 'وصف البضائع';
 
   @override
-  String get invoiceValue => 'قيمة الفاتورة';
+  String get invoiceValue => 'الضمان والضريبة';
 
   @override
   String get shippingCompanyIdOptional => 'معرف شركة الشحن (اختياري)';
@@ -744,6 +744,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get txTrachNo => 'TrachNo';
+
+  @override
+  String get txShipmentNumbers => 'رقم الشحنة';
+
+  @override
+  String get txShipmentNumbersHint => 'مثال: SHP001, SHP002';
 
   @override
   String get txTransportationCompany => 'شركة النقل';

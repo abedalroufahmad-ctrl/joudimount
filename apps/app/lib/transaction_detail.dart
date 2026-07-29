@@ -159,6 +159,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final showTransportation = stage == 'TRANSPORTATION' &&
         ((t.transportationTo?.trim().isNotEmpty ?? false) ||
             (t.trachNo?.trim().isNotEmpty ?? false) ||
+            (t.shipmentNumbers != null && t.shipmentNumbers!.isNotEmpty) ||
             (t.transportationCompany?.trim().isNotEmpty ?? false) ||
             (t.transportationFrom?.trim().isNotEmpty ?? false) ||
             (t.transportationToLocation?.trim().isNotEmpty ?? false) ||
@@ -272,6 +273,11 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final transportationRows = <Widget>[
       _detailRowOptional(l10n.txTransportationTo, t.transportationTo, locale),
       _detailRowOptional(l10n.txTrachNo, t.trachNo, locale),
+      if (t.shipmentNumbers != null && t.shipmentNumbers!.isNotEmpty)
+        _detailRow(
+          l10n.txShipmentNumbers,
+          t.shipmentNumbers!.join(', '),
+        ),
       _detailRowOptional(l10n.txTransportationCompany, t.transportationCompany, locale),
       _detailRowOptional(l10n.txTransportationFrom, t.transportationFrom, locale),
       _detailRowOptional(l10n.txTransportationToLocation, t.transportationToLocation, locale),

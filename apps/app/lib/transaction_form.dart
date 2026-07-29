@@ -127,6 +127,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   final _destination = TextEditingController();
   final _transportationTo = TextEditingController();
   final _trachNo = TextEditingController();
+  final _shipmentNumbers = TextEditingController();
   final _transportationCompany = TextEditingController();
   final _transportationFrom = TextEditingController();
   final _transportationToLocation = TextEditingController();
@@ -242,6 +243,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _destination.text = tx.destination ?? '';
       _transportationTo.text = tx.transportationTo ?? '';
       _trachNo.text = tx.trachNo ?? '';
+      if (tx.shipmentNumbers != null) {
+        _shipmentNumbers.text = tx.shipmentNumbers!.join(', ');
+      }
       _transportationCompany.text = tx.transportationCompany ?? '';
       _transportationFrom.text = tx.transportationFrom ?? '';
       _transportationToLocation.text = tx.transportationToLocation ?? '';
@@ -330,6 +334,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'destination': _destination.text.trim(),
       'transportationTo': _transportationTo.text.trim(),
       'trachNo': _trachNo.text.trim(),
+      'shipmentNumbers': _shipmentNumbers.text
+          .split(RegExp(r'[\n,]+'))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList(),
       'transportationCompany': _transportationCompany.text.trim(),
       'transportationFrom': _transportationFrom.text.trim(),
       'transportationToLocation': _transportationToLocation.text.trim(),
@@ -629,6 +638,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     _destination.dispose();
     _transportationTo.dispose();
     _trachNo.dispose();
+    _shipmentNumbers.dispose();
     _transportationCompany.dispose();
     _transportationFrom.dispose();
     _transportationToLocation.dispose();
@@ -1165,6 +1175,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 enabled: transportationEditableEffective),
             _field(_trachNo, l10n.txTrachNo,
                 enabled: transportationEditableEffective),
+            _field(_shipmentNumbers, l10n.txShipmentNumbers,
+                maxLines: 2,
+                enabled: transportationEditableEffective,
+                hintText: l10n.txShipmentNumbersHint),
             _field(_transportationCompany, l10n.txTransportationCompany,
                 enabled: transportationEditableEffective),
             _field(_transportationFrom, l10n.txTransportationFrom,

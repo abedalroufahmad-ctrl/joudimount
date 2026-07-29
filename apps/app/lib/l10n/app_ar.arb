@@ -252,6 +252,8 @@
   "txTransportationSection": "النقل",
   "txTransportationTo": "الموعد",
   "txTrachNo": "TrachNo",
+  "txShipmentNumbers": "رقم الشحنة",
+  "txShipmentNumbersHint": "مثال: SHP001, SHP002",
   "txTransportationCompany": "شركة النقل",
   "txTransportationFrom": "من",
   "txTransportationToLocation": "إلى",

@@ -117,6 +117,8 @@ export interface Transaction {
   destination?: string;
   transportationTo?: string;
   trachNo?: string;
+  /** Multiple shipment / tracking numbers for the transportation stage. */
+  shipmentNumbers?: string[];
   transportationCompany?: string;
   transportationFrom?: string;
   transportationToLocation?: string;

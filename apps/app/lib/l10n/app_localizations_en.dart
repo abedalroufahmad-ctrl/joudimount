@@ -168,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goodsDescription => 'Goods Description';
 
   @override
-  String get invoiceValue => 'Invoice Value';
+  String get invoiceValue => 'Guaranty and VAT';
 
   @override
   String get shippingCompanyIdOptional => 'Shipping Company ID (optional)';
@@ -744,6 +744,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get txTrachNo => 'TrachNo';
+
+  @override
+  String get txShipmentNumbers => 'Shipment Number';
+
+  @override
+  String get txShipmentNumbersHint => 'e.g. SHP001, SHP002';
 
   @override
   String get txTransportationCompany => 'Company transportation';

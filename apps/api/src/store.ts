@@ -220,6 +220,7 @@ function mapTransaction(doc: any): Transaction {
     destination: doc.destination,
     transportationTo: doc.transportationTo,
     trachNo: doc.trachNo,
+    shipmentNumbers: Array.isArray(doc.shipmentNumbers) ? doc.shipmentNumbers : undefined,
     transportationCompany: doc.transportationCompany,
     transportationFrom: doc.transportationFrom,
     transportationToLocation: doc.transportationToLocation,
@@ -368,6 +369,7 @@ const storageFields = new Set<keyof Transaction>([
 const transportationFields = new Set<keyof Transaction>([
   "transportationTo",
   "trachNo",
+  "shipmentNumbers",
   "transportationCompany",
   "transportationFrom",
   "transportationToLocation",
@@ -431,6 +433,7 @@ const TRANSACTION_PATCH_KEYS: (keyof Transaction)[] = [
   "destination",
   "transportationTo",
   "trachNo",
+  "shipmentNumbers",
   "transportationCompany",
   "transportationFrom",
   "transportationToLocation",
@@ -689,6 +692,7 @@ type CreateTransactionFields = Pick<
       | "destination"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -697,6 +701,7 @@ type CreateTransactionFields = Pick<
       | "maccrikCharge"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -877,6 +882,7 @@ async function updateEntity(
       | "destination"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -885,6 +891,7 @@ async function updateEntity(
       | "maccrikCharge"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -1084,6 +1091,7 @@ export async function updateTransaction(
       | "destination"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -1092,6 +1100,7 @@ export async function updateTransaction(
       | "maccrikCharge"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -1205,6 +1214,7 @@ export async function updateTransfer(
       | "destination"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"
@@ -1213,6 +1223,7 @@ export async function updateTransfer(
       | "maccrikCharge"
       | "transportationTo"
       | "trachNo"
+      | "shipmentNumbers"
       | "transportationCompany"
       | "transportationFrom"
       | "transportationToLocation"

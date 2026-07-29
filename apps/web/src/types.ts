@@ -41,6 +41,7 @@ export interface Transaction {
   destination?: string;
   transportationTo?: string;
   trachNo?: string;
+  shipmentNumbers?: string[];
   transportationCompany?: string;
   transportationFrom?: string;
   transportationToLocation?: string;

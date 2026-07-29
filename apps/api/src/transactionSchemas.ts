@@ -77,6 +77,11 @@ export const optionalContainerNumbers = z.preprocess(
   z.array(z.string().min(1).max(60)).max(200).optional(),
 );
 
+export const optionalShipmentNumbers = z.preprocess(
+  parseOptionalStringArray,
+  z.array(z.string().min(1).max(120)).max(200).optional(),
+);
+
 export const goodsQualityEnum = z.enum(["new", "like_new", "used", "refurbished", "damaged", "mixed"]);
 
 export const goodsUnitEnum = z.enum(["kg", "ton", "piece", "carton", "pallet", "cbm", "liter", "set"]);
@@ -122,6 +127,7 @@ export const createTransactionPayloadSchema = z.object({
   destination: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationTo: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   trachNo: z.preprocess(emptyToUndef, z.string().max(120).optional()),
+  shipmentNumbers: optionalShipmentNumbers,
   transportationCompany: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationFrom: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationToLocation: z.preprocess(emptyToUndef, z.string().max(120).optional()),
@@ -202,6 +208,7 @@ export const updateTransactionPayloadSchema = z.object({
   destination: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationTo: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   trachNo: z.preprocess(emptyToUndef, z.string().max(120).optional()),
+  shipmentNumbers: optionalShipmentNumbers,
   transportationCompany: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationFrom: z.preprocess(emptyToUndef, z.string().max(120).optional()),
   transportationToLocation: z.preprocess(emptyToUndef, z.string().max(120).optional()),

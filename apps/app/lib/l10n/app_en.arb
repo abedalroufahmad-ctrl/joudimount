@@ -252,6 +252,8 @@
   "txTransportationSection": "Transportation",
   "txTransportationTo": "The appointment",
   "txTrachNo": "TrachNo",
+  "txShipmentNumbers": "Shipment Number",
+  "txShipmentNumbersHint": "e.g. SHP001, SHP002",
   "txTransportationCompany": "Company transportation",
   "txTransportationFrom": "From",
   "txTransportationToLocation": "To",

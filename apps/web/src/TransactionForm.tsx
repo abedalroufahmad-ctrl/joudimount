@@ -141,6 +141,7 @@ type FormState = {
   destination: string;
   transportationTo: string;
   trachNo: string;
+  shipmentNumbers: string;
   transportationCompany: string;
   transportationFrom: string;
   transportationToLocation: string;
@@ -188,6 +189,7 @@ const emptyForm: FormState = {
   destination: "",
   transportationTo: "",
   trachNo: "",
+  shipmentNumbers: "",
   transportationCompany: "",
   transportationFrom: "",
   transportationToLocation: "",
@@ -329,6 +331,7 @@ export default function TransactionForm({
           destination: data.destination ?? "",
           transportationTo: isoToDateInput(data.transportationTo ?? ""),
           trachNo: data.trachNo ?? "",
+          shipmentNumbers: data.shipmentNumbers?.join(", ") ?? "",
           transportationCompany: data.transportationCompany ?? "",
           transportationFrom: data.transportationFrom ?? "",
           transportationToLocation: data.transportationToLocation ?? "",
@@ -460,6 +463,15 @@ export default function TransactionForm({
       putIfPresent("destination", form.destination);
       putIfPresent("transportationTo", form.transportationTo);
       putIfPresent("trachNo", form.trachNo);
+      if (form.shipmentNumbers.trim()) {
+        const values = form.shipmentNumbers
+          .split(/[\n,]+/)
+          .map((v) => v.trim())
+          .filter(Boolean);
+        if (values.length && canRoleSubmitField(role, "shipmentNumbers", isEdit, stage)) {
+          fd.append("shipmentNumbers", JSON.stringify(values));
+        }
+      }
       putIfPresent("transportationCompany", form.transportationCompany);
       putIfPresent("transportationFrom", form.transportationFrom);
       putIfPresent("transportationToLocation", form.transportationToLocation);
@@ -955,6 +967,16 @@ export default function TransactionForm({
                   disabled={!transportationEditableEffective}
                   value={form.trachNo}
                   onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
+                />
+              </label>
+              <label className="form-field-box form-field-box--full form-label w-100 mb-0">
+                {t("transportation.shipmentNumbers" as MessageKey)}
+                <textarea className="form-control mt-1"
+                  disabled={!transportationEditableEffective}
+                  value={form.shipmentNumbers}
+                  onChange={(e) => setForm({ ...form, shipmentNumbers: e.target.value })}
+                  rows={2}
+                  placeholder={t("transportation.shipmentNumbersPlaceholder" as MessageKey)}
                 />
               </label>
               <label className="form-field-box form-label w-100 mb-0">
@@ -1491,6 +1513,16 @@ export default function TransactionForm({
                 disabled={!transportationEditableEffective}
                 value={form.trachNo}
                 onChange={(e) => setForm({ ...form, trachNo: e.target.value })}
+              />
+            </label>
+            <label className="form-field-box form-field-box--full form-label w-100 mb-0">
+              {t("transportation.shipmentNumbers" as MessageKey)}
+              <textarea className="form-control mt-1"
+                disabled={!transportationEditableEffective}
+                value={form.shipmentNumbers}
+                onChange={(e) => setForm({ ...form, shipmentNumbers: e.target.value })}
+                rows={2}
+                placeholder={t("transportation.shipmentNumbersPlaceholder" as MessageKey)}
               />
             </label>
             <label className="form-field-box form-label w-100 mb-0">

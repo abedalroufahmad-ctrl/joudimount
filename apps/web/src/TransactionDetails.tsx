@@ -412,6 +412,7 @@ export default function TransactionDetails({
         {transaction.transactionStage === "TRANSPORTATION" &&
         (transaction.transportationTo ||
           transaction.trachNo ||
+          (transaction.shipmentNumbers && transaction.shipmentNumbers.length > 0) ||
           transaction.transportationCompany ||
           transaction.transportationFrom ||
           transaction.transportationToLocation ||
@@ -424,6 +425,11 @@ export default function TransactionDetails({
             ) : null}
             {transaction.trachNo ? (
               <DetailField label={t("transportation.trachNo" as MessageKey)}>{transaction.trachNo}</DetailField>
+            ) : null}
+            {transaction.shipmentNumbers && transaction.shipmentNumbers.length > 0 ? (
+              <DetailField label={t("transportation.shipmentNumbers" as MessageKey)}>
+                {transaction.shipmentNumbers.join(", ")}
+              </DetailField>
             ) : null}
             {transaction.transportationCompany ? (
               <DetailField label={t("transportation.company" as MessageKey)}>{transaction.transportationCompany}</DetailField>

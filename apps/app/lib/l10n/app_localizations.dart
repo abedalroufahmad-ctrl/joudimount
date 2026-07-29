@@ -416,7 +416,7 @@ abstract class AppLocalizations {
   /// No description provided for @invoiceValue.
   ///
   /// In en, this message translates to:
-  /// **'Invoice Value'**
+  /// **'Guaranty and VAT'**
   String get invoiceValue;
 
   /// No description provided for @shippingCompanyIdOptional.
@@ -1564,6 +1564,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TrachNo'**
   String get txTrachNo;
+
+  /// No description provided for @txShipmentNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipment Number'**
+  String get txShipmentNumbers;
+
+  /// No description provided for @txShipmentNumbersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. SHP001, SHP002'**
+  String get txShipmentNumbersHint;
 
   /// No description provided for @txTransportationCompany.
   ///

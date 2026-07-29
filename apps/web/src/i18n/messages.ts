@@ -397,6 +397,8 @@ export type MessageKey =
   | "transportation.sectionTitle"
   | "transportation.toUpper"
   | "transportation.trachNo"
+  | "transportation.shipmentNumbers"
+  | "transportation.shipmentNumbersPlaceholder"
   | "transportation.company"
   | "transportation.from"
   | "transportation.to"
@@ -801,6 +803,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "transportation.sectionTitle": "النقل",
     "transportation.toUpper": "الموعد",
     "transportation.trachNo": "رقم الشاحنة",
+    "transportation.shipmentNumbers": "رقم الشحنة",
+    "transportation.shipmentNumbersPlaceholder": "مثال: SHP001, SHP002",
     "transportation.company": "شركة النقل",
     "transportation.from": "من",
     "transportation.to": "إلى",
@@ -1205,6 +1209,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "transportation.sectionTitle": "Transportation",
     "transportation.toUpper": "The appointment",
     "transportation.trachNo": "TrachNo",
+    "transportation.shipmentNumbers": "Shipment Number",
+    "transportation.shipmentNumbersPlaceholder": "e.g. SHP001, SHP002",
     "transportation.company": "Company transportation",
     "transportation.from": "From",
     "transportation.to": "To",

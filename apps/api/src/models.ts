@@ -80,6 +80,7 @@ interface TransactionDoc {
   destination?: string;
   transportationTo?: string;
   trachNo?: string;
+  shipmentNumbers?: string[];
   transportationCompany?: string;
   transportationFrom?: string;
   transportationToLocation?: string;
@@ -192,6 +193,7 @@ const transactionSchema = new Schema<TransactionDoc>(
     destination: { type: String },
     transportationTo: { type: String },
     trachNo: { type: String },
+    shipmentNumbers: [{ type: String }],
     transportationCompany: { type: String },
     transportationFrom: { type: String },
     transportationToLocation: { type: String },
