@@ -51,6 +51,7 @@ export default function TransactionsTable({
               <th>{t("list.col.client")}</th>
               <th>{t("list.col.shippingCompany")}</th>
               <th>{t("list.col.status")}</th>
+              <th>{t("form.numberOfUnits" as MessageKey)}</th>
               <th>{t("list.col.storage" as MessageKey)}</th>
               {showAccounting ? <th>{t("list.col.accounting" as MessageKey)}</th> : null}
               <th>{t("list.col.createdAt")}</th>
@@ -75,6 +76,7 @@ export default function TransactionsTable({
                     {tx.clearanceStatus}
                   </span>
                 </td>
+                <td>{tx.unitCount || "—"}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {tx.transactionStage === "STORAGE" &&
                   (module === "transactions" || module === "transfers") ? (
