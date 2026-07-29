@@ -298,6 +298,16 @@ const transactionSchema = new Schema<TransactionDoc>(
         value: { type: String, default: "" },
       },
     ],
+    accountingInvoices: [
+      {
+        path: { type: String, required: true },
+        originalName: { type: String, required: true },
+        category: {
+          type: String,
+        },
+      },
+    ],
+    isAccountingFinalized: { type: Boolean, default: false },
     transactionStage: {
       type: String,
       enum: ["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"],

@@ -171,6 +171,8 @@ function registerAccountingRoutes(
     id: string,
     fields: AccountingCustomField[],
     fixed: AccountingFixedPayload,
+    isAccountingFinalized?: boolean,
+    accountingInvoices?: DocumentAttachment[]
   ) => Promise<Transaction | null>,
 ) {
   app.get(`/api/${apiPrefix}/:id/accounting`, authenticate, async (req: AuthRequest, res) => {
@@ -181,14 +183,47 @@ function registerAccountingRoutes(
     return res.json(buildAccountingResponse(tx));
   });
 
-  app.put(`/api/${apiPrefix}/:id/accounting`, authenticate, async (req: AuthRequest, res) => {
+  app.put(`/api/${apiPrefix}/:id/accounting`, authenticate, maybeUpload, async (req: AuthRequest, res) => {
     const denied = ensureRole(req, res, ["manager", "accountant"]);
     if (!denied) return;
-    const parsed = updateAccountingPayloadSchema.safeParse(req.body);
+
+    let bodyToParse = req.body;
+    if (isMultipartRequest(req)) {
+      try {
+        if (typeof req.body.payload === "string") {
+          bodyToParse = JSON.parse(req.body.payload);
+        }
+      } catch (e) {
+        return res.status(400).json({ error: "Invalid payload JSON" });
+      }
+    }
+
+    const parsed = updateAccountingPayloadSchema.safeParse(bodyToParse);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    
     const existing = await getOne(req.params.id);
     if (!existing) return res.status(404).json({ error: "Record not found" });
-    const tx = await updateAccounting(req.params.id, parsed.data.customFields, parsed.data.fixed);
+
+    let accountingInvoices = existing.accountingInvoices ?? [];
+    if (isMultipartRequest(req)) {
+      const existingRaw = bodyToParse.existingAttachments;
+      const retained = parseExistingAttachmentsJson(existingRaw);
+      const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
+      const uploaded: DocumentAttachment[] = files.map((f) => ({
+        path: publicPathForUploadedFile(f.filename),
+        originalName: attachmentDisplayNameFromStoredFilename(f.filename),
+      }));
+      accountingInvoices = [...retained, ...uploaded];
+      await removeOrphanFiles(existing.accountingInvoices, accountingInvoices);
+    }
+
+    const tx = await updateAccounting(
+      req.params.id, 
+      parsed.data.customFields, 
+      parsed.data.fixed,
+      parsed.data.isAccountingFinalized,
+      accountingInvoices
+    );
     if (!tx) return res.status(404).json({ error: "Record not found" });
     notifyAction(req, {
       action: "updated",

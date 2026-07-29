@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 import 'api.dart';
 import 'l10n/app_localizations.dart';
@@ -28,6 +30,9 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
   Map<String, dynamic>? _header;
   Map<String, String> _fixedStr = {};
   List<Map<String, dynamic>> _customFields = [];
+  bool _isFinalized = false;
+  List<PlatformFile> _newFiles = [];
+  List<Map<String, dynamic>> _retainedInvoices = [];
 
   bool get _canEdit => widget.role == 'manager' || widget.role == 'accountant';
 
@@ -94,6 +99,11 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
         _customFields = (data['customFields'] as List<dynamic>? ?? [])
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        _isFinalized = data['isAccountingFinalized'] == true;
+        _retainedInvoices = (data['accountingInvoices'] as List<dynamic>? ?? [])
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        _newFiles = [];
       });
     } catch (e) {
       if (!mounted) return;
@@ -125,6 +135,23 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
     setState(() => _fixedStr[key] = value);
   }
 
+  Future<void> _pickFiles() async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (result != null) {
+      setState(() {
+        _newFiles.addAll(result.files);
+      });
+    }
+  }
+
+  void _removeNewFile(int idx) {
+    setState(() => _newFiles.removeAt(idx));
+  }
+
+  void _removeRetained(String path) {
+    setState(() => _retainedInvoices.removeWhere((e) => e['path'] == path));
+  }
+
   Future<void> _save() async {
     if (!_canEdit) return;
     setState(() {
@@ -141,11 +168,20 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
                   'value': (f['value'] ?? '').toString(),
                 })
             .toList(),
+        'isAccountingFinalized': _isFinalized,
       };
-      final data = await Api.put(
+
+      final Map<String, String> stringFields = {
+        'payload': jsonEncode(payload),
+        'existingAttachments': jsonEncode(_retainedInvoices),
+      };
+
+      final data = await Api.putMultipart(
         '$_modulePath/${widget.transactionId}/accounting',
-        payload,
+        stringFields,
+        _newFiles,
       ) as Map<String, dynamic>;
+
       if (!mounted) return;
       setState(() {
         _header = data;
@@ -154,6 +190,11 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
         _customFields = (data['customFields'] as List<dynamic>? ?? [])
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        _isFinalized = data['isAccountingFinalized'] == true;
+        _retainedInvoices = (data['accountingInvoices'] as List<dynamic>? ?? [])
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        _newFiles = [];
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.accountingSaved)),
@@ -306,6 +347,41 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
                     icon: const Icon(Icons.add),
                     label: Text(l10n.accountingAddField),
                   ),
+                  const SizedBox(height: 24),
+                  Text('Attachments', style: Theme.of(context).textTheme.titleSmall),
+                  if (_retainedInvoices.isNotEmpty)
+                    Column(
+                      children: _retainedInvoices.map((doc) => ListTile(
+                        title: Text(doc['originalName'].toString()),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          onPressed: () => _removeRetained(doc['path'].toString()),
+                        ),
+                      )).toList(),
+                    ),
+                  if (_newFiles.isNotEmpty)
+                    Column(
+                      children: _newFiles.asMap().entries.map((e) => ListTile(
+                        title: Text(e.value.name),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          onPressed: () => _removeNewFile(e.key),
+                        ),
+                      )).toList(),
+                    ),
+                  OutlinedButton.icon(
+                    onPressed: _pickFiles,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Add Document'),
+                  ),
+                  const SizedBox(height: 24),
+                  if (widget.role == 'manager')
+                    SwitchListTile(
+                      title: const Text('Finalize / Activate Transaction'),
+                      subtitle: const Text('Manager only action'),
+                      value: _isFinalized,
+                      onChanged: (v) => setState(() => _isFinalized = v),
+                    ),
                   const SizedBox(height: 12),
                   FilledButton(
                     onPressed: _saving ? null : _save,

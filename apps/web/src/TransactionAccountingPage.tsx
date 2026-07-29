@@ -5,7 +5,7 @@ import type { TransactionListModule } from "./paths";
 import { apiFetch } from "./api";
 import type { MessageKey } from "./i18n/messages";
 import { useI18n } from "./i18n/I18nContext";
-import { AccountingCustomField, Role } from "./types";
+import { API_BASE, AccountingCustomField, Role, DocumentAttachment } from "./types";
 
 type AccountingFixed = {
   invoiceValue: number;
@@ -41,6 +41,8 @@ type AccountingPayload = {
   declarationNumber: string;
   fixed: AccountingFixed;
   customFields: AccountingCustomField[];
+  isAccountingFinalized?: boolean;
+  accountingInvoices?: DocumentAttachment[];
 };
 
 function newCustomField(): AccountingCustomField {
@@ -104,6 +106,9 @@ export default function TransactionAccountingPage({
   const [data, setData] = useState<AccountingPayload | null>(null);
   const [fixedForm, setFixedForm] = useState<FixedFormState | null>(null);
   const [customFields, setCustomFields] = useState<AccountingCustomField[]>([]);
+  const [isFinalized, setIsFinalized] = useState(false);
+  const [retainedInvoices, setRetainedInvoices] = useState<DocumentAttachment[]>([]);
+  const [newInvoiceFiles, setNewInvoiceFiles] = useState<{ file: File }[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -122,6 +127,9 @@ export default function TransactionAccountingPage({
         setData(payload);
         setFixedForm(fixedToForm(payload.fixed));
         setCustomFields(payload.customFields);
+        setIsFinalized(payload.isAccountingFinalized ?? false);
+        setRetainedInvoices(payload.accountingInvoices ?? []);
+        setNewInvoiceFiles([]);
       })
       .catch(() => setError(t("accountingPage.loadError" as MessageKey)));
   }, [id, apiBase, t]);
@@ -141,6 +149,24 @@ export default function TransactionAccountingPage({
     setSaved(false);
   }
 
+  function handleAddFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files) return;
+    const added = Array.from(e.target.files).map((f) => ({ file: f }));
+    setNewInvoiceFiles((prev) => [...prev, ...added]);
+    e.target.value = "";
+    setSaved(false);
+  }
+
+  function removeNewFile(index: number) {
+    setNewInvoiceFiles((prev) => prev.filter((_, i) => i !== index));
+    setSaved(false);
+  }
+
+  function removeRetainedInvoice(path: string) {
+    setRetainedInvoices((prev) => prev.filter((d) => d.path !== path));
+    setSaved(false);
+  }
+
   function addField() {
     setCustomFields((prev) => [...prev, newCustomField()]);
     setSaved(false);
@@ -153,11 +179,25 @@ export default function TransactionAccountingPage({
     setError("");
     setSaved(false);
     try {
+      const payloadObj = {
+        fixed: formToFixedPayload(fixedForm),
+        customFields,
+        isAccountingFinalized: isFinalized,
+      };
+
+      const fd = new FormData();
+      fd.append("payload", JSON.stringify(payloadObj));
+      fd.append("existingAttachments", JSON.stringify(retainedInvoices));
+
+      for (const item of newInvoiceFiles) {
+        fd.append("documentPhotos", item.file);
+      }
+
       const res = await apiFetch(`${apiBase}/${id}/accounting`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fixed: formToFixedPayload(fixedForm), customFields }),
+        body: fd,
       });
+
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { error?: string }).error ?? "save failed");
@@ -166,6 +206,9 @@ export default function TransactionAccountingPage({
       setData(payload);
       setFixedForm(fixedToForm(payload.fixed));
       setCustomFields(payload.customFields);
+      setIsFinalized(payload.isAccountingFinalized ?? false);
+      setRetainedInvoices(payload.accountingInvoices ?? []);
+      setNewInvoiceFiles([]);
       setSaved(true);
     } catch {
       setError(t("accountingPage.saveError" as MessageKey));
@@ -372,7 +415,7 @@ export default function TransactionAccountingPage({
                       />
                     </div>
                     <div className="col-12 col-md-2 d-flex gap-2">
-                      {customFields.length > 1 && canEdit ? (
+                      {customFields.length > 0 && canEdit ? (
                         <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => removeField(index)}>
                           {t("accountingPage.removeField" as MessageKey)}
                         </button>
@@ -383,8 +426,85 @@ export default function TransactionAccountingPage({
               ))}
             </div>
 
+            <hr className="my-4" />
+
+            <h2 className="h6 fw-semibold mb-3">{t("form.attachmentsSection" as MessageKey)}</h2>
+            <div className="border rounded p-3 bg-body-tertiary">
+              {retainedInvoices.length > 0 && (
+                <div className="mb-3">
+                  <h3 className="h6 mb-2">Saved Documents</h3>
+                  <ul className="list-unstyled mb-0">
+                    {retainedInvoices.map((doc) => (
+                      <li key={doc.path} className="d-flex align-items-center gap-2 mb-2">
+                        <a href={`${API_BASE}${doc.path}`} target="_blank" rel="noreferrer" className="text-decoration-none">
+                          {doc.originalName}
+                        </a>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger py-0 px-2"
+                            onClick={() => removeRetainedInvoice(doc.path)}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {canEdit && (
+                <div className="mb-3">
+                  <label className="btn btn-outline-primary btn-sm mb-2">
+                    Add Document
+                    <input type="file" multiple hidden onChange={handleAddFile} />
+                  </label>
+                  {newInvoiceFiles.length > 0 && (
+                    <ul className="list-unstyled mb-0">
+                      {newInvoiceFiles.map((f, index) => (
+                        <li key={index} className="d-flex align-items-center gap-2 mb-2">
+                          <span className="text-muted">{f.file.name}</span>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger py-0 px-2"
+                            onClick={() => removeNewFile(index)}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {role === "manager" && (
+              <>
+                <hr className="my-4" />
+                <div className="d-flex align-items-center gap-3 bg-light border rounded p-3">
+                  <div className="form-check form-switch mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="finalizeAccounting"
+                      checked={isFinalized}
+                      onChange={(e) => {
+                        setIsFinalized(e.target.checked);
+                        setSaved(false);
+                      }}
+                    />
+                    <label className="form-check-label fw-bold" htmlFor="finalizeAccounting">
+                      Finalize / Activate Transaction
+                    </label>
+                  </div>
+                  <small className="text-muted">Manager only action</small>
+                </div>
+              </>
+            )}
+
             {canEdit ? (
-              <div className="mt-3 d-flex flex-wrap gap-2">
+              <div className="mt-4 d-flex flex-wrap gap-2">
                 <button type="button" className="btn btn-outline-secondary btn-sm" onClick={addField}>
                   {t("accountingPage.addField" as MessageKey)}
                 </button>

@@ -25,6 +25,7 @@ export const accountingFixedPayloadSchema = z.object({
 export const updateAccountingPayloadSchema = z.object({
   fixed: accountingFixedPayloadSchema,
   customFields: z.array(accountingCustomFieldSchema),
+  isAccountingFinalized: z.boolean().optional(),
 });
 
 export type AccountingFixedPayload = z.infer<typeof accountingFixedPayloadSchema>;
@@ -110,5 +111,7 @@ export function buildAccountingResponse(tx: Transaction) {
     fixed,
     customFields,
     total: computeAccountingTotal(fixed, customFields),
+    isAccountingFinalized: tx.isAccountingFinalized,
+    accountingInvoices: tx.accountingInvoices ?? [],
   };
 }

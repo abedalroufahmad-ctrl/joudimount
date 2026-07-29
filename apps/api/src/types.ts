@@ -191,6 +191,8 @@ export interface Transaction {
   storageSealWorkersCompany?: string;
   storageSealWorkersWages?: number;
   accountingCustomFields?: AccountingCustomField[];
+  accountingInvoices?: DocumentAttachment[];
+  isAccountingFinalized?: boolean;
   transactionStage: TransactionStage;
   createdAt: string;
   updatedAt: string;

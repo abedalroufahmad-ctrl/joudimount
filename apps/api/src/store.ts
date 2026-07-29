@@ -295,6 +295,14 @@ function mapTransaction(doc: any): Transaction {
           value: f.value ?? "",
         }))
       : undefined,
+    accountingInvoices: Array.isArray(doc.accountingInvoices)
+      ? doc.accountingInvoices.map((a: { path: string; originalName: string; category?: string }) => ({
+          path: a.path,
+          originalName: a.originalName,
+          category: a.category as DocumentAttachment["category"],
+        }))
+      : undefined,
+    isAccountingFinalized: doc.isAccountingFinalized ?? false,
     transactionStage: doc.transactionStage ?? "PREPARATION",
     createdAt: new Date(doc.createdAt).toISOString(),
     updatedAt: new Date(doc.updatedAt).toISOString(),
@@ -1439,12 +1447,20 @@ async function updateEntityAccounting(
   id: string,
   fields: AccountingCustomField[],
   fixed: AccountingFixedPayload,
+  isAccountingFinalized?: boolean,
+  accountingInvoices?: DocumentAttachment[]
 ) {
   const normalized = sanitizeAccountingCustomFieldsForSave(fields);
   const update: Record<string, unknown> = {
     accountingCustomFields: normalized,
     ...fixed,
   };
+  if (isAccountingFinalized !== undefined) {
+    update.isAccountingFinalized = isAccountingFinalized;
+  }
+  if (accountingInvoices !== undefined) {
+    update.accountingInvoices = accountingInvoices;
+  }
   if (fixed.paymentStatus === "paid") {
     update.clearanceStatus = "PAID";
   }
@@ -1456,22 +1472,28 @@ export async function updateTransactionAccounting(
   id: string,
   fields: AccountingCustomField[],
   fixed: AccountingFixedPayload,
+  isAccountingFinalized?: boolean,
+  accountingInvoices?: DocumentAttachment[]
 ) {
-  return updateEntityAccounting(TransactionModel, id, fields, fixed);
+  return updateEntityAccounting(TransactionModel, id, fields, fixed, isAccountingFinalized, accountingInvoices);
 }
 
 export async function updateTransferAccounting(
   id: string,
   fields: AccountingCustomField[],
   fixed: AccountingFixedPayload,
+  isAccountingFinalized?: boolean,
+  accountingInvoices?: DocumentAttachment[]
 ) {
-  return updateEntityAccounting(TransferModel, id, fields, fixed);
+  return updateEntityAccounting(TransferModel, id, fields, fixed, isAccountingFinalized, accountingInvoices);
 }
 
 export async function updateExportAccounting(
   id: string,
   fields: AccountingCustomField[],
   fixed: AccountingFixedPayload,
+  isAccountingFinalized?: boolean,
+  accountingInvoices?: DocumentAttachment[]
 ) {
-  return updateEntityAccounting(ExportModel, id, fields, fixed);
+  return updateEntityAccounting(ExportModel, id, fields, fixed, isAccountingFinalized, accountingInvoices);
 }
