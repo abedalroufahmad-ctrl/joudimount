@@ -29,10 +29,41 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>judi_mount</title>
+  <title>JOUDI</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+    }
+
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      z-index: 9999;
+    }
+
+    #splash img {
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+    }
+  </style>
 </head>
 <body>
+  <div id="splash" aria-hidden="true">
+    <img src="splash.png" alt="">
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var splash = document.getElementById('splash');
+      if (splash) splash.remove();
+    });
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
