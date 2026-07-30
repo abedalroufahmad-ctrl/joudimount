@@ -121,7 +121,7 @@ export const API_BASE =
   (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ??
   (import.meta.env.DEV ? "" : "http://localhost:4000");
 
-export type Role = "manager" | "employee" | "employee2" | "accountant";
+export type Role = "manager" | "employee" | "employee2" | "warehouse" | "accountant";
 
 export interface AuthUser {
   id: string;

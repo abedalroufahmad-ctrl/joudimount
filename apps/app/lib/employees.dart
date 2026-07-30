@@ -40,6 +40,8 @@ class _EmployeesTabState extends State<EmployeesTab> {
         return l10n.roleManager;
       case 'employee2':
         return l10n.roleEmployee2;
+      case 'warehouse':
+        return l10n.roleWarehouse;
       case 'accountant':
         return l10n.roleAccountant;
       default:
@@ -237,6 +239,9 @@ class _EmployeesTabState extends State<EmployeesTab> {
                                     child: Text(l10n.roleEmployee)),
                                 DropdownMenuItem(
                                     value: 'employee2', child: Text(l10n.roleEmployee2)),
+                                DropdownMenuItem(
+                                    value: 'warehouse',
+                                    child: Text(l10n.roleWarehouse)),
                                 DropdownMenuItem(
                                     value: 'accountant',
                                     child: Text(l10n.roleAccountant)),

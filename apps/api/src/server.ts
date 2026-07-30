@@ -239,6 +239,8 @@ function registerAccountingRoutes(
 
 const EMPLOYEE_WORK_STAGES = new Set<TransactionStage>(["PREPARATION", "CUSTOMS_CLEARANCE"]);
 const EMPLOYEE2_WORK_STAGES = new Set<TransactionStage>(["TRANSPORTATION", "STORAGE"]);
+const WAREHOUSE_WORK_STAGES = new Set<TransactionStage>(["STORAGE"]);
+const ALL_APP_ROLES: UserRole[] = ["manager", "employee", "employee2", "warehouse", "accountant"];
 
 function txStageOf(tx: { transactionStage?: TransactionStage }): TransactionStage {
   return tx.transactionStage ?? "PREPARATION";
@@ -248,6 +250,7 @@ function roleMayEditAtStage(role: UserRole, stage: TransactionStage): boolean {
   if (role === "manager") return true;
   if (role === "employee") return EMPLOYEE_WORK_STAGES.has(stage);
   if (role === "employee2") return EMPLOYEE2_WORK_STAGES.has(stage);
+  if (role === "warehouse") return WAREHOUSE_WORK_STAGES.has(stage);
   return false;
 }
 
@@ -255,6 +258,7 @@ function roleMaySetTargetStage(role: UserRole, target: TransactionStage): boolea
   if (role === "manager") return true;
   if (role === "employee") return EMPLOYEE_WORK_STAGES.has(target);
   if (role === "employee2") return EMPLOYEE2_WORK_STAGES.has(target);
+  // Warehouse may view/edit storage cards but cannot change transaction stage.
   return false;
 }
 
@@ -269,14 +273,23 @@ function validateRoleFieldUpdates(
     return nonAccounting ? "Accountant can only update paymentStatus via edit endpoint" : null;
   }
   if (!roleMayEditAtStage(role, stage)) {
-    return role === "employee"
-      ? "Employee can only edit during Preparation and Customs clearance"
-      : "Employee2 can only edit during Transportation and Storage";
+    if (role === "employee") return "Employee can only edit during Preparation and Customs clearance";
+    if (role === "warehouse") return "Warehouse can only edit during Storage stage";
+    return "Employee2 can only edit during Transportation and Storage";
   }
   if (role === "employee") {
     const invalidFields = Object.keys(data).filter((key) => !stage1EmployeeFields.has(key));
     if (invalidFields.length > 0) {
       return `Employee can only edit stage 1 fields: ${invalidFields.join(", ")}`;
+    }
+    return null;
+  }
+  if (role === "warehouse") {
+    const invalidFields = Object.keys(data).filter(
+      (key) => !STORAGE_STAGE_EDITABLE_FIELDS.has(key as keyof Transaction),
+    );
+    if (invalidFields.length > 0) {
+      return `Warehouse may only edit storage card fields: ${invalidFields.join(", ")}`;
     }
     return null;
   }
@@ -618,7 +631,7 @@ app.post("/api/employees", authenticate, validate(z.object({
     name: z.string().min(2),
     email: z.string().email(),
     password: z.string().min(4),
-    role: z.enum(["manager", "employee", "employee2", "accountant"]),
+    role: z.enum(["manager", "employee", "employee2", "warehouse", "accountant"]),
   }),
 })), async (req: AuthRequest, res) => {
   const denied = ensureRole(req, res, ["manager"]);
@@ -647,7 +660,7 @@ app.put("/api/employees/:id", authenticate, validate(z.object({
       name: z.string().min(2).optional(),
       email: z.string().email().optional(),
       password: optionalEmployeePassword,
-      role: z.enum(["manager", "employee", "employee2", "accountant"]).optional(),
+      role: z.enum(["manager", "employee", "employee2", "warehouse", "accountant"]).optional(),
     })
     .refine((value) => Object.keys(value).length > 0, "At least one field is required"),
 })), async (req: AuthRequest, res) => {
@@ -893,7 +906,7 @@ app.delete("/api/shipping-companies/:id", authenticate, async (req: AuthRequest,
 });
 
 app.get("/api/transactions", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const clientId = typeof req.query.clientId === "string" ? req.query.clientId : undefined;
   const limit = req.query.limit ? Number(req.query.limit) : undefined;
@@ -946,7 +959,7 @@ app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest
 });
 
 app.get("/api/transactions/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const tx = await getTransaction(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transaction not found" });
@@ -1080,6 +1093,9 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
     if (role === "employee2" && result.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee2 cannot manage accounting fields" });
     }
+    if (role === "warehouse" && result.data.paymentStatus !== undefined) {
+      return res.status(403).json({ error: "Warehouse cannot manage accounting fields" });
+    }
 
     const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), result.data);
     if (fieldError) return res.status(403).json({ error: fieldError });
@@ -1179,7 +1195,7 @@ app.delete("/api/transactions/:id", authenticate, async (req: AuthRequest, res) 
 });
 
 app.get("/api/transfers", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const clientId = typeof req.query.clientId === "string" ? req.query.clientId : undefined;
   const limit = req.query.limit ? Number(req.query.limit) : undefined;
@@ -1230,7 +1246,7 @@ app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, r
 });
 
 app.get("/api/transfers/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const tx = await getTransfer(req.params.id);
   if (!tx) return res.status(404).json({ error: "Transfer not found" });
@@ -1333,7 +1349,7 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
       return res.status(400).json({ error: "No fields to update" });
     }
 
-    if ((role === "employee" || role === "employee2") && parsed.data.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2" || role === "warehouse") && parsed.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
     const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), parsed.data);
@@ -1432,7 +1448,7 @@ app.delete("/api/transfers/:id", authenticate, async (req: AuthRequest, res) => 
 });
 
 app.get("/api/exports", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const clientId = typeof req.query.clientId === "string" ? req.query.clientId : undefined;
   const limit = req.query.limit ? Number(req.query.limit) : undefined;
@@ -1483,7 +1499,7 @@ app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res
 });
 
 app.get("/api/exports/:id", authenticate, async (req: AuthRequest, res) => {
-  const denied = ensureRole(req, res, ["manager", "employee", "employee2", "accountant"]);
+  const denied = ensureRole(req, res, ALL_APP_ROLES);
   if (!denied) return;
   const tx = await getExport(req.params.id);
   if (!tx) return res.status(404).json({ error: "Export not found" });
@@ -1575,7 +1591,7 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
     const prev = await getExport(req.params.id);
     if (!prev) return res.status(404).json({ error: "Export not found" });
 
-    if ((role === "employee" || role === "employee2") && parsed.data.paymentStatus !== undefined) {
+    if ((role === "employee" || role === "employee2" || role === "warehouse") && parsed.data.paymentStatus !== undefined) {
       return res.status(403).json({ error: "Employee cannot manage accounting fields" });
     }
     const fieldError = validateRoleFieldUpdates(role, txStageOf(prev), parsed.data);
@@ -1668,6 +1684,7 @@ connectDb()
       { name: "Operations Employee", email: "employee@tracker.local", password: defaultPasswordHash, role: "employee" as const },
       { name: "Finance Accountant", email: "accountant@tracker.local", password: defaultPasswordHash, role: "accountant" as const },
       { name: "employee2", email: "employee2@tracker.local", password: defaultPasswordHash, role: "employee2" as const },
+      { name: "Warehouse Employee", email: "warehouse@tracker.local", password: defaultPasswordHash, role: "warehouse" as const },
     ];
     const isProduction = process.env.NODE_ENV === "production";
     for (const item of defaults) {

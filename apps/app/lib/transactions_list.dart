@@ -38,6 +38,9 @@ class _TransactionsTabState extends State<TransactionsTab> {
   @override
   void initState() {
     super.initState();
+    if (widget.role == 'warehouse') {
+      _stage = 'STORAGE';
+    }
     _load();
   }
 
@@ -82,7 +85,8 @@ class _TransactionsTabState extends State<TransactionsTab> {
           (tx.airwayBill).toLowerCase().contains(q);
       final matchesS = _status == 'all' || tx.clearanceStatus == _status;
       final stage = tx.transactionStage;
-      final matchesStage = _stage == 'all' || stage == _stage;
+      final effectiveStage = widget.role == 'warehouse' ? 'STORAGE' : _stage;
+      final matchesStage = effectiveStage == 'all' || stage == effectiveStage;
       return matchesQ && matchesS && matchesStage;
     }).toList();
 

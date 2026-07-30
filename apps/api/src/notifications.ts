@@ -85,7 +85,12 @@ async function resolveRecipientIds(actorId: string, actorRole: UserRole): Promis
       if (role === "manager") ids.push(id);
       continue;
     }
-    if (actorRole === "employee" || actorRole === "employee2" || actorRole === "accountant") {
+    if (
+      actorRole === "employee" ||
+      actorRole === "employee2" ||
+      actorRole === "warehouse" ||
+      actorRole === "accountant"
+    ) {
       if (role === "manager") ids.push(id);
     }
   }

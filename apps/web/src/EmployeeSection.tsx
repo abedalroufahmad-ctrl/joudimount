@@ -12,6 +12,7 @@ function roleLabel(role: Role, t: ReturnType<typeof useI18n>["t"]) {
   if (role === "manager") return t("role.manager");
   if (role === "employee") return t("role.employee");
   if (role === "employee2") return t("role.employee2");
+  if (role === "warehouse") return t("role.warehouse");
   return t("role.accountant");
 }
 
@@ -151,6 +152,10 @@ export default function EmployeeSection({ role }: Props) {
           <h3>{t("employees.employee2Title")}</h3>
           <p>{t("employees.employee2Desc")}</p>
         </section>
+        <section className={`details-card ${role === "warehouse" ? "role-active" : ""}`}>
+          <h3>{t("employees.warehouseTitle")}</h3>
+          <p>{t("employees.warehouseDesc")}</p>
+        </section>
         <section className={`details-card ${role === "accountant" ? "role-active" : ""}`}>
           <h3>{t("employees.accountantTitle")}</h3>
           <p>{t("employees.accountantDesc")}</p>
@@ -208,6 +213,7 @@ export default function EmployeeSection({ role }: Props) {
                   <option value="manager">{t("role.manager")}</option>
                   <option value="employee">{t("role.employee")}</option>
                   <option value="employee2">{t("role.employee2")}</option>
+                  <option value="warehouse">{t("role.warehouse")}</option>
                   <option value="accountant">{t("role.accountant")}</option>
                 </select>
               </div>

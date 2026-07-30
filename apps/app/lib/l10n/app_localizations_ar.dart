@@ -797,6 +797,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleEmployee2 => 'موظف 2';
 
   @override
+  String get roleWarehouse => 'موظف المستودع';
+
+  @override
   String get shippingViewOnMap => 'عرض على الخريطة';
 
   @override

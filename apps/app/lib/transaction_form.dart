@@ -20,11 +20,17 @@ bool roleCanWorkAtStage(String role, String stage) {
   if (role == 'employee2') {
     return stage == 'TRANSPORTATION' || stage == 'STORAGE';
   }
+  if (role == 'warehouse') {
+    return stage == 'STORAGE';
+  }
   return false;
 }
 
 List<String> stageOptionsForRole(String role, List<String> options) {
   if (role == 'manager') return options;
+  if (role == 'warehouse') {
+    return options.where((s) => s == 'STORAGE').toList();
+  }
   return options.where((s) => roleCanWorkAtStage(role, s)).toList();
 }
 
@@ -675,7 +681,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-    if ((widget.role == 'accountant' || widget.role == 'employee2') &&
+    if ((widget.role == 'accountant' ||
+            widget.role == 'employee2' ||
+            widget.role == 'warehouse') &&
         !_isEdit) {
       return Scaffold(
         appBar: AppBar(
@@ -698,6 +706,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     final isManager = widget.role == 'manager';
     final isEmployee = widget.role == 'employee';
     final isEmployee2 = widget.role == 'employee2';
+    final isWarehouse = widget.role == 'warehouse';
     final canWorkStage = roleCanWorkAtStage(widget.role, _stage);
     final transportationEditableEffective = showTransportationSection &&
         !storageWarehouseOnly &&
@@ -714,8 +723,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         (isManager || isEmployee);
     final storageEditable = (!_isEdit || _stage == 'STORAGE') &&
         !storageWarehouseOnly &&
-        (isManager || (isEmployee2 && _stage == 'STORAGE'));
-    final canSetStage = isManager || canWorkStage;
+        (isManager || ((isEmployee2 || isWarehouse) && _stage == 'STORAGE'));
+    final canSetStage = isManager || (canWorkStage && !isWarehouse);
     final selectableStages = stageOptionsForRole(widget.role, _stageOptionsForModule);
     final showCustomsDeclarationSection = _isEdit && _stage != 'PREPARATION';
     final groupedRetained = _groupRetainedDocs(l10n);

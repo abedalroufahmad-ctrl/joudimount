@@ -95,6 +95,8 @@ export type MessageKey =
   | "employees.employeeDesc"
   | "employees.employee2Title"
   | "employees.employee2Desc"
+  | "employees.warehouseTitle"
+  | "employees.warehouseDesc"
   | "employees.accountantTitle"
   | "employees.accountantDesc"
   | "employees.goTracker"
@@ -229,6 +231,7 @@ export type MessageKey =
   | "role.manager"
   | "role.employee"
   | "role.employee2"
+  | "role.warehouse"
   | "role.accountant"
   | "clients.title"
   | "clients.back"
@@ -297,6 +300,7 @@ export type MessageKey =
   | "details.shippingPaperPrint"
   | "details.shippingPaperClose"
   | "app.roleEmployee2"
+  | "app.roleWarehouse"
   | "list.filterAllStages"
   | "list.paginationPrev"
   | "list.paginationNext"
@@ -496,7 +500,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "login.submitting": "جاري تسجيل الدخول…",
     "login.error": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
     "login.demoHint":
-      "حسابات تجريبية: manager@tracker.local / 123456، employee@tracker.local / 123456، accountant@tracker.local / 123456",
+      "حسابات تجريبية: manager@tracker.local / 123456، employee@tracker.local / 123456، accountant@tracker.local / 123456، warehouse@tracker.local / 123456",
     "employees.title": "قسم الموظفين",
     "employees.currentRole": "الدور الحالي",
     "employees.roleFromAccount": "يُحدَّد الدور من حساب تسجيل الدخول.",
@@ -506,6 +510,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.employeeDesc": "إدارة المعاملات ما عدا المحاسبة والفوترة.",
     "employees.employee2Title": "موظف 2",
     "employees.employee2Desc": "إدارة بيانات التخليص الجمركي للمرحلة الثانية فقط.",
+    "employees.warehouseTitle": "موظف المستودع",
+    "employees.warehouseDesc": "عرض وتعديل بطاقات التخزين فقط.",
     "employees.accountantTitle": "محاسب",
     "employees.accountantDesc": "إدارة المحاسبة والفوترة (الدفع والإفراج).",
     "employees.goTracker": "الذهاب إلى المعاملات",
@@ -640,6 +646,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "role.manager": "مدير",
     "role.employee": "موظف",
     "role.employee2": "موظف 2",
+    "role.warehouse": "موظف المستودع",
     "role.accountant": "محاسب",
     "clients.title": "قسم العملاء",
     "clients.back": "العودة",
@@ -709,6 +716,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.shippingPaperPrint": "طباعة",
     "details.shippingPaperClose": "إغلاق",
     "app.roleEmployee2": "موظف 2",
+    "app.roleWarehouse": "موظف المستودع",
     "list.filterAllStages": "كل المراحل",
     "list.paginationPrev": "السابق",
     "list.paginationNext": "التالي",
@@ -903,7 +911,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "login.submitting": "Signing in…",
     "login.error": "Invalid email or password.",
     "login.demoHint":
-      "Demo accounts: manager@tracker.local / 123456, employee@tracker.local / 123456, accountant@tracker.local / 123456",
+      "Demo accounts: manager@tracker.local / 123456, employee@tracker.local / 123456, accountant@tracker.local / 123456, warehouse@tracker.local / 123456",
     "employees.title": "Employee Section",
     "employees.currentRole": "Current logged-in role",
     "employees.roleFromAccount": "Role is assigned by your login account.",
@@ -913,6 +921,8 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.employeeDesc": "Can manage transactions except accounting and billing operations.",
     "employees.employee2Title": "Employee 2",
     "employees.employee2Desc": "Handles stage 2 customs clearance data only.",
+    "employees.warehouseTitle": "Warehouse",
+    "employees.warehouseDesc": "Can view and edit storage cards only.",
     "employees.accountantTitle": "Accountant",
     "employees.accountantDesc": "Manages accounting and billing operations (payment and release).",
     "employees.goTracker": "Go to Transactions",
@@ -1048,6 +1058,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "role.manager": "manager",
     "role.employee": "employee",
     "role.employee2": "Employee 2",
+    "role.warehouse": "Warehouse",
     "role.accountant": "accountant",
     "clients.title": "Clients Section",
     "clients.back": "Back",
@@ -1117,6 +1128,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "details.shippingPaperPrint": "Print",
     "details.shippingPaperClose": "Close",
     "app.roleEmployee2": "Employee 2",
+    "app.roleWarehouse": "Warehouse",
     "list.filterAllStages": "All stages",
     "list.paginationPrev": "Prev",
     "list.paginationNext": "Next",

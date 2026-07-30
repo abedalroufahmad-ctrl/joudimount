@@ -15,6 +15,7 @@ function roleLabel(role: Role, t: (key: MessageKey) => string) {
   if (role === "manager") return t("role.manager");
   if (role === "employee") return t("role.employee");
   if (role === "employee2") return t("app.roleEmployee2");
+  if (role === "warehouse") return t("app.roleWarehouse");
   return t("role.accountant");
 }
 
@@ -59,18 +60,26 @@ export function DashboardSidebar({
         <Link to="/transfers" className={itemClass("transfers")}>
           {t("nav.transfers")}
         </Link>
-        <Link to="/exports" className={itemClass("exports")}>
-          {t("nav.exports")}
-        </Link>
-        <Link to="/employees" className="list-group-item list-group-item-action sidebar-link">
-          {t("nav.employeeSection")}
-        </Link>
-        <Link to="/clients" className="list-group-item list-group-item-action sidebar-link">
-          {t("nav.clients")}
-        </Link>
-        <Link to="/shipping-companies" className="list-group-item list-group-item-action sidebar-link">
-          {t("nav.shippingCompanies")}
-        </Link>
+        {role !== "warehouse" ? (
+          <Link to="/exports" className={itemClass("exports")}>
+            {t("nav.exports")}
+          </Link>
+        ) : null}
+        {role !== "warehouse" ? (
+          <Link to="/employees" className="list-group-item list-group-item-action sidebar-link">
+            {t("nav.employeeSection")}
+          </Link>
+        ) : null}
+        {role !== "warehouse" ? (
+          <Link to="/clients" className="list-group-item list-group-item-action sidebar-link">
+            {t("nav.clients")}
+          </Link>
+        ) : null}
+        {role !== "warehouse" ? (
+          <Link to="/shipping-companies" className="list-group-item list-group-item-action sidebar-link">
+            {t("nav.shippingCompanies")}
+          </Link>
+        ) : null}
       </nav>
       {role === "manager" || role === "employee" ? (
         <Link to={`/${addModule}/new`} className="btn btn-primary sidebar-cta">
@@ -177,7 +186,7 @@ export function DashboardHome({
             {t("home.modulesHeading")}
           </h2>
           <div className="module-cards dashboard-top-module-cards">
-            {DASHBOARD_MODULES.map((item) => (
+            {DASHBOARD_MODULES.filter((item) => role !== "warehouse" || item.id !== "exports").map((item) => (
               <Link key={item.id} to={item.route} className="module-card card text-decoration-none">
                 <span className="module-card-icon" aria-hidden>
                   {item.id === "transactions" ? "📦" : item.id === "transfers" ? "↔" : "🚢"}

@@ -24,6 +24,9 @@ bool roleCanWorkAtStage(String role, String stage) {
   if (role == 'employee2') {
     return stage == 'TRANSPORTATION' || stage == 'STORAGE';
   }
+  if (role == 'warehouse') {
+    return stage == 'STORAGE';
+  }
   return false;
 }
 
@@ -715,7 +718,10 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final stage = tx?.transactionStage ?? 'PREPARATION';
     final canWorkRecord = tx != null && roleCanWorkAtStage(widget.role, stage);
     final canEdit =
-        widget.role == 'manager' || (widget.role != 'accountant' && canWorkRecord);
+        widget.role == 'manager' ||
+        (widget.role != 'accountant' &&
+            widget.role != 'warehouse' &&
+            canWorkRecord);
     final canDelete = widget.role == 'manager' || widget.role == 'employee';
     final canAccounting =
         widget.role == 'manager' || widget.role == 'accountant';

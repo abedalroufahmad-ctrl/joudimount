@@ -10,11 +10,11 @@ import TransactionsTable from "./TransactionsTable";
 import { apiFetch } from "./api"; // Still needed for useTransactions hook
 import { useToast } from "./components/useToast";
 
-function useTransactions(module: TransactionListModule, t: (key: MessageKey) => string) {
+function useTransactions(module: TransactionListModule, t: (key: MessageKey) => string, role?: Role) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [stageFilter, setStageFilter] = useState("all");
+  const [stageFilter, setStageFilter] = useState(role === "warehouse" ? "STORAGE" : "all");
   const [page, setPage] = useState(1);
   const pageSize = 30;
   const { showToast } = useToast();
@@ -36,7 +36,8 @@ function useTransactions(module: TransactionListModule, t: (key: MessageKey) => 
       (tx.declarationNumber2 ?? "").toLowerCase().includes(q) ||
       tx.airwayBill.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || tx.clearanceStatus === statusFilter;
-    const matchesStage = stageFilter === "all" || (tx.transactionStage ?? "PREPARATION") === stageFilter;
+    const effectiveStageFilter = role === "warehouse" ? "STORAGE" : stageFilter;
+    const matchesStage = effectiveStageFilter === "all" || (tx.transactionStage ?? "PREPARATION") === effectiveStageFilter;
     return matchesQuery && matchesStatus && matchesStage;
   });
 
@@ -96,7 +97,7 @@ export default function TransactionListPage({
     filteredTransactionsCount,
     statusOptions,
     stageOptions,
-  } = useTransactions(module, t);
+  } = useTransactions(module, t, role);
 
   const moduleTitle = t((module === "transactions" ? "app.title" : module === "transfers" ? "transfer.app.title" : "export.app.title") as MessageKey);
   const moduleTagline = t((module === "transactions" ? "app.tagline" : module === "transfers" ? "transfer.app.tagline" : "export.app.tagline") as MessageKey);

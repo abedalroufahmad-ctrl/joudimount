@@ -797,6 +797,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleEmployee2 => 'Employee 2';
 
   @override
+  String get roleWarehouse => 'Warehouse';
+
+  @override
   String get shippingViewOnMap => 'View on map';
 
   @override

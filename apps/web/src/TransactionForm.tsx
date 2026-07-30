@@ -274,7 +274,7 @@ export default function TransactionForm({
   const [editMeta, setEditMeta] = useState<EditReadOnlyMeta | null>(null);
   const [stage, setStage] = useState<TransactionStage>("PREPARATION");
 
-  if ((role === "accountant" || role === "employee2") && !isEdit) {
+  if ((role === "accountant" || role === "employee2" || role === "warehouse") && !isEdit) {
     return (
       <main className="container py-2">
         <h1 className="display-6 fw-bold mb-2">{t("form.accessLimitedTitle")}</h1>
@@ -606,7 +606,7 @@ export default function TransactionForm({
   const customsEditableEffective =
     customsEditable && !storageOnlyImportTransfer && (role === "manager" || (role === "employee" && canWorkThisStage));
   const legacyStorageEditable =
-    storageEditable && !storageOnlyImportTransfer && (role === "manager" || (role === "employee2" && stage === "STORAGE"));
+    storageEditable && !storageOnlyImportTransfer && (role === "manager" || ((role === "employee2" || role === "warehouse") && stage === "STORAGE"));
   const showTransportationSection = isEdit && stage === "TRANSPORTATION";
   const transportationEditableEffective =
     showTransportationSection &&

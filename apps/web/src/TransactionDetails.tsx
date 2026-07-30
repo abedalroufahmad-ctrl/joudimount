@@ -186,7 +186,7 @@ export default function TransactionDetails({
         <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
           ← {t("details.back")}
         </Link>
-        {id && canWorkRecord && role !== "accountant" ? (
+        {id && canWorkRecord && role !== "accountant" && role !== "warehouse" ? (
           <>
             <Link to={`/${module}/${id}/edit`} className="btn btn-outline-primary btn-sm">
               {t("details.edit")}

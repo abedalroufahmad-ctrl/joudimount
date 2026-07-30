@@ -269,6 +269,7 @@
   "txAttachmentsSection": "Document attachments",
   "txOrderDate": "Order date",
   "roleEmployee2": "Employee 2",
+  "roleWarehouse": "Warehouse",
   "shippingViewOnMap": "View on map",
   "shippingViewLocation": "View location",
   "employeesEmailTaken": "This email is already in use.",

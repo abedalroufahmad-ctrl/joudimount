@@ -91,6 +91,16 @@ export const STORAGE_WAREHOUSE_FIELDS = new Set<string>([
   "storageExitFreightVehicleNumbers",
   "storageExitCrossPackaging",
   "storageExitUnity",
+  "storageSealReplaceContainers",
+  "storageSealEntryLockNumbers",
+  "storageSealSwitchDate",
+  "storageSealEntryContainerNumbers",
+  "storageSealOutLockNumbers",
+  "storageSealUnitCount",
+  "storageSealWorkersCompany",
+  "storageSealWorkersWages",
+  "storagePhotos",
+  "isStopped",
 ]);
 
 export function getAllowedUpdateFields(
@@ -102,6 +112,7 @@ export function getAllowedUpdateFields(
   if (role === "accountant") return new Set(["paymentStatus"]);
   if (!roleCanWorkAtStage(role, stage)) return new Set();
   if (role === "employee") return EMPLOYEE1_EDIT_FIELDS;
+  if (role === "warehouse") return STORAGE_WAREHOUSE_FIELDS;
   if (role === "employee2") {
     return atStorage ? STORAGE_WAREHOUSE_FIELDS : EMPLOYEE2_EDIT_FIELDS;
   }

@@ -55,6 +55,8 @@ class _ProfileTabState extends State<ProfileTab> {
         return l10n.roleManager;
       case 'employee2':
         return l10n.roleEmployee2;
+      case 'warehouse':
+        return l10n.roleWarehouse;
       case 'accountant':
         return l10n.roleAccountant;
       default:

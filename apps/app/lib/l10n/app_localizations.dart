@@ -1667,6 +1667,12 @@ abstract class AppLocalizations {
   /// **'Employee 2'**
   String get roleEmployee2;
 
+  /// No description provided for @roleWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse'**
+  String get roleWarehouse;
+
   /// No description provided for @shippingViewOnMap.
   ///
   /// In en, this message translates to:

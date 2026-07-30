@@ -31,7 +31,7 @@ interface EmployeeDoc {
   name: string;
   email: string;
   password: string;
-  role: "manager" | "employee" | "employee2" | "accountant";
+  role: "manager" | "employee" | "employee2" | "warehouse" | "accountant";
   fcmTokens?: string[];
 }
 
@@ -334,7 +334,7 @@ const employeeSchema = new Schema<EmployeeDoc>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, index: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ["manager", "employee", "employee2", "accountant"], required: true },
+    role: { type: String, enum: ["manager", "employee", "employee2", "warehouse", "accountant"], required: true },
     fcmTokens: { type: [String], default: [] },
   },
   { timestamps: true },
