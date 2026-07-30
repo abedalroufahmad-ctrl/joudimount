@@ -800,6 +800,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleWarehouse => 'Warehouse';
 
   @override
+  String get employeesManagerTitle => 'Manager';
+
+  @override
+  String get employeesManagerDesc => 'Can do everything: create, edit, delete, payment, billing, and release.';
+
+  @override
+  String get employeesEmployeeTitle => 'Employee';
+
+  @override
+  String get employeesEmployeeDesc => 'Can manage transactions except accounting and billing operations.';
+
+  @override
+  String get employeesEmployee2Title => 'Employee 2';
+
+  @override
+  String get employeesEmployee2Desc => 'Can view everything except accounting; edits Transportation and Storage only.';
+
+  @override
+  String get employeesWarehouseTitle => 'Warehouse';
+
+  @override
+  String get employeesWarehouseDesc => 'Can view and edit storage cards only.';
+
+  @override
+  String get employeesAccountantTitle => 'Accountant';
+
+  @override
+  String get employeesAccountantDesc => 'Manages accounting and billing operations (payment and release).';
+
+  @override
   String get shippingViewOnMap => 'View on map';
 
   @override

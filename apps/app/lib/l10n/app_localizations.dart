@@ -1673,6 +1673,66 @@ abstract class AppLocalizations {
   /// **'Warehouse'**
   String get roleWarehouse;
 
+  /// No description provided for @employeesManagerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get employeesManagerTitle;
+
+  /// No description provided for @employeesManagerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Can do everything: create, edit, delete, payment, billing, and release.'**
+  String get employeesManagerDesc;
+
+  /// No description provided for @employeesEmployeeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get employeesEmployeeTitle;
+
+  /// No description provided for @employeesEmployeeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Can manage transactions except accounting and billing operations.'**
+  String get employeesEmployeeDesc;
+
+  /// No description provided for @employeesEmployee2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee 2'**
+  String get employeesEmployee2Title;
+
+  /// No description provided for @employeesEmployee2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Can view everything except accounting; edits Transportation and Storage only.'**
+  String get employeesEmployee2Desc;
+
+  /// No description provided for @employeesWarehouseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse'**
+  String get employeesWarehouseTitle;
+
+  /// No description provided for @employeesWarehouseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Can view and edit storage cards only.'**
+  String get employeesWarehouseDesc;
+
+  /// No description provided for @employeesAccountantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accountant'**
+  String get employeesAccountantTitle;
+
+  /// No description provided for @employeesAccountantDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manages accounting and billing operations (payment and release).'**
+  String get employeesAccountantDesc;
+
   /// No description provided for @shippingViewOnMap.
   ///
   /// In en, this message translates to:

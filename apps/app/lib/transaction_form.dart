@@ -9,7 +9,8 @@ import 'date_field.dart';
 import 'l10n/app_localizations.dart';
 import 'transaction_labels.dart';
 import 'transaction_storage_page.dart';
-import 'transaction_model.dart'; // Import the Transaction model
+import 'transaction_model.dart';
+import 'transaction_field_permissions.dart';
 
 /// New or edit transaction — aligned with web TransactionForm.
 bool roleCanWorkAtStage(String role, String stage) {
@@ -329,6 +330,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'declarationNumber': _declarationNumberInput.text.trim(),
       'declarationNumber2': _declarationNumberInput2.text.trim(),
       'declarationDate': _declarationDateInput.text.trim(),
+      'orderDate': _orderDate.text.trim(),
       'declarationType': _declarationType.trim(),
       'declarationType2': _declarationType2.trim(),
       'portType': _portType.trim(),
@@ -375,20 +377,35 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       'goodsQuantity': double.tryParse(_qty.text.trim()),
       'goodsQuality': _quality,
       'goodsUnit': _unit,
-      'transactionStage': _stage, // Add current stage to body
     };
 
     // Clean up empty fields
     body.removeWhere((key, value) {
       if (value is String) return value.isEmpty;
       if (value == null) return true;
-      if (value is Map) return value.entries.every((e) => e.value == null || (e.value is String && (e.value as String).isEmpty));
+      if (value is Map) {
+        return value.entries.every((e) =>
+            e.value == null ||
+            (e.value is String && (e.value as String).isEmpty));
+      }
       if (value is List) return value.isEmpty;
       return false;
     });
 
     final sid = _shippingId.text.trim();
     if (sid.isNotEmpty) body['shippingCompanyId'] = sid;
+
+    // Match web: only send fields the role may update on edit.
+    if (_isEdit) {
+      body.removeWhere(
+        (key, _) => !canRoleSubmitField(
+          widget.role,
+          key,
+          isEdit: true,
+          stage: _stage,
+        ),
+      );
+    }
 
     return body;
   }
@@ -1140,7 +1157,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                 ],
                 onChanged: (!customsEditable ||
                         widget.role == 'employee' ||
-                        widget.role == 'employee2')
+                        widget.role == 'employee2' ||
+                        widget.role == 'warehouse')
                     ? null
                     : (v) => setState(() => _paymentStatus = v ?? 'pending'),
               )),
@@ -1303,7 +1321,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           FilledButton(
             onPressed: (_saving ||
                     storageWarehouseOnly ||
-                    (isEmployee2 && !canWorkStage))
+                    ((isEmployee2 || isWarehouse) && !canWorkStage))
                 ? null
                 : _save,
             child: Text(_saving ? l10n.saving : l10n.save),

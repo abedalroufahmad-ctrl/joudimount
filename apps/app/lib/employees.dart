@@ -182,9 +182,43 @@ class _EmployeesTabState extends State<EmployeesTab> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text('${l10n.currentRole}: ${_roleLabel(widget.role, l10n)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${l10n.currentRole}: ${_roleLabel(widget.role, l10n)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(l10n.roleFromAccount,
+                          style: TextStyle(color: Colors.grey.shade700)),
+                    ],
+                  ),
                 ),
+              ),
+              const SizedBox(height: 10),
+              _RoleInfoCard(
+                title: l10n.employeesManagerTitle,
+                description: l10n.employeesManagerDesc,
+                active: widget.role == 'manager',
+              ),
+              _RoleInfoCard(
+                title: l10n.employeesEmployeeTitle,
+                description: l10n.employeesEmployeeDesc,
+                active: widget.role == 'employee',
+              ),
+              _RoleInfoCard(
+                title: l10n.employeesEmployee2Title,
+                description: l10n.employeesEmployee2Desc,
+                active: widget.role == 'employee2',
+              ),
+              _RoleInfoCard(
+                title: l10n.employeesWarehouseTitle,
+                description: l10n.employeesWarehouseDesc,
+                active: widget.role == 'warehouse',
+              ),
+              _RoleInfoCard(
+                title: l10n.employeesAccountantTitle,
+                description: l10n.employeesAccountantDesc,
+                active: widget.role == 'accountant',
               ),
               const SizedBox(height: 10),
               if (!isManager)
@@ -332,6 +366,53 @@ class _EmployeesTabState extends State<EmployeesTab> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _RoleInfoCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final bool active;
+
+  const _RoleInfoCard({
+    required this.title,
+    required this.description,
+    required this.active,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Card(
+        color: active ? cs.primaryContainer : null,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: active ? cs.onPrimaryContainer : null,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  color: active
+                      ? cs.onPrimaryContainer.withValues(alpha: 0.9)
+                      : Colors.grey.shade700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

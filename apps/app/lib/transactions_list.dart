@@ -180,7 +180,9 @@ class _TransactionsTabState extends State<TransactionsTab> {
                                 child:
                                     Text(label, overflow: TextOverflow.ellipsis));
                           }).toList(),
-                          onChanged: (v) => setState(() => _stage = v ?? 'all'),
+                          onChanged: widget.role == 'warehouse'
+                              ? null
+                              : (v) => setState(() => _stage = v ?? 'all'),
                         )),
                   ),
                 ],

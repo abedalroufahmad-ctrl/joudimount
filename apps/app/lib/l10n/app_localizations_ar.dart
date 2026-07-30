@@ -800,6 +800,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleWarehouse => 'موظف المستودع';
 
   @override
+  String get employeesManagerTitle => 'مدير';
+
+  @override
+  String get employeesManagerDesc => 'صلاحيات كاملة: إنشاء، تعديل، حذف، الدفع، والإفراج.';
+
+  @override
+  String get employeesEmployeeTitle => 'موظف';
+
+  @override
+  String get employeesEmployeeDesc => 'إدارة المعاملات ما عدا المحاسبة والفوترة.';
+
+  @override
+  String get employeesEmployee2Title => 'موظف 2';
+
+  @override
+  String get employeesEmployee2Desc => 'عرض كل البيانات ما عدا المحاسبة، مع تعديل النقل والتخزين فقط.';
+
+  @override
+  String get employeesWarehouseTitle => 'موظف المستودع';
+
+  @override
+  String get employeesWarehouseDesc => 'عرض وتعديل بطاقات التخزين فقط.';
+
+  @override
+  String get employeesAccountantTitle => 'محاسب';
+
+  @override
+  String get employeesAccountantDesc => 'إدارة المحاسبة والفوترة (الدفع والإفراج).';
+
+  @override
   String get shippingViewOnMap => 'عرض على الخريطة';
 
   @override

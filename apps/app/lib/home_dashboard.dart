@@ -5,7 +5,6 @@ import 'app_lang.dart';
 import 'app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'notifications.dart';
-import 'main.dart'; // To access ClientFormPage and ShippingFormPage
 import 'transaction_detail.dart';
 import 'transaction_form.dart';
 import 'user_model.dart'; // Import the new User model
@@ -14,14 +13,14 @@ import 'user_model.dart'; // Import the new User model
 class DashboardHome extends StatefulWidget {
   final User user; // Change to User
   final String role;
-  final ValueChanged<int> onSwitchTab;
+  final ValueChanged<String> onOpenModule;
   final VoidCallback onOpenProfile;
 
   const DashboardHome({
     super.key,
     required this.user,
     required this.role,
-    required this.onSwitchTab,
+    required this.onOpenModule,
     required this.onOpenProfile,
   });
 
@@ -112,6 +111,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isWarehouse = widget.role == 'warehouse';
     final canCreateTransaction =
         widget.role == 'manager' || widget.role == 'employee';
     final isRtl = Directionality.of(context) == TextDirection.rtl;
@@ -129,7 +129,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         color: const Color(0xFFE8B339),
         onTap: canCreateTransaction
             ? _openNewTransaction
-            : () => widget.onSwitchTab(1),
+            : () => widget.onOpenModule('transactions'),
       ),
       _GridItem(
         label: l10n.dashboardNewTransfer,
@@ -137,78 +137,84 @@ class _DashboardHomeState extends State<DashboardHome> {
         color: const Color(0xFF22C55E),
         onTap: canCreateTransaction
             ? _openNewTransfer
-            : () => widget.onSwitchTab(2),
+            : () => widget.onOpenModule('transfers'),
       ),
-      _GridItem(
-        label: l10n.dashboardNewExport,
-        icon: Icons.outbox_outlined,
-        color: const Color(0xFF0EA5E9),
-        onTap:
-            canCreateTransaction ? _openNewExport : () => widget.onSwitchTab(3),
-      ),
-      _GridItem(
-        label: l10n.clients,
-        icon: Icons.groups_outlined,
-        color: const Color(0xFF3B82F6),
-        onTap: () => widget.onSwitchTab(4),
-      ),
-      _GridItem(
-        label: l10n.shipping,
-        icon: Icons.local_shipping_outlined,
-        color: const Color(0xFF8B5CF6),
-        onTap: () => widget.onSwitchTab(5),
-      ),
+      if (!isWarehouse)
+        _GridItem(
+          label: l10n.dashboardNewExport,
+          icon: Icons.outbox_outlined,
+          color: const Color(0xFF0EA5E9),
+          onTap: canCreateTransaction
+              ? _openNewExport
+              : () => widget.onOpenModule('exports'),
+        ),
+      if (!isWarehouse)
+        _GridItem(
+          label: l10n.clients,
+          icon: Icons.groups_outlined,
+          color: const Color(0xFF3B82F6),
+          onTap: () => widget.onOpenModule('clients'),
+        ),
+      if (!isWarehouse)
+        _GridItem(
+          label: l10n.shipping,
+          icon: Icons.local_shipping_outlined,
+          color: const Color(0xFF8B5CF6),
+          onTap: () => widget.onOpenModule('shipping'),
+        ),
       _GridItem(
         label: l10n.dashboardImport,
         icon: Icons.receipt_long_outlined,
         color: const Color(0xFFF97316),
-        onTap: () => widget.onSwitchTab(1),
+        onTap: () => widget.onOpenModule('transactions'),
       ),
       _GridItem(
         label: l10n.dashboardTrackImportRecords,
         icon: Icons.track_changes_outlined,
         color: const Color(0xFF14B8A6),
-        onTap: () => widget.onSwitchTab(1),
+        onTap: () => widget.onOpenModule('transactions'),
       ),
-      _GridItem(
-        label: l10n.dashboardAddClient,
-        icon: Icons.person_add_alt_1_outlined,
-        color: const Color(0xFFEC4899),
-        onTap: () async {
-          if (widget.role != 'manager') {
-            widget.onSwitchTab(4);
-            return;
-          }
-          final ok = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => Container()),
-          );
-          if (ok == true) {
-            widget.onSwitchTab(4);
-          }
-        },
-      ),
-      _GridItem(
-        label: l10n.dashboardShippingCo,
-        icon: Icons.add_business_outlined,
-        color: const Color(0xFF64748B),
-        onTap: () async {
-          if (widget.role != 'manager') {
-            widget.onSwitchTab(5);
-            return;
-          }
-          final ok = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => Container()),
-          );
-          if (ok == true) {
-            widget.onSwitchTab(5);
-          }
-        },
-      ),
+      if (!isWarehouse)
+        _GridItem(
+          label: l10n.dashboardAddClient,
+          icon: Icons.person_add_alt_1_outlined,
+          color: const Color(0xFFEC4899),
+          onTap: () async {
+            if (widget.role != 'manager') {
+              widget.onOpenModule('clients');
+              return;
+            }
+            final ok = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => Container()),
+            );
+            if (ok == true) {
+              widget.onOpenModule('clients');
+            }
+          },
+        ),
+      if (!isWarehouse)
+        _GridItem(
+          label: l10n.dashboardShippingCo,
+          icon: Icons.add_business_outlined,
+          color: const Color(0xFF64748B),
+          onTap: () async {
+            if (widget.role != 'manager') {
+              widget.onOpenModule('shipping');
+              return;
+            }
+            final ok = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => Container()),
+            );
+            if (ok == true) {
+              widget.onOpenModule('shipping');
+            }
+          },
+        ),
       _GridItem(
         label: l10n.dashboardHelpSupport,
         icon: Icons.support_agent_outlined,
         color: const Color(0xFFFB923C),
-        onTap: () => widget.onSwitchTab(7),
+        onTap: () => widget.onOpenModule('profile'),
       ),
     ];
 
@@ -258,7 +264,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                           IconButton(
                             icon: const Icon(Icons.local_offer_outlined,
                                 color: Color(0xFF1e3a8a)),
-                            onPressed: () => widget.onSwitchTab(1),
+                            onPressed: () => widget.onOpenModule('transactions'),
                           ),
                           IconButton(
                             icon: const Icon(Icons.chat_bubble_outline,
@@ -281,7 +287,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                     onBell: () => showNotificationsSheet(
                       context,
                       role: widget.role,
-                      onSwitchTab: widget.onSwitchTab,
+                      onOpenModule: widget.onOpenModule,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -290,7 +296,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                       Expanded(
                         child: TextField(
                           controller: _searchCtrl,
-                          onSubmitted: (_) => widget.onSwitchTab(1),
+                          onSubmitted: (_) => widget.onOpenModule('transactions'),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
@@ -300,7 +306,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                             suffixIcon: IconButton(
                               icon: const Icon(Icons.tune,
                                   size: 22, color: Color(0xFF94a3b8)),
-                              onPressed: () => widget.onSwitchTab(1),
+                              onPressed: () => widget.onOpenModule('transactions'),
                             ),
                             contentPadding:
                                 const EdgeInsets.symmetric(vertical: 12),
@@ -322,7 +328,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                         color: const Color(0xFF1e3a8a),
                         borderRadius: BorderRadius.circular(12),
                         child: InkWell(
-                          onTap: () => widget.onSwitchTab(1),
+                          onTap: () => widget.onOpenModule('transactions'),
                           borderRadius: BorderRadius.circular(12),
                           child: const SizedBox(
                             width: 48,
@@ -402,7 +408,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                             color: Color(0xFF0f172a)),
                       ),
                       TextButton.icon(
-                        onPressed: () => widget.onSwitchTab(1),
+                        onPressed: () => widget.onOpenModule('transactions'),
                         icon: Icon(
                             isRtl ? Icons.chevron_left : Icons.chevron_right,
                             size: 18),

@@ -192,7 +192,7 @@ void _openNotificationTarget(
   BuildContext context, {
   required AppNotification notification,
   required String role,
-  ValueChanged<int>? onSwitchTab,
+  ValueChanged<String>? onOpenModule,
 }) {
   final entityId = notification.entityId?.trim();
   final module = notification.transactionModule;
@@ -230,7 +230,7 @@ void _openNotificationTarget(
       }
       return;
     case 'employee':
-      onSwitchTab?.call(6);
+      onOpenModule?.call('employees');
       return;
     default:
       return;
@@ -240,7 +240,7 @@ void _openNotificationTarget(
 void showNotificationsSheet(
   BuildContext context, {
   required String role,
-  ValueChanged<int>? onSwitchTab,
+  ValueChanged<String>? onOpenModule,
 }) {
   final l10n = AppLocalizations.of(context)!;
   final service = NotificationService.instance;
@@ -337,7 +337,7 @@ void showNotificationsSheet(
                               context,
                               notification: n,
                               role: role,
-                              onSwitchTab: onSwitchTab,
+                              onOpenModule: onOpenModule,
                             );
                           },
                         );

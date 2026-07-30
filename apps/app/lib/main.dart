@@ -388,58 +388,151 @@ class _HomePageState extends State<HomePage> {
     widget.onLogout();
   }
 
-  String _appBarTitle(AppLocalizations l10n) {
-    switch (_index) {
-      case 1:
+  String _appBarTitle(AppLocalizations l10n, String moduleId) {
+    switch (moduleId) {
+      case 'transactions':
         return l10n.transactions;
-      case 2:
+      case 'transfers':
         return l10n.transfers;
-      case 3:
+      case 'exports':
         return l10n.exports;
-      case 4:
+      case 'clients':
         return l10n.clients;
-      case 5:
+      case 'shipping':
         return l10n.shipping;
-      case 6:
+      case 'employees':
         return l10n.employees;
-      case 7:
+      case 'profile':
         return l10n.profile;
       default:
         return l10n.tracker;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final role = _user.role; // Access role directly
-    final pages = <Widget>[
-      DashboardHome(
-        user: _user,
-        role: role,
-        onSwitchTab: (i) => setState(() => _index = i),
-        onOpenProfile: () => setState(() => _index = 7),
+  List<({String id, Widget page, NavigationDestination dest})> _navEntries(
+    AppLocalizations l10n,
+    String role,
+  ) {
+    final entries = <({String id, Widget page, NavigationDestination dest})>[
+      (
+        id: 'home',
+        page: DashboardHome(
+          user: _user,
+          role: role,
+          onOpenModule: (module) {
+            final idx = _moduleIndex(role, module);
+            if (idx != null) setState(() => _index = idx);
+          },
+          onOpenProfile: () {
+            final idx = _moduleIndex(role, 'profile');
+            if (idx != null) setState(() => _index = idx);
+          },
+        ),
+        dest: NavigationDestination(
+          icon: const Icon(Icons.dashboard_outlined),
+          label: l10n.dashboardTab,
+        ),
       ),
-      TransactionsTab(role: role, module: 'transactions'),
-      TransactionsTab(role: role, module: 'transfers'),
-      TransactionsTab(role: role, module: 'exports'),
-      ClientsTab(role: role),
-      Container(child: Center(child: Text("Shipping Tab Placeholder"))), // Placeholder for ShippingTab
-      EmployeesTab(role: role),
-      ProfileTab(
+      (
+        id: 'transactions',
+        page: TransactionsTab(role: role, module: 'transactions'),
+        dest: NavigationDestination(
+          icon: const Icon(Icons.receipt_long_outlined),
+          label: l10n.transactions,
+        ),
+      ),
+      (
+        id: 'transfers',
+        page: TransactionsTab(role: role, module: 'transfers'),
+        dest: NavigationDestination(
+          icon: const Icon(Icons.swap_horiz_outlined),
+          label: l10n.transfers,
+        ),
+      ),
+    ];
+
+    if (role != 'warehouse') {
+      entries.addAll([
+        (
+          id: 'exports',
+          page: TransactionsTab(role: role, module: 'exports'),
+          dest: NavigationDestination(
+            icon: const Icon(Icons.outbox_outlined),
+            label: l10n.exports,
+          ),
+        ),
+        (
+          id: 'clients',
+          page: ClientsTab(role: role),
+          dest: NavigationDestination(
+            icon: const Icon(Icons.groups_outlined),
+            label: l10n.clients,
+          ),
+        ),
+        (
+          id: 'shipping',
+          page: Center(child: Text(l10n.shipping)),
+          dest: NavigationDestination(
+            icon: const Icon(Icons.local_shipping_outlined),
+            label: l10n.shipping,
+          ),
+        ),
+        (
+          id: 'employees',
+          page: EmployeesTab(role: role),
+          dest: NavigationDestination(
+            icon: const Icon(Icons.badge_outlined),
+            label: l10n.employees,
+          ),
+        ),
+      ]);
+    }
+
+    entries.add((
+      id: 'profile',
+      page: ProfileTab(
         user: _user,
         onLogout: _logout,
         onUserUpdated: _onUserUpdated,
       ),
-    ];
+      dest: NavigationDestination(
+        icon: const Icon(Icons.person_outlined),
+        label: l10n.profile,
+      ),
+    ));
+    return entries;
+  }
 
-    final userName = _user.name.trim(); // Access name directly
+  int? _moduleIndex(String role, String module) {
+    final ids = <String>['home', 'transactions', 'transfers'];
+    if (role != 'warehouse') {
+      ids.addAll(['exports', 'clients', 'shipping', 'employees']);
+    }
+    ids.add('profile');
+    final i = ids.indexOf(module);
+    return i >= 0 ? i : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final role = _user.role;
+    final entries = _navEntries(l10n, role);
+    final index = _index.clamp(0, entries.length - 1);
+    if (index != _index) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _index = index);
+      });
+    }
+    final pages = entries.map((e) => e.page).toList();
+    final destinations = entries.map((e) => e.dest).toList();
+    final userName = _user.name.trim();
 
     return Scaffold(
-      appBar: _index == 0
+      appBar: index == 0
           ? null
           : AppBar(
-              title: Text(_appBarTitle(l10n)),
+              title: Text(_appBarTitle(l10n, entries[index].id)),
               actions: [
                 if (userName.isNotEmpty)
                   Padding(
@@ -472,37 +565,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-      body: IndexedStack(index: _index, children: pages), // Changed from FadeIndexedStack
+      body: IndexedStack(index: index, children: pages),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
+        selectedIndex: index,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         onDestinationSelected: (v) => setState(() => _index = v),
-        destinations: [
-          NavigationDestination(
-              icon: const Icon(Icons.dashboard_outlined),
-              label: l10n.dashboardTab),
-          NavigationDestination(
-              icon: const Icon(Icons.receipt_long_outlined),
-              label: l10n.transactions),
-          NavigationDestination(
-              icon: const Icon(Icons.swap_horiz_outlined),
-              label: l10n.transfers),
-          NavigationDestination(
-              icon: const Icon(Icons.outbox_outlined),
-              label: l10n.exports),
-          NavigationDestination(
-              icon: const Icon(Icons.groups_outlined),
-              label: l10n.clients),
-          NavigationDestination(
-              icon: const Icon(Icons.local_shipping_outlined),
-              label: l10n.shipping),
-          NavigationDestination(
-              icon: const Icon(Icons.badge_outlined),
-              label: l10n.employees),
-          NavigationDestination(
-              icon: const Icon(Icons.person_outlined),
-              label: l10n.profile),
-        ],
+        destinations: destinations,
       ),
     );
   }
