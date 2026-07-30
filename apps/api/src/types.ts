@@ -196,6 +196,22 @@ export interface Transaction {
   accountingInvoices?: DocumentAttachment[];
   isAccountingFinalized?: boolean;
   storagePhotos?: DocumentAttachment[];
+  /** Tax invoice charge lines */
+  deliveryOrderCharge?: number;
+  customsDeclarationCharge?: number;
+  freightShippingCompanyCharge?: number;
+  customsBillCdrCopyCharge?: number;
+  portChargeDpw?: number;
+  inspectionForMerciCharge?: number;
+  clearingCharges?: number;
+  exitCertificateCharge?: number;
+  manifestSgaServicesCharge?: number;
+  gatePassCharge?: number;
+  toCharge?: number;
+  labourCharge?: number;
+  repackingCharge?: number;
+  exitSummitDoCustomsCharge?: number;
+  vatAmount?: number;
   transactionStage: TransactionStage;
   createdAt: string;
   updatedAt: string;

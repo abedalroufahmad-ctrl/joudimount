@@ -1301,7 +1301,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ),
           const SizedBox(height: 8),
           FilledButton(
-            onPressed: (_saving || storageWarehouseOnly) ? null : _save,
+            onPressed: (_saving ||
+                    storageWarehouseOnly ||
+                    (isEmployee2 && !canWorkStage))
+                ? null
+                : _save,
             child: Text(_saving ? l10n.saving : l10n.save),
           ),
         ],

@@ -314,5 +314,21 @@
   "accountingStorageExitWages": "أجور عمال الإخراج",
   "accountingStorageSealWages": "أجور عمال التبديل",
   "accountingStorageInputFare": "أجرة معدات التحميل (إدخال)",
-  "accountingStorageExitFare": "أجرة معدات التحميل (إخراج)"
+  "accountingStorageExitFare": "أجرة معدات التحميل (إخراج)",
+  "accountingInvoiceChargesSection": "رسوم الفاتورة الضريبية",
+  "accountingDeliveryOrderCharge": "رسوم إذن التسليم",
+  "accountingCustomsDeclarationCharge": "رسوم البيان الجمركي",
+  "accountingFreightShippingCompanyCharge": "أجور الشحن / شركة الشحن",
+  "accountingCustomsBillCdrCopyCharge": "رسوم فاتورة الجمارك / نسخة CDR",
+  "accountingPortChargeDpw": "رسوم الميناء (DPW)",
+  "accountingInspectionForMerciCharge": "رسوم التفتيش (مرسي)",
+  "accountingClearingCharges": "رسوم التخليص",
+  "accountingExitCertificateCharge": "شهادة الخروج",
+  "accountingManifestSgaServicesCharge": "المنافيست / خدمات SGA",
+  "accountingGatePassCharge": "تصريح البوابة",
+  "accountingToCharge": "TO",
+  "accountingLabourCharge": "أجور العمال",
+  "accountingRepackingCharge": "إعادة التعبئة",
+  "accountingExitSummitDoCustomsCharge": "Exit Summit - رسوم DO جمركية",
+  "accountingVatAmount": "مبلغ ضريبة القيمة المضافة"
 }

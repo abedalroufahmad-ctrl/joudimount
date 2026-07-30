@@ -7,6 +7,27 @@ import type { MessageKey } from "./i18n/messages";
 import { useI18n } from "./i18n/I18nContext";
 import { API_BASE, AccountingCustomField, Role, DocumentAttachment } from "./types";
 
+const INVOICE_CHARGE_KEYS = [
+  "deliveryOrderCharge",
+  "customsDeclarationCharge",
+  "freightShippingCompanyCharge",
+  "customsBillCdrCopyCharge",
+  "portChargeDpw",
+  "inspectionForMerciCharge",
+  "clearingCharges",
+  "exitCertificateCharge",
+  "manifestSgaServicesCharge",
+  "gatePassCharge",
+  "tripCharge",
+  "toCharge",
+  "labourCharge",
+  "repackingCharge",
+  "exitSummitDoCustomsCharge",
+  "vatAmount",
+] as const;
+
+type InvoiceChargeKey = (typeof INVOICE_CHARGE_KEYS)[number];
+
 type AccountingFixed = {
   invoiceValue: number;
   invoiceCurrency?: string;
@@ -19,12 +40,11 @@ type AccountingFixed = {
   storageSealWorkersWages?: number;
   storageInputLoadingEquipmentFare?: number;
   storageExitLoadingEquipmentFare?: number;
-};
+} & Partial<Record<InvoiceChargeKey, number>>;
 
 type FixedFormState = {
   invoiceValue: string;
   invoiceCurrency: string;
-  tripCharge: string;
   waitingCharge: string;
   maccrikCharge: string;
   paymentStatus: "pending" | "paid";
@@ -33,7 +53,7 @@ type FixedFormState = {
   storageSealWorkersWages: string;
   storageInputLoadingEquipmentFare: string;
   storageExitLoadingEquipmentFare: string;
-};
+} & Record<InvoiceChargeKey, string>;
 
 type AccountingPayload = {
   id: string;
@@ -53,11 +73,18 @@ function numToStr(n: number | undefined): string {
   return n != null && Number.isFinite(n) ? String(n) : "";
 }
 
+function emptyInvoiceCharges(): Record<InvoiceChargeKey, string> {
+  return Object.fromEntries(INVOICE_CHARGE_KEYS.map((k) => [k, ""])) as Record<InvoiceChargeKey, string>;
+}
+
 function fixedToForm(f: AccountingFixed): FixedFormState {
+  const charges = emptyInvoiceCharges();
+  for (const key of INVOICE_CHARGE_KEYS) {
+    charges[key] = numToStr(f[key]);
+  }
   return {
     invoiceValue: numToStr(f.invoiceValue),
     invoiceCurrency: f.invoiceCurrency ?? "AED",
-    tripCharge: numToStr(f.tripCharge),
     waitingCharge: numToStr(f.waitingCharge),
     maccrikCharge: numToStr(f.maccrikCharge),
     paymentStatus: f.paymentStatus === "paid" ? "paid" : "pending",
@@ -66,6 +93,7 @@ function fixedToForm(f: AccountingFixed): FixedFormState {
     storageSealWorkersWages: numToStr(f.storageSealWorkersWages),
     storageInputLoadingEquipmentFare: numToStr(f.storageInputLoadingEquipmentFare),
     storageExitLoadingEquipmentFare: numToStr(f.storageExitLoadingEquipmentFare),
+    ...charges,
   };
 }
 
@@ -83,7 +111,6 @@ function formToFixedPayload(form: FixedFormState): Record<string, unknown> {
   };
   const inv = Number(form.invoiceValue.trim());
   if (Number.isFinite(inv) && inv > 0) payload.invoiceValue = inv;
-  appendOptionalNumber(payload, "tripCharge", form.tripCharge);
   appendOptionalNumber(payload, "waitingCharge", form.waitingCharge);
   appendOptionalNumber(payload, "maccrikCharge", form.maccrikCharge);
   appendOptionalNumber(payload, "storageInputWorkersWages", form.storageInputWorkersWages);
@@ -91,7 +118,15 @@ function formToFixedPayload(form: FixedFormState): Record<string, unknown> {
   appendOptionalNumber(payload, "storageSealWorkersWages", form.storageSealWorkersWages);
   appendOptionalNumber(payload, "storageInputLoadingEquipmentFare", form.storageInputLoadingEquipmentFare);
   appendOptionalNumber(payload, "storageExitLoadingEquipmentFare", form.storageExitLoadingEquipmentFare);
+  for (const key of INVOICE_CHARGE_KEYS) {
+    appendOptionalNumber(payload, key, form[key]);
+  }
   return payload;
+}
+
+function chargeLabelKey(key: InvoiceChargeKey): MessageKey {
+  if (key === "tripCharge") return "transportation.tripCharge" as MessageKey;
+  return `accountingPage.fixed.${key}` as MessageKey;
 }
 
 export default function TransactionAccountingPage({
@@ -279,18 +314,6 @@ export default function TransactionAccountingPage({
                 </select>
               </div>
               <div className="col-12 col-md-6">
-                <label className="form-label small mb-1">{t("transportation.tripCharge" as MessageKey)}</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  min={0}
-                  step="any"
-                  value={fixedForm.tripCharge}
-                  disabled={!canEdit}
-                  onChange={(e) => updateFixed({ tripCharge: e.target.value })}
-                />
-              </div>
-              <div className="col-12 col-md-6">
                 <label className="form-label small mb-1">{t("transportation.waitingCharge" as MessageKey)}</label>
                 <input
                   className="form-control"
@@ -386,6 +409,24 @@ export default function TransactionAccountingPage({
                   onChange={(e) => updateFixed({ storageExitLoadingEquipmentFare: e.target.value })}
                 />
               </div>
+            </div>
+
+            <h2 className="h6 fw-semibold mb-3 mt-2">{t("accountingPage.invoiceChargesSection" as MessageKey)}</h2>
+            <div className="row g-3 mb-4">
+              {INVOICE_CHARGE_KEYS.map((key) => (
+                <div className="col-12 col-md-6" key={key}>
+                  <label className="form-label small mb-1">{t(chargeLabelKey(key))}</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    min={0}
+                    step="any"
+                    value={fixedForm[key]}
+                    disabled={!canEdit}
+                    onChange={(e) => updateFixed({ [key]: e.target.value })}
+                  />
+                </div>
+              ))}
             </div>
 
             <h2 className="h6 fw-semibold mb-3">{t("accountingPage.customSection" as MessageKey)}</h2>

@@ -1125,7 +1125,7 @@ export default function TransactionForm({
           </FormSection>
 
           <div className="d-flex flex-wrap gap-2">
-            <button className="btn btn-primary" type="submit" disabled={loading || transferWarehouseOnly}>
+            <button className="btn btn-primary" type="submit" disabled={loading || transferWarehouseOnly || (role === "employee2" && !canWorkThisStage)}>
               {loading ? t("form.saving") : t("form.save")}
             </button>
           </div>
@@ -1753,7 +1753,7 @@ export default function TransactionForm({
           </p>
         ) : null}
         <div className="d-flex flex-wrap gap-2">
-          <button className="btn btn-primary" type="submit" disabled={loading || fullyLocked}>
+          <button className="btn btn-primary" type="submit" disabled={loading || fullyLocked || (role === "employee2" && !canWorkThisStage)}>
             {loading ? t("form.saving") : t("form.save")}
           </button>
         </div>

@@ -56,6 +56,21 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
       'storageSealWorkersWages': n(fixed['storageSealWorkersWages']),
       'storageInputLoadingEquipmentFare': n(fixed['storageInputLoadingEquipmentFare']),
       'storageExitLoadingEquipmentFare': n(fixed['storageExitLoadingEquipmentFare']),
+      'deliveryOrderCharge': n(fixed['deliveryOrderCharge']),
+      'customsDeclarationCharge': n(fixed['customsDeclarationCharge']),
+      'freightShippingCompanyCharge': n(fixed['freightShippingCompanyCharge']),
+      'customsBillCdrCopyCharge': n(fixed['customsBillCdrCopyCharge']),
+      'portChargeDpw': n(fixed['portChargeDpw']),
+      'inspectionForMerciCharge': n(fixed['inspectionForMerciCharge']),
+      'clearingCharges': n(fixed['clearingCharges']),
+      'exitCertificateCharge': n(fixed['exitCertificateCharge']),
+      'manifestSgaServicesCharge': n(fixed['manifestSgaServicesCharge']),
+      'gatePassCharge': n(fixed['gatePassCharge']),
+      'toCharge': n(fixed['toCharge']),
+      'labourCharge': n(fixed['labourCharge']),
+      'repackingCharge': n(fixed['repackingCharge']),
+      'exitSummitDoCustomsCharge': n(fixed['exitSummitDoCustomsCharge']),
+      'vatAmount': n(fixed['vatAmount']),
     };
   }
 
@@ -80,6 +95,21 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
     addNum('storageSealWorkersWages');
     addNum('storageInputLoadingEquipmentFare');
     addNum('storageExitLoadingEquipmentFare');
+    addNum('deliveryOrderCharge');
+    addNum('customsDeclarationCharge');
+    addNum('freightShippingCompanyCharge');
+    addNum('customsBillCdrCopyCharge');
+    addNum('portChargeDpw');
+    addNum('inspectionForMerciCharge');
+    addNum('clearingCharges');
+    addNum('exitCertificateCharge');
+    addNum('manifestSgaServicesCharge');
+    addNum('gatePassCharge');
+    addNum('toCharge');
+    addNum('labourCharge');
+    addNum('repackingCharge');
+    addNum('exitSummitDoCustomsCharge');
+    addNum('vatAmount');
     return out;
   }
 
@@ -268,7 +298,6 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
                         : (v) => _patchFixed('invoiceCurrency', v ?? 'AED'),
                   ),
                 ),
-                _numField('tripCharge', l10n.txTripCharge),
                 _numField('waitingCharge', l10n.txWaitingCharge),
                 _numField('maccrikCharge', l10n.txMaccrikCharge),
                 Padding(
@@ -292,6 +321,26 @@ class _TransactionAccountingPageState extends State<TransactionAccountingPage> {
                 _numField('storageSealWorkersWages', l10n.accountingStorageSealWages),
                 _numField('storageInputLoadingEquipmentFare', l10n.accountingStorageInputFare),
                 _numField('storageExitLoadingEquipmentFare', l10n.accountingStorageExitFare),
+                const SizedBox(height: 16),
+                Text(l10n.accountingInvoiceChargesSection,
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                _numField('deliveryOrderCharge', l10n.accountingDeliveryOrderCharge),
+                _numField('customsDeclarationCharge', l10n.accountingCustomsDeclarationCharge),
+                _numField('freightShippingCompanyCharge', l10n.accountingFreightShippingCompanyCharge),
+                _numField('customsBillCdrCopyCharge', l10n.accountingCustomsBillCdrCopyCharge),
+                _numField('portChargeDpw', l10n.accountingPortChargeDpw),
+                _numField('inspectionForMerciCharge', l10n.accountingInspectionForMerciCharge),
+                _numField('clearingCharges', l10n.accountingClearingCharges),
+                _numField('exitCertificateCharge', l10n.accountingExitCertificateCharge),
+                _numField('manifestSgaServicesCharge', l10n.accountingManifestSgaServicesCharge),
+                _numField('gatePassCharge', l10n.accountingGatePassCharge),
+                _numField('tripCharge', l10n.txTripCharge),
+                _numField('toCharge', l10n.accountingToCharge),
+                _numField('labourCharge', l10n.accountingLabourCharge),
+                _numField('repackingCharge', l10n.accountingRepackingCharge),
+                _numField('exitSummitDoCustomsCharge', l10n.accountingExitSummitDoCustomsCharge),
+                _numField('vatAmount', l10n.accountingVatAmount),
                 const SizedBox(height: 20),
                 Text(l10n.accountingCustomSection,
                     style: Theme.of(context).textTheme.titleSmall),

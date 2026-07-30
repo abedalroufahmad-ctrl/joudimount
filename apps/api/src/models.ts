@@ -157,6 +157,21 @@ interface TransactionDoc {
   accountingInvoices?: { path: string; originalName: string; category?: string }[];
   isAccountingFinalized?: boolean;
   storagePhotos?: { path: string; originalName: string }[];
+  deliveryOrderCharge?: number;
+  customsDeclarationCharge?: number;
+  freightShippingCompanyCharge?: number;
+  customsBillCdrCopyCharge?: number;
+  portChargeDpw?: number;
+  inspectionForMerciCharge?: number;
+  clearingCharges?: number;
+  exitCertificateCharge?: number;
+  manifestSgaServicesCharge?: number;
+  gatePassCharge?: number;
+  toCharge?: number;
+  labourCharge?: number;
+  repackingCharge?: number;
+  exitSummitDoCustomsCharge?: number;
+  vatAmount?: number;
   transactionStage: "PREPARATION" | "CUSTOMS_CLEARANCE" | "TRANSPORTATION" | "STORAGE";
   createdAt: Date;
   updatedAt: Date;
@@ -319,6 +334,21 @@ const transactionSchema = new Schema<TransactionDoc>(
         originalName: { type: String, required: true },
       },
     ],
+    deliveryOrderCharge: { type: Number },
+    customsDeclarationCharge: { type: Number },
+    freightShippingCompanyCharge: { type: Number },
+    customsBillCdrCopyCharge: { type: Number },
+    portChargeDpw: { type: Number },
+    inspectionForMerciCharge: { type: Number },
+    clearingCharges: { type: Number },
+    exitCertificateCharge: { type: Number },
+    manifestSgaServicesCharge: { type: Number },
+    gatePassCharge: { type: Number },
+    toCharge: { type: Number },
+    labourCharge: { type: Number },
+    repackingCharge: { type: Number },
+    exitSummitDoCustomsCharge: { type: Number },
+    vatAmount: { type: Number },
     transactionStage: {
       type: String,
       enum: ["PREPARATION", "CUSTOMS_CLEARANCE", "TRANSPORTATION", "STORAGE"],

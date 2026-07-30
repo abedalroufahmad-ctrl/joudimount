@@ -1942,6 +1942,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exit loading equipment fare'**
   String get accountingStorageExitFare;
+
+  /// No description provided for @accountingInvoiceChargesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax invoice charges'**
+  String get accountingInvoiceChargesSection;
+
+  /// No description provided for @accountingDeliveryOrderCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery order charge'**
+  String get accountingDeliveryOrderCharge;
+
+  /// No description provided for @accountingCustomsDeclarationCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Customs declaration charge'**
+  String get accountingCustomsDeclarationCharge;
+
+  /// No description provided for @accountingFreightShippingCompanyCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Freight shipping company'**
+  String get accountingFreightShippingCompanyCharge;
+
+  /// No description provided for @accountingCustomsBillCdrCopyCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Customs bill charges / CDR copy'**
+  String get accountingCustomsBillCdrCopyCharge;
+
+  /// No description provided for @accountingPortChargeDpw.
+  ///
+  /// In en, this message translates to:
+  /// **'Port charge DPW'**
+  String get accountingPortChargeDpw;
+
+  /// No description provided for @accountingInspectionForMerciCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection for Merci'**
+  String get accountingInspectionForMerciCharge;
+
+  /// No description provided for @accountingClearingCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing charges'**
+  String get accountingClearingCharges;
+
+  /// No description provided for @accountingExitCertificateCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit certificate'**
+  String get accountingExitCertificateCharge;
+
+  /// No description provided for @accountingManifestSgaServicesCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Manifest / SGA services'**
+  String get accountingManifestSgaServicesCharge;
+
+  /// No description provided for @accountingGatePassCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Gate pass'**
+  String get accountingGatePassCharge;
+
+  /// No description provided for @accountingToCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'TO'**
+  String get accountingToCharge;
+
+  /// No description provided for @accountingLabourCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Labour'**
+  String get accountingLabourCharge;
+
+  /// No description provided for @accountingRepackingCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Repacking'**
+  String get accountingRepackingCharge;
+
+  /// No description provided for @accountingExitSummitDoCustomsCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Summit – DO customs charge'**
+  String get accountingExitSummitDoCustomsCharge;
+
+  /// No description provided for @accountingVatAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT amount'**
+  String get accountingVatAmount;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

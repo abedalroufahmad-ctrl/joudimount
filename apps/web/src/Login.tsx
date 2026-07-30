@@ -35,7 +35,7 @@ export default function Login({ onLogin }: { onLogin: (user: AuthUser) => void }
       </div>
       <div className="login-card card shadow-lg border-0">
         <div className="login-card-brand text-center">
-          <img src="/logo.png" alt="" width={72} height={72} className="login-logo" />
+          <img src="/logo.png" alt="JOUDI" width={72} height={72} className="login-logo" />
           <h1 className="login-title">{t("login.title")}</h1>
           <p className="login-subtitle">{t("login.subtitle")}</p>
         </div>

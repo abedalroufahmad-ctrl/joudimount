@@ -179,6 +179,11 @@ export default function TransactionDetails({
   const txStage = (transaction?.transactionStage ?? "PREPARATION") as TransactionStage;
   const canWorkRecord =
     role === "manager" || (transaction != null && roleCanWorkAtStage(role, txStage));
+  /** Employee 2 may open any record to view; edit/save remains stage-gated in the form. */
+  const canOpenForm =
+    role === "manager" ||
+    role === "employee2" ||
+    (canWorkRecord && role !== "accountant" && role !== "warehouse");
 
   return (
     <main className="container page-content py-3">
@@ -186,7 +191,7 @@ export default function TransactionDetails({
         <Link to={transactionListPath(module)} className="btn btn-outline-secondary btn-sm">
           ← {t("details.back")}
         </Link>
-        {id && canWorkRecord && role !== "accountant" && role !== "warehouse" ? (
+        {id && canOpenForm ? (
           <>
             <Link to={`/${module}/${id}/edit`} className="btn btn-outline-primary btn-sm">
               {t("details.edit")}

@@ -933,4 +933,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountingStorageExitFare => 'Exit loading equipment fare';
+
+  @override
+  String get accountingInvoiceChargesSection => 'Tax invoice charges';
+
+  @override
+  String get accountingDeliveryOrderCharge => 'Delivery order charge';
+
+  @override
+  String get accountingCustomsDeclarationCharge => 'Customs declaration charge';
+
+  @override
+  String get accountingFreightShippingCompanyCharge => 'Freight shipping company';
+
+  @override
+  String get accountingCustomsBillCdrCopyCharge => 'Customs bill charges / CDR copy';
+
+  @override
+  String get accountingPortChargeDpw => 'Port charge DPW';
+
+  @override
+  String get accountingInspectionForMerciCharge => 'Inspection for Merci';
+
+  @override
+  String get accountingClearingCharges => 'Clearing charges';
+
+  @override
+  String get accountingExitCertificateCharge => 'Exit certificate';
+
+  @override
+  String get accountingManifestSgaServicesCharge => 'Manifest / SGA services';
+
+  @override
+  String get accountingGatePassCharge => 'Gate pass';
+
+  @override
+  String get accountingToCharge => 'TO';
+
+  @override
+  String get accountingLabourCharge => 'Labour';
+
+  @override
+  String get accountingRepackingCharge => 'Repacking';
+
+  @override
+  String get accountingExitSummitDoCustomsCharge => 'Exit Summit – DO customs charge';
+
+  @override
+  String get accountingVatAmount => 'VAT amount';
 }

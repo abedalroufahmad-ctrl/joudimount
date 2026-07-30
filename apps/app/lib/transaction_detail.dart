@@ -159,8 +159,8 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final t = tx!;
     final stage = t.transactionStage;
     final showCustoms = stage != 'PREPARATION';
-    final showTransportation = stage == 'TRANSPORTATION' &&
-        ((t.transportationTo?.trim().isNotEmpty ?? false) ||
+    final showTransportation =
+        (t.transportationTo?.trim().isNotEmpty ?? false) ||
             (t.trachNo?.trim().isNotEmpty ?? false) ||
             (t.shipmentNumbers != null && t.shipmentNumbers!.isNotEmpty) ||
             (t.transportationCompany?.trim().isNotEmpty ?? false) ||
@@ -168,7 +168,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
             (t.transportationToLocation?.trim().isNotEmpty ?? false) ||
             t.tripCharge != null ||
             t.waitingCharge != null ||
-            t.maccrikCharge != null);
+            t.maccrikCharge != null;
     final showTransfer = (t.portOfLading?.trim().isNotEmpty ?? false) ||
         (t.portOfDischarge?.trim().isNotEmpty ?? false) ||
         (t.destination?.trim().isNotEmpty ?? false);
@@ -717,8 +717,9 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final numberFormat = intl.NumberFormat.decimalPattern(locale);
     final stage = tx?.transactionStage ?? 'PREPARATION';
     final canWorkRecord = tx != null && roleCanWorkAtStage(widget.role, stage);
-    final canEdit =
+    final canOpenForm =
         widget.role == 'manager' ||
+        widget.role == 'employee2' ||
         (widget.role != 'accountant' &&
             widget.role != 'warehouse' &&
             canWorkRecord);
@@ -734,7 +735,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       appBar: AppBar(
         title: Text(_moduleTitle(l10n)),
         actions: [
-          if (tx != null && canEdit)
+          if (tx != null && canOpenForm)
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
@@ -759,7 +760,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
               tooltip: l10n.shippingPaper,
               onPressed: _openShippingPaper,
             ),
-          if (tx != null && canEdit && canDelete)
+          if (tx != null && canOpenForm && canDelete)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: _delete,

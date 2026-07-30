@@ -64,6 +64,22 @@ export type MessageKey =
   | "accountingPage.fixed.storageSealWages"
   | "accountingPage.fixed.storageInputFare"
   | "accountingPage.fixed.storageExitFare"
+  | "accountingPage.invoiceChargesSection"
+  | "accountingPage.fixed.deliveryOrderCharge"
+  | "accountingPage.fixed.customsDeclarationCharge"
+  | "accountingPage.fixed.freightShippingCompanyCharge"
+  | "accountingPage.fixed.customsBillCdrCopyCharge"
+  | "accountingPage.fixed.portChargeDpw"
+  | "accountingPage.fixed.inspectionForMerciCharge"
+  | "accountingPage.fixed.clearingCharges"
+  | "accountingPage.fixed.exitCertificateCharge"
+  | "accountingPage.fixed.manifestSgaServicesCharge"
+  | "accountingPage.fixed.gatePassCharge"
+  | "accountingPage.fixed.toCharge"
+  | "accountingPage.fixed.labourCharge"
+  | "accountingPage.fixed.repackingCharge"
+  | "accountingPage.fixed.exitSummitDoCustomsCharge"
+  | "accountingPage.fixed.vatAmount"
   | "storagePage.wrongStage"
   | "storagePage.accountantReadOnly"
   | "storagePage.productImages"
@@ -478,6 +494,22 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "accountingPage.fixed.storageSealWages": "أجور عمال التبديل",
     "accountingPage.fixed.storageInputFare": "أجرة معدات التحميل (إدخال)",
     "accountingPage.fixed.storageExitFare": "أجرة معدات التحميل (إخراج)",
+    "accountingPage.invoiceChargesSection": "رسوم الفاتورة الضريبية",
+    "accountingPage.fixed.deliveryOrderCharge": "رسوم إذن التسليم",
+    "accountingPage.fixed.customsDeclarationCharge": "رسوم البيان الجمركي",
+    "accountingPage.fixed.freightShippingCompanyCharge": "أجور الشحن / شركة الشحن",
+    "accountingPage.fixed.customsBillCdrCopyCharge": "رسوم فاتورة الجمارك / نسخة CDR",
+    "accountingPage.fixed.portChargeDpw": "رسوم الميناء (DPW)",
+    "accountingPage.fixed.inspectionForMerciCharge": "رسوم التفتيش (مرسي)",
+    "accountingPage.fixed.clearingCharges": "رسوم التخليص",
+    "accountingPage.fixed.exitCertificateCharge": "شهادة الخروج",
+    "accountingPage.fixed.manifestSgaServicesCharge": "المنافيست / خدمات SGA",
+    "accountingPage.fixed.gatePassCharge": "تصريح البوابة",
+    "accountingPage.fixed.toCharge": "TO",
+    "accountingPage.fixed.labourCharge": "أجور العمال",
+    "accountingPage.fixed.repackingCharge": "إعادة التعبئة",
+    "accountingPage.fixed.exitSummitDoCustomsCharge": "Exit Summit - رسوم DO جمركية",
+    "accountingPage.fixed.vatAmount": "مبلغ ضريبة القيمة المضافة",
     "storagePage.wrongStage": "هذه المعاملة ليست في مرحلة التخزين.",
     "storagePage.accountantReadOnly": "عرض فقط لدور المحاسب.",
     "storagePage.productImages": "صور المنتج (اختياري)",
@@ -509,7 +541,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.employeeTitle": "موظف",
     "employees.employeeDesc": "إدارة المعاملات ما عدا المحاسبة والفوترة.",
     "employees.employee2Title": "موظف 2",
-    "employees.employee2Desc": "إدارة بيانات التخليص الجمركي للمرحلة الثانية فقط.",
+    "employees.employee2Desc": "عرض كل البيانات ما عدا المحاسبة، مع تعديل النقل والتخزين فقط.",
     "employees.warehouseTitle": "موظف المستودع",
     "employees.warehouseDesc": "عرض وتعديل بطاقات التخزين فقط.",
     "employees.accountantTitle": "محاسب",
@@ -889,6 +921,22 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "accountingPage.fixed.storageSealWages": "Seal workers wages",
     "accountingPage.fixed.storageInputFare": "Input loading equipment fare",
     "accountingPage.fixed.storageExitFare": "Exit loading equipment fare",
+    "accountingPage.invoiceChargesSection": "Tax invoice charges",
+    "accountingPage.fixed.deliveryOrderCharge": "Delivery order charge",
+    "accountingPage.fixed.customsDeclarationCharge": "Customs declaration charge",
+    "accountingPage.fixed.freightShippingCompanyCharge": "Freight shipping company",
+    "accountingPage.fixed.customsBillCdrCopyCharge": "Customs bill charges / CDR copy",
+    "accountingPage.fixed.portChargeDpw": "Port charge DPW",
+    "accountingPage.fixed.inspectionForMerciCharge": "Inspection for Merci",
+    "accountingPage.fixed.clearingCharges": "Clearing charges",
+    "accountingPage.fixed.exitCertificateCharge": "Exit certificate",
+    "accountingPage.fixed.manifestSgaServicesCharge": "Manifest / SGA services",
+    "accountingPage.fixed.gatePassCharge": "Gate pass",
+    "accountingPage.fixed.toCharge": "TO",
+    "accountingPage.fixed.labourCharge": "Labour",
+    "accountingPage.fixed.repackingCharge": "Repacking",
+    "accountingPage.fixed.exitSummitDoCustomsCharge": "Exit Summit – DO customs charge",
+    "accountingPage.fixed.vatAmount": "VAT amount",
     "storagePage.wrongStage": "This record is not in the Storage stage.",
     "storagePage.accountantReadOnly": "Accountants can view this page only.",
     "storagePage.productImages": "Product images (optional)",
@@ -920,7 +968,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = {
     "employees.employeeTitle": "Employee",
     "employees.employeeDesc": "Can manage transactions except accounting and billing operations.",
     "employees.employee2Title": "Employee 2",
-    "employees.employee2Desc": "Handles stage 2 customs clearance data only.",
+    "employees.employee2Desc": "Can view everything except accounting; edits Transportation and Storage only.",
     "employees.warehouseTitle": "Warehouse",
     "employees.warehouseDesc": "Can view and edit storage cards only.",
     "employees.accountantTitle": "Accountant",

@@ -15,7 +15,7 @@ export function DashboardTopBar({
     <header className="dashboard-page-header mx-auto mb-3 px-1">
       <div className="dashboard-top-bar card shadow-sm border-0">
         <div className="card-body d-flex align-items-center flex-wrap gap-3 py-3">
-          <img src="/logo.png" alt="" width={56} height={56} className="app-logo flex-shrink-0" />
+          <img src="/logo.png" alt="JOUDI" width={56} height={56} className="app-logo flex-shrink-0" />
           <div className="dashboard-top-bar-title min-w-0 flex-grow-1">
             <h1 className="dashboard-top-bar-heading fw-bold mb-0">{title}</h1>
             <p className="section-subtitle mb-0 mt-1">{subtitle}</p>

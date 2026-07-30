@@ -20,6 +20,22 @@ export const accountingFixedPayloadSchema = z.object({
   storageSealWorkersWages: optionalNonNegativeNumber,
   storageInputLoadingEquipmentFare: optionalNonNegativeNumber,
   storageExitLoadingEquipmentFare: optionalNonNegativeNumber,
+  /** Tax invoice line items (JOUDI cargo invoice) */
+  deliveryOrderCharge: optionalNonNegativeNumber,
+  customsDeclarationCharge: optionalNonNegativeNumber,
+  freightShippingCompanyCharge: optionalNonNegativeNumber,
+  customsBillCdrCopyCharge: optionalNonNegativeNumber,
+  portChargeDpw: optionalNonNegativeNumber,
+  inspectionForMerciCharge: optionalNonNegativeNumber,
+  clearingCharges: optionalNonNegativeNumber,
+  exitCertificateCharge: optionalNonNegativeNumber,
+  manifestSgaServicesCharge: optionalNonNegativeNumber,
+  gatePassCharge: optionalNonNegativeNumber,
+  toCharge: optionalNonNegativeNumber,
+  labourCharge: optionalNonNegativeNumber,
+  repackingCharge: optionalNonNegativeNumber,
+  exitSummitDoCustomsCharge: optionalNonNegativeNumber,
+  vatAmount: optionalNonNegativeNumber,
 });
 
 export const updateAccountingPayloadSchema = z.object({
@@ -61,6 +77,21 @@ const ACCOUNTING_TOTAL_KEYS = [
   "storageSealWorkersWages",
   "storageInputLoadingEquipmentFare",
   "storageExitLoadingEquipmentFare",
+  "deliveryOrderCharge",
+  "customsDeclarationCharge",
+  "freightShippingCompanyCharge",
+  "customsBillCdrCopyCharge",
+  "portChargeDpw",
+  "inspectionForMerciCharge",
+  "clearingCharges",
+  "exitCertificateCharge",
+  "manifestSgaServicesCharge",
+  "gatePassCharge",
+  "toCharge",
+  "labourCharge",
+  "repackingCharge",
+  "exitSummitDoCustomsCharge",
+  "vatAmount",
 ] as const;
 
 export function parseAccountingCustomFieldAmount(value: string | undefined): number {
@@ -98,6 +129,21 @@ export function buildAccountingFixedFields(tx: Transaction): AccountingFixedPayl
     storageSealWorkersWages: tx.storageSealWorkersWages,
     storageInputLoadingEquipmentFare: tx.storageInputLoadingEquipmentFare,
     storageExitLoadingEquipmentFare: tx.storageExitLoadingEquipmentFare,
+    deliveryOrderCharge: tx.deliveryOrderCharge,
+    customsDeclarationCharge: tx.customsDeclarationCharge,
+    freightShippingCompanyCharge: tx.freightShippingCompanyCharge,
+    customsBillCdrCopyCharge: tx.customsBillCdrCopyCharge,
+    portChargeDpw: tx.portChargeDpw,
+    inspectionForMerciCharge: tx.inspectionForMerciCharge,
+    clearingCharges: tx.clearingCharges,
+    exitCertificateCharge: tx.exitCertificateCharge,
+    manifestSgaServicesCharge: tx.manifestSgaServicesCharge,
+    gatePassCharge: tx.gatePassCharge,
+    toCharge: tx.toCharge,
+    labourCharge: tx.labourCharge,
+    repackingCharge: tx.repackingCharge,
+    exitSummitDoCustomsCharge: tx.exitSummitDoCustomsCharge,
+    vatAmount: tx.vatAmount,
   };
 }
 

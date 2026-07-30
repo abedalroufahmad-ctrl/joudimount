@@ -314,5 +314,21 @@
   "accountingStorageExitWages": "Exit workers wages",
   "accountingStorageSealWages": "Seal workers wages",
   "accountingStorageInputFare": "Input loading equipment fare",
-  "accountingStorageExitFare": "Exit loading equipment fare"
+  "accountingStorageExitFare": "Exit loading equipment fare",
+  "accountingInvoiceChargesSection": "Tax invoice charges",
+  "accountingDeliveryOrderCharge": "Delivery order charge",
+  "accountingCustomsDeclarationCharge": "Customs declaration charge",
+  "accountingFreightShippingCompanyCharge": "Freight shipping company",
+  "accountingCustomsBillCdrCopyCharge": "Customs bill charges / CDR copy",
+  "accountingPortChargeDpw": "Port charge DPW",
+  "accountingInspectionForMerciCharge": "Inspection for Merci",
+  "accountingClearingCharges": "Clearing charges",
+  "accountingExitCertificateCharge": "Exit certificate",
+  "accountingManifestSgaServicesCharge": "Manifest / SGA services",
+  "accountingGatePassCharge": "Gate pass",
+  "accountingToCharge": "TO",
+  "accountingLabourCharge": "Labour",
+  "accountingRepackingCharge": "Repacking",
+  "accountingExitSummitDoCustomsCharge": "Exit Summit – DO customs charge",
+  "accountingVatAmount": "VAT amount"
 }

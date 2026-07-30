@@ -933,4 +933,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountingStorageExitFare => 'أجرة معدات التحميل (إخراج)';
+
+  @override
+  String get accountingInvoiceChargesSection => 'رسوم الفاتورة الضريبية';
+
+  @override
+  String get accountingDeliveryOrderCharge => 'رسوم إذن التسليم';
+
+  @override
+  String get accountingCustomsDeclarationCharge => 'رسوم البيان الجمركي';
+
+  @override
+  String get accountingFreightShippingCompanyCharge => 'أجور الشحن / شركة الشحن';
+
+  @override
+  String get accountingCustomsBillCdrCopyCharge => 'رسوم فاتورة الجمارك / نسخة CDR';
+
+  @override
+  String get accountingPortChargeDpw => 'رسوم الميناء (DPW)';
+
+  @override
+  String get accountingInspectionForMerciCharge => 'رسوم التفتيش (مرسي)';
+
+  @override
+  String get accountingClearingCharges => 'رسوم التخليص';
+
+  @override
+  String get accountingExitCertificateCharge => 'شهادة الخروج';
+
+  @override
+  String get accountingManifestSgaServicesCharge => 'المنافيست / خدمات SGA';
+
+  @override
+  String get accountingGatePassCharge => 'تصريح البوابة';
+
+  @override
+  String get accountingToCharge => 'TO';
+
+  @override
+  String get accountingLabourCharge => 'أجور العمال';
+
+  @override
+  String get accountingRepackingCharge => 'إعادة التعبئة';
+
+  @override
+  String get accountingExitSummitDoCustomsCharge => 'Exit Summit - رسوم DO جمركية';
+
+  @override
+  String get accountingVatAmount => 'مبلغ ضريبة القيمة المضافة';
 }
