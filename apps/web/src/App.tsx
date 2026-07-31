@@ -1,23 +1,22 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import { DashboardHome, DashboardSidebar } from "./DashboardHome";
-import TransactionDetails from "./TransactionDetails";
-import TransactionForm from "./TransactionForm";
-import TransactionStoragePage from "./TransactionStoragePage";
-import TransactionAccountingPage from "./TransactionAccountingPage";
-import ClientsPage from "./ClientsPage";
-import ClientDetailPage from "./ClientDetailPage";
-import ShippingCompaniesPage from "./ShippingCompaniesPage";
-import ShippingCompanyDetailPage from "./ShippingCompanyDetailPage";
-import EmployeeSection from "./EmployeeSection";
+import { DashboardHome } from "./DashboardHome";
 import Login from "./Login";
-import { DashboardTopBar } from "./DashboardTopBar";
-import TransactionListPage from "./TransactionListPage";
-import { NotificationsProvider } from "./useNotifications";
 import { getCurrentUser, logout } from "./api";
 import { useI18n } from "./i18n/I18nContext";
-import type { MessageKey } from "./i18n/messages";
-import { AuthUser, Role } from "./types";
+import { NotificationsProvider } from "./useNotifications";
+import { AuthUser } from "./types";
+
+const TransactionDetails = lazy(() => import("./TransactionDetails"));
+const TransactionForm = lazy(() => import("./TransactionForm"));
+const TransactionStoragePage = lazy(() => import("./TransactionStoragePage"));
+const TransactionAccountingPage = lazy(() => import("./TransactionAccountingPage"));
+const ClientsPage = lazy(() => import("./ClientsPage"));
+const ClientDetailPage = lazy(() => import("./ClientDetailPage"));
+const ShippingCompaniesPage = lazy(() => import("./ShippingCompaniesPage"));
+const ShippingCompanyDetailPage = lazy(() => import("./ShippingCompanyDetailPage"));
+const EmployeeSection = lazy(() => import("./EmployeeSection"));
+const TransactionListPage = lazy(() => import("./TransactionListPage"));
 
 
 export default function App() {
@@ -62,10 +61,20 @@ function NotFoundPage() {
   );
 }
 
+function RouteFallback() {
+  const { t } = useI18n();
+  return (
+    <main className="container py-5 text-center text-muted">
+      {t("home.loading")}
+    </main>
+  );
+}
+
 function AuthenticatedRoutes({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
   const role = user.role;
   return (
-    <Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
       <Route path="/" element={<DashboardHome user={user} role={role} onLogout={onLogout} />} />
       <Route path="/transactions" element={<TransactionListPage role={role} user={user} onLogout={onLogout} module="transactions" />} />
       <Route path="/transfers" element={<TransactionListPage role={role} user={user} onLogout={onLogout} module="transfers" />} />
@@ -90,6 +99,7 @@ function AuthenticatedRoutes({ user, onLogout }: { user: AuthUser; onLogout: () 
       <Route path="/exports/:id" element={<TransactionDetails role={role} module="exports" />} />
       <Route path="/exports/:id/accounting" element={<TransactionAccountingPage role={role} module="exports" />} />
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
