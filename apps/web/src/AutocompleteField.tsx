@@ -18,6 +18,8 @@ type Props = {
   disabled?: boolean;
   /** Bootstrap column classes for the field wrapper (default: half width on md+). */
   colClassName?: string;
+  /** Used to highlight this field when server-side validation fails. */
+  fieldKey?: string;
 };
 
 export default function AutocompleteField({
@@ -31,6 +33,7 @@ export default function AutocompleteField({
   minChars = 1,
   disabled = false,
   colClassName = "form-field-box",
+  fieldKey,
 }: Props) {
   const id = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -59,7 +62,11 @@ export default function AutocompleteField({
   };
 
   return (
-    <div ref={wrapRef} className={`autocomplete-field ${colClassName}`.trim()}>
+    <div
+      ref={wrapRef}
+      className={`autocomplete-field ${colClassName}`.trim()}
+      {...(fieldKey ? { "data-field-key": fieldKey } : {})}
+    >
       <label htmlFor={id} className="form-label mb-0">
         {label}
       </label>

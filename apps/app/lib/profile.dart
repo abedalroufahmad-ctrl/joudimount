@@ -31,6 +31,7 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _saving = false;
   bool _editing = false;
   String _error = '';
+  Set<String> _invalidFieldKeys = {};
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -116,20 +117,27 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _name.text.trim();
     final email = _email.text.trim();
     final password = _password.text;
-    if (name.length < 2) {
-      setState(() => _error = 'Name is too short');
-      return;
-    }
-    if (email.isEmpty) {
-      setState(() => _error = 'Email is required');
+    final invalid = <String>{};
+    if (name.length < 2) invalid.add('name');
+    if (email.isEmpty) invalid.add('email');
+    if (invalid.isNotEmpty) {
+      setState(() {
+        _invalidFieldKeys = invalid;
+        _error = l10n.formMissingRequiredFields([
+          if (invalid.contains('name')) l10n.employeeName,
+          if (invalid.contains('email')) l10n.employeeEmail,
+        ].join(', '));
+      });
       return;
     }
     setState(() {
       _saving = true;
       _error = '';
+      _invalidFieldKeys = {};
     });
     try {
       final body = <String, dynamic>{
@@ -288,13 +296,27 @@ class _ProfileTabState extends State<ProfileTab> {
                 if (_editing) ...[
                   TextField(
                     controller: _name,
-                    decoration: InputDecoration(labelText: l10n.employeeName),
+                    onChanged: (_) {
+                      if (_invalidFieldKeys.remove('name')) setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: l10n.employeeName,
+                      errorText:
+                          _invalidFieldKeys.contains('name') ? ' ' : null,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(labelText: l10n.employeeEmail),
+                    onChanged: (_) {
+                      if (_invalidFieldKeys.remove('email')) setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: l10n.employeeEmail,
+                      errorText:
+                          _invalidFieldKeys.contains('email') ? ' ' : null,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(

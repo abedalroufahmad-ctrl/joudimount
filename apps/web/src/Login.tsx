@@ -1,6 +1,7 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "./api";
+import { markInvalidFields, setupInvalidFieldClear } from "./formValidation";
 import { useI18n } from "./i18n/I18nContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { AuthUser } from "./types";
@@ -12,10 +13,21 @@ export default function Login({ onLogin }: { onLogin: (user: AuthUser) => void }
   const [email, setEmail] = useState("manager@tracker.local");
   const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const { showToast } = useToast();
 
-  const onSubmit = async (event: FormEvent) => {
+  useEffect(() => {
+    if (!formRef.current) return;
+    return setupInvalidFieldClear(formRef.current);
+  }, []);
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formEl = event.currentTarget;
+    if (!markInvalidFields(formEl)) {
+      formEl.reportValidity();
+      return;
+    }
     setLoading(true);
     try {
       const user = await login(email, password);
@@ -39,7 +51,7 @@ export default function Login({ onLogin }: { onLogin: (user: AuthUser) => void }
           <h1 className="login-title">{t("login.title")}</h1>
           <p className="login-subtitle">{t("login.subtitle")}</p>
         </div>
-        <form className="card-body pt-4" onSubmit={onSubmit}>
+        <form ref={formRef} className="card-body pt-4" noValidate onSubmit={onSubmit}>
           <div className="row g-3">
             <div className="col-12">
               <label className="form-label mb-0" htmlFor="login-email">

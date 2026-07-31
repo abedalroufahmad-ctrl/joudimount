@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "./api";
+import { markInvalidFields, setupInvalidFieldClear } from "./formValidation";
 import LocationMapPicker from "./LocationMapPicker";
 import { useI18n } from "./i18n/I18nContext";
 import { Role, ShippingCompany } from "./types";
@@ -38,6 +39,7 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
   const [form, setForm] = useState(emptyCompany);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const isManager = role === "manager";
 
@@ -51,9 +53,20 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
     loadItems().catch(() => setError(t("shipping.loadError")));
   }, [t]);
 
-  const onSubmit = async (event: FormEvent) => {
+  useEffect(() => {
+    if (!formRef.current) return;
+    return setupInvalidFieldClear(formRef.current);
+  }, [isManager]);
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!isManager) return;
+    const formEl = event.currentTarget;
+    if (!markInvalidFields(formEl)) {
+      setError(t("form.validationError"));
+      formEl.reportValidity();
+      return;
+    }
     setError("");
     const path = editingId ? `/api/shipping-companies/${editingId}` : "/api/shipping-companies";
     const method = editingId ? "PUT" : "POST";
@@ -128,7 +141,7 @@ export default function ShippingCompaniesPage({ role }: { role: Role }) {
       {error ? <p className="error alert alert-danger">{error}</p> : null}
 
       {isManager ? (
-        <form className="card shadow-sm mb-4" onSubmit={onSubmit}>
+        <form ref={formRef} className="card shadow-sm mb-4" noValidate onSubmit={onSubmit}>
           <div className="card-body">
             <div className="row g-3">
               <div className="col-12 col-md-6">

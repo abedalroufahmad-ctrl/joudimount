@@ -221,7 +221,7 @@ const transactionSchema = new Schema<TransactionDoc>(
     goodsDescription: { type: String, required: true },
     invoiceValue: { type: Number, required: true },
     invoiceCurrency: { type: String, enum: ["AED", "USD", "EUR", "SAR"], default: "AED" },
-    originCountry: { type: String, required: true },
+    originCountry: { type: String, required: true, minlength: 1, maxlength: 4 },
     documentStatus: { type: String, enum: ["copy_received", "original_received", "telex_release"], default: "copy_received" },
     clearanceStatus: {
       type: String,

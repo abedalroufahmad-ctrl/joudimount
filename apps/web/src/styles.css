@@ -1106,6 +1106,27 @@ th {
   background: #fff;
 }
 
+.transaction-form .form-field-box--invalid,
+.transaction-form .autocomplete-field.form-field-box--invalid {
+  border-color: #b91c1c !important;
+  background: #fef2f2 !important;
+}
+
+.transaction-form .form-field-box--invalid .form-control,
+.transaction-form .form-field-box--invalid .form-select,
+.transaction-form .autocomplete-field.form-field-box--invalid .form-control {
+  border-color: #b91c1c;
+}
+
+.card .form-control.is-invalid,
+.card .form-select.is-invalid,
+.details-card .form-control.is-invalid,
+.details-card .form-select.is-invalid,
+.login-card .form-control.is-invalid {
+  border-color: #b91c1c;
+  background-color: #fef2f2;
+}
+
 .transaction-form .details-fields-grid > .form-field-box--full,
 .transaction-form .details-fields-grid > .doc-upload-block,
 .transaction-form .details-fields-grid > .col-12 {

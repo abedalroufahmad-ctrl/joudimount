@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'api.dart';
 import 'app_theme.dart';
 import 'date_field.dart';
@@ -11,6 +12,26 @@ import 'transaction_labels.dart';
 import 'transaction_storage_page.dart';
 import 'transaction_model.dart';
 import 'transaction_field_permissions.dart';
+
+/// Uppercase text with a max length — matches web Origin Country input.
+class _UpperCaseLengthFormatter extends TextInputFormatter {
+  const _UpperCaseLengthFormatter();
+
+  static const _maxLength = 4;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final upper = newValue.text.toUpperCase();
+    if (upper.length > _maxLength) return oldValue;
+    return TextEditingValue(
+      text: upper,
+      selection: newValue.selection,
+    );
+  }
+}
 
 /// New or edit transaction — aligned with web TransactionForm.
 bool roleCanWorkAtStage(String role, String stage) {
@@ -171,6 +192,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
   bool _saving = false;
   String _error = '';
   bool _loadingTx = false;
+  Set<String> _invalidFieldKeys = {};
   String? _releaseCode;
   String? _clearanceStatus;
   String _stage = 'PREPARATION';
@@ -260,7 +282,9 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _awb.text = tx.airwayBill;
       _hs.text = tx.hsCode;
       _goods.text = tx.goodsDescription;
-      _origin.text = tx.originCountry;
+      _origin.text = tx.originCountry.length > 4
+          ? tx.originCountry.substring(0, 4).toUpperCase()
+          : tx.originCountry.toUpperCase();
       _value.text = tx.invoiceValue.toString();
       final loadedCurrency = tx.invoiceCurrency?.toUpperCase() ?? 'AED';
       _currency = const ['AED', 'USD', 'EUR', 'SAR'].contains(loadedCurrency)
@@ -443,42 +467,97 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
     }
   }
 
-  String? _validateBeforeSave(AppLocalizations l10n) {
+  Set<String> _missingDocCategoryKeys() {
+    final keys = <String>{};
+    for (var i = 0; i < _pickedCategories.length; i++) {
+      final c = _pickedCategories[i];
+      if (c == null || c.isEmpty) keys.add('docCategory_$i');
+    }
+    return keys;
+  }
+
+  ({String message, Set<String> keys})? _validateBeforeSave(AppLocalizations l10n) {
     final mod = widget.module;
     final missing = <String>[];
+    final invalid = <String>{};
 
-    void require(String label, bool ok) {
-      if (!ok) missing.add(label);
+    void requireKey(String key, String label, bool ok) {
+      if (!ok) {
+        invalid.add(key);
+        missing.add(label);
+      }
     }
 
-    require(l10n.client, _client.text.trim().length >= 2);
+    requireKey('client', l10n.client, _client.text.trim().length >= 2);
 
     if (mod == 'transactions') {
-      require(l10n.shippingCompany, _shippingName.text.trim().length >= 2);
-      require(l10n.airwayBill, _awb.text.trim().isNotEmpty);
+      requireKey('shippingCompany', l10n.shippingCompany,
+          _shippingName.text.trim().length >= 2);
+      requireKey('awb', l10n.airwayBill, _awb.text.trim().isNotEmpty);
     } else {
       final shipName = _destination.text.trim().isNotEmpty
           ? _destination.text.trim()
           : (_portOfDischarge.text.trim().isNotEmpty
               ? _portOfDischarge.text.trim()
               : '');
-      require(l10n.shippingCompany, shipName.length >= 2);
+      final ok = shipName.length >= 2;
+      requireKey('destination', l10n.shippingCompany, ok);
+      if (!ok) invalid.add('portOfDischarge');
     }
 
-    require(l10n.hsCode, _hs.text.trim().length >= 2);
-    require(l10n.goodsDescription, _goods.text.trim().length >= 2);
-    require(l10n.originCountry, _origin.text.trim().length == 2);
+    requireKey('hsCode', l10n.hsCode, _hs.text.trim().length >= 2);
+    requireKey('goodsDescription', l10n.goodsDescription,
+        _goods.text.trim().length >= 2);
+    final origin = _origin.text.trim().toUpperCase();
+    requireKey('originCountry', l10n.originCountry,
+        origin.isNotEmpty && origin.length <= 4);
 
     if (mod == 'transactions') {
       final invoice = double.tryParse(_value.text.trim()) ?? 0;
-      require(l10n.invoiceValue, invoice > 0);
+      requireKey('invoiceValue', l10n.invoiceValue, invoice > 0);
     }
 
     if (missing.isEmpty) return null;
-    return l10n.formMissingRequiredFields(missing.join(', '));
+    return (
+      message: l10n.formMissingRequiredFields(missing.join(', ')),
+      keys: invalid,
+    );
   }
 
   String _formatApiError(Object e, AppLocalizations l10n) {
+    return _parseApiError(e, l10n).message;
+  }
+
+  Set<String> _invalidKeysFromApiError(Object e, AppLocalizations l10n) {
+    return _parseApiError(e, l10n).keys;
+  }
+
+  String? _apiFieldToFormKey(String apiKey) {
+    switch (apiKey) {
+      case 'clientName':
+        return 'client';
+      case 'shippingCompanyName':
+        return widget.module == 'transactions' ? 'shippingCompany' : 'destination';
+      case 'airwayBill':
+        return 'awb';
+      case 'hsCode':
+        return 'hsCode';
+      case 'goodsDescription':
+        return 'goodsDescription';
+      case 'originCountry':
+        return 'originCountry';
+      case 'invoiceValue':
+        return 'invoiceValue';
+      case 'portOfDischarge':
+        return 'portOfDischarge';
+      case 'destination':
+        return 'destination';
+      default:
+        return null;
+    }
+  }
+
+  ({String message, Set<String> keys}) _parseApiError(Object e, AppLocalizations l10n) {
     var msg = e.toString();
     if (msg.startsWith('Exception: ')) msg = msg.substring(11);
 
@@ -487,26 +566,39 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       if (parsed is Map) {
         if (parsed['error'] == 'missing_fields' && parsed['missing'] is List) {
           final missing = parsed['missing'] as List;
+          final keys = missing
+              .map((m) => _apiFieldToFormKey(m.toString()))
+              .whereType<String>()
+              .toSet();
           final labels = missing.map((m) => _apiFieldLabel(m.toString(), l10n)).join(', ');
-          return '${l10n.formMissingFieldsBeforeClearance}: $labels';
+          return (
+            message: '${l10n.formMissingFieldsBeforeClearance}: $labels',
+            keys: keys,
+          );
         }
         if (parsed['fieldErrors'] is Map) {
           final fieldErrors = parsed['fieldErrors'] as Map;
           final labels = <String>[];
+          final keys = <String>{};
           for (final entry in fieldErrors.entries) {
             final issues = entry.value;
             if (issues is List && issues.isNotEmpty) {
               labels.add(_apiFieldLabel(entry.key.toString(), l10n));
+              final key = _apiFieldToFormKey(entry.key.toString());
+              if (key != null) keys.add(key);
             }
           }
           if (labels.isNotEmpty) {
-            return l10n.formMissingRequiredFields(labels.join(', '));
+            return (
+              message: l10n.formMissingRequiredFields(labels.join(', ')),
+              keys: keys,
+            );
           }
         }
       }
     } catch (_) {}
 
-    return msg;
+    return (message: msg, keys: <String>{});
   }
 
   Map<String, String> _multipartStringFields() {
@@ -577,13 +669,27 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       _error = '';
     });
     try {
-      final validationError = _validateBeforeSave(l10n);
-      if (validationError != null) {
+      final validation = _validateBeforeSave(l10n);
+      if (validation != null) {
         setState(() {
           _saving = false;
-          _error = validationError;
+          _error = validation.message;
+          _invalidFieldKeys = validation.keys;
         });
         return;
+      }
+      setState(() => _invalidFieldKeys = {});
+
+      if (_picked.isNotEmpty) {
+        final missingCats = _missingDocCategoryKeys();
+        if (missingCats.isNotEmpty) {
+          setState(() {
+            _saving = false;
+            _error = l10n.uploadCategoryRequired;
+            _invalidFieldKeys = missingCats;
+          });
+          return;
+        }
       }
 
       if (_isEdit) {
@@ -595,9 +701,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         final fields = _multipartStringFields();
         fields['existingAttachments'] = jsonEncode(_retainedDocs);
         if (_picked.isNotEmpty) {
-          if (_pickedCategories.any((c) => c == null || c.isEmpty)) {
-            throw Exception(l10n.uploadCategoryRequired);
-          }
           fields['documentPhotoCategories'] = jsonEncode(_pickedCategories);
         }
         await Api.putMultipart(
@@ -609,9 +712,6 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         if (_picked.isEmpty) {
           await Api.post(_modulePath, _jsonBody());
         } else {
-          if (_pickedCategories.any((c) => c == null || c.isEmpty)) {
-            throw Exception(l10n.uploadCategoryRequired);
-          }
           final fields = _multipartStringFields();
           fields['documentPhotoCategories'] = jsonEncode(_pickedCategories);
           await Api.postMultipart(_modulePath, fields, _picked);
@@ -619,7 +719,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = _formatApiError(e, l10n));
+      setState(() {
+        _error = _formatApiError(e, l10n);
+        _invalidFieldKeys = _invalidKeysFromApiError(e, l10n);
+      });
     } finally {
       setState(() => _saving = false);
     }
@@ -636,6 +739,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       if (!mounted) return;
       setState(() {
         _error = _formatApiError(e, l10n);
+        _invalidFieldKeys = _invalidKeysFromApiError(e, l10n);
         // Revert dropdown UI since the API call failed
         _stage = widget.transactionId != null ? _stage : 'PREPARATION'; // This is a bit hacky, but _loadTransaction would fix it normally.
       });
@@ -733,6 +837,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             _stage == 'CUSTOMS_CLEARANCE') &&
         !storageWarehouseOnly &&
         (isManager || isEmployee);
+    final prepEditableEffective = (!_isEdit ||
+            _stage == 'PREPARATION' ||
+            _stage == 'CUSTOMS_CLEARANCE') &&
+        !storageWarehouseOnly &&
+        (isManager || (isEmployee && canWorkStage) || !_isEdit);
     final customsEditable = (!_isEdit ||
             _stage == 'PREPARATION' ||
             _stage == 'CUSTOMS_CLEARANCE') &&
@@ -812,6 +921,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             ]),
           sectionCard(l10n.txPartiesSection, [
           _field(_client, l10n.client,
+              fieldKey: 'client',
               enabled: prepEditable, onChanged: (_) => setState(() {})),
           if (clientOpts.isNotEmpty)
             Card(
@@ -838,6 +948,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
           Text(l10n.typeToSearch, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 8),
           _field(_shippingName, l10n.shippingCompany,
+              fieldKey: 'shippingCompany',
               enabled: prepEditable, onChanged: (_) => setState(() {})),
           if (shipOpts.isNotEmpty)
             Card(
@@ -946,17 +1057,41 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                   : l10n.txTransferDetailsSection,
               [
                 _field(_portOfLading, l10n.txPortOfLading, enabled: prepEditable),
-                _field(_portOfDischarge, l10n.txPortOfDischarge, enabled: prepEditable),
-                _field(_destination, l10n.txDestination, enabled: prepEditable),
+                _field(_portOfDischarge, l10n.txPortOfDischarge,
+                    fieldKey: 'portOfDischarge', enabled: prepEditable),
+                _field(_destination, l10n.txDestination,
+                    fieldKey: 'destination', enabled: prepEditable),
               ],
             ),
           sectionCard(l10n.txShipmentCoreSection, [
           _field(_awb, l10n.airwayBill,
+              fieldKey: 'awb',
               enabled: prepEditable,
               required: true,
               hintText: l10n.airwayBillHint),
-          _field(_hs, l10n.hsCode, enabled: prepEditable, required: true),
-          _field(_origin, l10n.originCountry, enabled: prepEditable),
+          _field(_hs, l10n.hsCode,
+              fieldKey: 'hsCode', enabled: prepEditable, required: true),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: TextField(
+              controller: _origin,
+              enabled: prepEditableEffective,
+              maxLength: 4,
+              textCapitalization: TextCapitalization.characters,
+              inputFormatters: const [_UpperCaseLengthFormatter()],
+              onChanged: (_) {
+                if (_invalidFieldKeys.remove('originCountry')) {
+                  setState(() {});
+                }
+              },
+              decoration: InputDecoration(
+                labelText: l10n.originCountry,
+                counterText: '',
+                errorText:
+                    _invalidFieldKeys.contains('originCountry') ? ' ' : null,
+              ),
+            ),
+          ),
           Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: DropdownButtonFormField<String>(
@@ -974,6 +1109,7 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     : null,
               )),
           _field(_value, l10n.invoiceValue,
+              fieldKey: 'invoiceValue',
               keyboard: const TextInputType.numberWithOptions(decimal: true),
               enabled: prepEditable),
           ApiDateField(
@@ -982,7 +1118,8 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
             enabled: prepEditable,
           ),
           _field(_goods, l10n.goodsDescription,
-              maxLines: 3, enabled: prepEditable),
+              fieldKey: 'goodsDescription',
+              maxLines: 3, enabled: prepEditable, required: true),
           if (!_isEdit)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -1287,8 +1424,12 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     child: DropdownButtonFormField<String?>(
                       key: ValueKey(
                           'doc-cat-$idx-${_pickedCategories[idx] ?? 'none'}'),
-                      decoration:
-                          InputDecoration(labelText: '${f.name} — ${l10n.selectCategory}'),
+                      decoration: InputDecoration(
+                        labelText: '${f.name} — ${l10n.selectCategory}',
+                        errorText: _invalidFieldKeys.contains('docCategory_$idx')
+                            ? ' '
+                            : null,
+                      ),
                       initialValue: _pickedCategories[idx],
                       items: [
                         DropdownMenuItem<String?>(
@@ -1301,7 +1442,10 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
                     ),
                       ],
                       onChanged: prepEditable
-                          ? (v) => setState(() => _pickedCategories[idx] = v)
+                          ? (v) => setState(() {
+                                _pickedCategories[idx] = v;
+                                _invalidFieldKeys.remove('docCategory_$idx');
+                              })
                           : null,
                     )),
               );
@@ -1352,8 +1496,11 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
       int? maxLength,
       bool enabled = true,
       bool required = false,
+      String? fieldKey,
       String? hintText,
       void Function(String)? onChanged}) {
+    final hasError =
+        fieldKey != null && _invalidFieldKeys.contains(fieldKey);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
@@ -1362,11 +1509,17 @@ class _TransactionFormPageState extends State<TransactionFormPage> {
         keyboardType: keyboard,
         maxLines: maxLines,
         maxLength: maxLength,
-        onChanged: onChanged,
+        onChanged: (value) {
+          if (fieldKey != null && _invalidFieldKeys.remove(fieldKey)) {
+            setState(() {});
+          }
+          onChanged?.call(value);
+        },
         decoration: InputDecoration(
           labelText: required ? '$label *' : label,
           hintText: hintText,
           counterText: maxLength != null ? '' : null,
+          errorText: hasError ? ' ' : null,
         ),
       ),
     );

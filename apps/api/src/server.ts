@@ -940,7 +940,7 @@ app.post("/api/transactions", authenticate, maybeUpload, async (req: AuthRequest
     const data = {
       ...parsed.data,
       ...createExtrasFromRaw(raw),
-      originCountry: parsed.data.originCountry.toUpperCase(),
+      originCountry: parsed.data.originCountry,
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransaction(data);
@@ -1102,10 +1102,6 @@ app.put("/api/transactions/:id", authenticate, maybeUpload, async (req: AuthRequ
 
     const hasMultipart = hasMultipartEarly;
     let payload: Partial<Transaction> = { ...result.data };
-    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
-      payload.originCountry = payload.originCountry.toUpperCase();
-    }
-
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
       const documentPhotoFiles = files.filter((f) => f.fieldname === "documentPhotos");
@@ -1227,7 +1223,7 @@ app.post("/api/transfers", authenticate, maybeUpload, async (req: AuthRequest, r
     const data = {
       ...parsed.data,
       ...createExtrasFromRaw(raw),
-      originCountry: parsed.data.originCountry.toUpperCase(),
+      originCountry: parsed.data.originCountry,
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createTransfer(data);
@@ -1357,9 +1353,6 @@ app.put("/api/transfers/:id", authenticate, maybeUpload, async (req: AuthRequest
 
     const hasMultipart = hasMultipartTransferEarly;
     let payload: Parameters<typeof updateTransfer>[1] = { ...parsed.data };
-    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
-      payload.originCountry = payload.originCountry.toUpperCase();
-    }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
       const documentPhotoFiles = files.filter((f) => f.fieldname === "documentPhotos");
@@ -1480,7 +1473,7 @@ app.post("/api/exports", authenticate, maybeUpload, async (req: AuthRequest, res
     const data = {
       ...parsed.data,
       ...createExtrasFromRaw(raw),
-      originCountry: parsed.data.originCountry.toUpperCase(),
+      originCountry: parsed.data.originCountry,
       documentAttachments: documentAttachments.length ? documentAttachments : undefined,
     };
     const created = await createExport(data);
@@ -1599,9 +1592,6 @@ app.put("/api/exports/:id", authenticate, maybeUpload, async (req: AuthRequest, 
 
     const hasMultipart = isMultipartRequest(req);
     let payload: Parameters<typeof updateExport>[1] = { ...parsed.data };
-    if (typeof payload.originCountry === "string" && payload.originCountry !== undefined) {
-      payload.originCountry = payload.originCountry.toUpperCase();
-    }
     if (hasMultipart) {
       const files = ((req as Request & { files?: Express.Multer.File[] }).files ?? []) as Express.Multer.File[];
       if (role === "employee2" && files.length > 0 && txStageOf(prev) !== "TRANSPORTATION") {

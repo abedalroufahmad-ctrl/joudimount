@@ -139,6 +139,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _loading = false;
   bool _rememberMe = true;
   String _error = '';
+  Set<String> _invalidFieldKeys = {};
 
   @override
   void initState() {
@@ -165,9 +166,24 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
+    final invalid = <String>{};
+    if (_emailCtrl.text.trim().isEmpty) invalid.add('email');
+    if (_passCtrl.text.isEmpty) invalid.add('password');
+    if (invalid.isNotEmpty) {
+      setState(() {
+        _invalidFieldKeys = invalid;
+        _error = l10n.formMissingRequiredFields([
+          if (invalid.contains('email')) l10n.email,
+          if (invalid.contains('password')) l10n.password,
+        ].join(', '));
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _error = '';
+      _invalidFieldKeys = {};
     });
     try {
       final data = await Api.post('/api/auth/login', {
@@ -287,17 +303,33 @@ class _LoginPageState extends State<LoginPage> {
                               TextField(
                                 controller: _emailCtrl,
                                 keyboardType: TextInputType.emailAddress,
+                                onChanged: (_) {
+                                  if (_invalidFieldKeys.remove('email')) {
+                                    setState(() {});
+                                  }
+                                },
                                 decoration: InputDecoration(
                                   labelText: l10n.email,
                                   prefixIcon: const Icon(Icons.email_outlined),
+                                  errorText: _invalidFieldKeys.contains('email')
+                                      ? ' '
+                                      : null,
                                 ),
                               ),
                               const SizedBox(height: 12),
                               TextField(
                                 controller: _passCtrl,
+                                onChanged: (_) {
+                                  if (_invalidFieldKeys.remove('password')) {
+                                    setState(() {});
+                                  }
+                                },
                                 decoration: InputDecoration(
                                   labelText: l10n.password,
                                   prefixIcon: const Icon(Icons.lock_outlined),
+                                  errorText: _invalidFieldKeys.contains('password')
+                                      ? ' '
+                                      : null,
                                 ),
                                 obscureText: true,
                               ),

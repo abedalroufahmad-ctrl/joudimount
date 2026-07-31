@@ -108,6 +108,11 @@ export const optionalInvoiceCurrency = z.preprocess(
   emptyToUndef,
   z.enum(["AED", "USD", "EUR", "SAR"]).optional(),
 );
+export const originCountrySchema = z.preprocess(
+  (val) => (typeof val === "string" ? val.trim().toUpperCase() : val),
+  z.string().min(1).max(4),
+);
+export const optionalOriginCountry = z.preprocess(emptyToUndef, originCountrySchema.optional());
 
 export const createTransactionPayloadSchema = z.object({
   clientName: z.string().min(2),
@@ -139,7 +144,7 @@ export const createTransactionPayloadSchema = z.object({
   goodsDescription: z.string().min(2),
   invoiceValue: z.coerce.number().positive(),
   invoiceCurrency: optionalInvoiceCurrency,
-  originCountry: z.string().length(2),
+  originCountry: originCountrySchema,
   containerCount: optionalNonNegativeInt,
   goodsWeightKg: optionalNonNegativeNumber,
   containerArrivalDate: optionalDateIso,
@@ -220,7 +225,7 @@ export const updateTransactionPayloadSchema = z.object({
   goodsDescription: z.string().min(2).optional(),
   invoiceValue: z.coerce.number().positive().optional(),
   invoiceCurrency: optionalInvoiceCurrency,
-  originCountry: z.string().length(2).optional(),
+  originCountry: optionalOriginCountry,
   documentStatus: z.enum(["copy_received", "original_received", "telex_release"]).optional(),
   clearanceStatus: z
     .enum([

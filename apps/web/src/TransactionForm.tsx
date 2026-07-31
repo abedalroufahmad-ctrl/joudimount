@@ -19,6 +19,7 @@ import {
   TransactionStage,
 } from "./types";
 import { canRoleSubmitField } from "./transactionFieldPermissions";
+import { markInvalidFields, markInvalidDocCategories, markInvalidFieldsByKeys, setupInvalidFieldClear } from "./formValidation";
 import { roleCanChangeStage, roleCanWorkAtStage, stageOptionsForRole } from "./stageRolePermissions";
 
 const UNIT_OPTIONS: { value: GoodsUnit; labelKey: string }[] = [
@@ -298,6 +299,14 @@ export default function TransactionForm({
   }, []);
 
   useEffect(() => {
+    const forms = document.querySelectorAll("form.transaction-form");
+    const cleanups = Array.from(forms).map((node) =>
+      setupInvalidFieldClear(node as HTMLFormElement),
+    );
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [module, isEdit, stage]);
+
+  useEffect(() => {
     if (!isEdit || !routeId) return;
     apiFetch(`/api/${module}/${routeId}`)
       .then((res) => {
@@ -341,7 +350,7 @@ export default function TransactionForm({
           airwayBill: data.airwayBill,
           hsCode: data.hsCode,
           goodsDescription: data.goodsDescription,
-          originCountry: data.originCountry,
+          originCountry: (data.originCountry ?? "AE").slice(0, 4).toUpperCase(),
           invoiceValue: data.invoiceValue,
           invoiceCurrency: data.invoiceCurrency ?? "AED",
           documentStatus: data.documentStatus,
@@ -422,6 +431,7 @@ export default function TransactionForm({
     const formEl = event.currentTarget;
     // Without noValidate on <form>, invalid fields block the submit event entirely — React never runs this handler ("nothing happens").
     if (!formEl.checkValidity()) {
+      markInvalidFields(formEl);
       setError(t("form.validationError"));
       formEl.reportValidity();
       return;
@@ -481,7 +491,7 @@ export default function TransactionForm({
       put("airwayBill", effectiveAirwayBill);
       put("hsCode", form.hsCode);
       put("goodsDescription", form.goodsDescription);
-      put("originCountry", form.originCountry.toUpperCase());
+      put("originCountry", form.originCountry.trim().toUpperCase());
       put("invoiceValue", String(effectiveInvoiceValue));
       if (form.invoiceCurrency) put("invoiceCurrency", form.invoiceCurrency);
       put("documentStatus", form.documentStatus);
@@ -520,6 +530,7 @@ export default function TransactionForm({
         fd.append("existingAttachments", JSON.stringify(retainedDocs));
       }
       if (newDocFiles.some((item) => !item.category)) {
+        markInvalidDocCategories(formEl);
         setError(t("form.categoryRequiredError"));
         return;
       }
@@ -578,7 +589,9 @@ export default function TransactionForm({
       try {
         const j = await res.clone().json();
         if (j && j.error === "missing_fields" && Array.isArray(j.missing)) {
-          const labels = j.missing.map((m: string) => t(`form.${m}` as MessageKey)).join(", ");
+          const missing = j.missing as string[];
+          markInvalidFieldsByKeys(document, missing);
+          const labels = missing.map((m: string) => t(`form.${m}` as MessageKey)).join(", ");
           setError(`${t("form.missingFieldsBeforeClearance")}: ${labels}`);
           return;
         }
@@ -699,6 +712,7 @@ export default function TransactionForm({
           <FormSection title={t("form.partiesSection")}>
           <AutocompleteField
             label={t("form.clientName")}
+            fieldKey="clientName"
             value={form.clientName}
             onChange={(clientName) => setForm({ ...form, clientName })}
             onSelectSuggestion={(key) => {
@@ -721,6 +735,7 @@ export default function TransactionForm({
               value={form.orderDate}
               onChange={(e) => setForm({ ...form, orderDate: e.target.value })}
               required
+              data-field-key="orderDate"
             />
           </label>
           </FormSection>
@@ -736,6 +751,7 @@ export default function TransactionForm({
               value={form.containerCount}
               onChange={(e) => setForm({ ...form, containerCount: e.target.value })}
               required
+              data-field-key="containerCount"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -745,6 +761,7 @@ export default function TransactionForm({
               value={form.containerSize}
               onChange={(e) => setForm({ ...form, containerSize: e.target.value })}
               required
+              data-field-key="containerSize"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -757,6 +774,7 @@ export default function TransactionForm({
               value={form.goodsWeightKg}
               onChange={(e) => setForm({ ...form, goodsWeightKg: e.target.value })}
               required
+              data-field-key="goodsWeightKg"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -764,10 +782,15 @@ export default function TransactionForm({
             <input className="form-control mt-1"
               disabled={transferWarehouseOnly}
               value={form.originCountry}
-              onChange={(e) => setForm({ ...form, originCountry: e.target.value })}
-              minLength={2}
-              maxLength={2}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  originCountry: e.target.value.slice(0, 4).toUpperCase(),
+                })
+              }
+              maxLength={4}
               required
+              data-field-key="originCountry"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -780,6 +803,7 @@ export default function TransactionForm({
               value={form.unitNumber}
               onChange={(e) => setForm({ ...form, unitNumber: e.target.value })}
               required
+              data-field-key="unitNumber"
             />
           </label>
           <label className="form-field-box form-field-box--full form-label w-100 mb-0">
@@ -790,6 +814,7 @@ export default function TransactionForm({
               onChange={(e) => setForm({ ...form, goodsDescription: e.target.value })}
               rows={3}
               required
+              data-field-key="goodsDescription"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -799,6 +824,7 @@ export default function TransactionForm({
               value={form.goodsUnit}
               onChange={(e) => setForm({ ...form, goodsUnit: e.target.value as GoodsUnit | "" })}
               required
+              data-field-key="goodsUnit"
             >
               <option value="">{t("form.optionalSelect")}</option>
               {UNIT_OPTIONS.map((o) => (
@@ -815,6 +841,7 @@ export default function TransactionForm({
               value={form.hsCode}
               onChange={(e) => setForm({ ...form, hsCode: e.target.value })}
               required
+              data-field-key="hsCode"
             />
           </label>
           <label className="form-field-box form-label w-100 mb-0">
@@ -824,6 +851,7 @@ export default function TransactionForm({
               value={form.goodsQuality}
               onChange={(e) => setForm({ ...form, goodsQuality: e.target.value as GoodsQuality | "" })}
               required
+              data-field-key="goodsQuality"
             >
               <option value="">{t("form.optionalSelect")}</option>
               {QUALITY_OPTIONS.map((o) => (
@@ -843,6 +871,7 @@ export default function TransactionForm({
               value={form.goodsQuantity}
               onChange={(e) => setForm({ ...form, goodsQuantity: e.target.value })}
               required
+              data-field-key="goodsQuantity"
             />
           </label>
           </FormSection>
@@ -1098,7 +1127,7 @@ export default function TransactionForm({
             {newDocFiles.length > 0 ? (
               <div className="col-12">
                 {newDocFiles.map((item, idx) => (
-                  <label className="form-field-box form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
+                  <label className="form-field-box form-label w-100 mb-0" data-field-key="documentCategory" key={`${item.file.name}-${idx}`}>
                     {item.file.name}
                     <select className="form-select mt-1"
                       value={item.category}
@@ -1226,6 +1255,7 @@ export default function TransactionForm({
         <FormSection title={t("form.partiesSection")}>
         <AutocompleteField
           label={t("form.clientName")}
+          fieldKey="clientName"
           value={form.clientName}
           onChange={(clientName) => setForm({ ...form, clientName })}
           onSelectSuggestion={(key) => {
@@ -1239,6 +1269,7 @@ export default function TransactionForm({
         />
         <AutocompleteField
           label={t("form.shippingCompanyName")}
+          fieldKey="shippingCompanyName"
           value={form.shippingCompanyName}
           onChange={(shippingCompanyName) => setForm({ ...form, shippingCompanyName })}
           onSelectSuggestion={(key) => {
@@ -1328,21 +1359,26 @@ export default function TransactionForm({
         <FormSection title={t("form.shipmentCoreSection")}>
         <label className="form-field-box form-label w-100 mb-0">
           {t("form.airwayBill")}
-          <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.airwayBill} onChange={(e) => setForm({ ...form, airwayBill: e.target.value })} required />
+          <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.airwayBill} onChange={(e) => setForm({ ...form, airwayBill: e.target.value })} required data-field-key="airwayBill" />
         </label>
         <label className="form-field-box form-label w-100 mb-0">
           {t("form.hsCode")}
-          <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.hsCode} onChange={(e) => setForm({ ...form, hsCode: e.target.value })} required />
+          <input className="form-control mt-1" disabled={!prepEditableEffective} value={form.hsCode} onChange={(e) => setForm({ ...form, hsCode: e.target.value })} required data-field-key="hsCode" />
         </label>
         <label className="form-field-box form-label w-100 mb-0">
           {t("form.origin")}
           <input className="form-control mt-1"
             value={form.originCountry}
             disabled={!prepEditableEffective}
-            onChange={(e) => setForm({ ...form, originCountry: e.target.value })}
-            minLength={2}
-            maxLength={2}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                originCountry: e.target.value.slice(0, 4).toUpperCase(),
+              })
+            }
+            maxLength={4}
             required
+            data-field-key="originCountry"
           />
         </label>
         <label className="form-field-box form-label w-100 mb-0">
@@ -1369,6 +1405,7 @@ export default function TransactionForm({
             value={form.invoiceValue}
             onChange={(e) => setForm({ ...form, invoiceValue: Number(e.target.value) })}
             required
+            data-field-key="invoiceValue"
           />
         </label>
         <label className="form-field-box form-label w-100 mb-0">
@@ -1388,6 +1425,7 @@ export default function TransactionForm({
             onChange={(e) => setForm({ ...form, goodsDescription: e.target.value })}
             rows={3}
             required
+            data-field-key="goodsDescription"
           />
         </label>
         {!isEdit ? (
@@ -1718,7 +1756,7 @@ export default function TransactionForm({
               </p>
               <div className="col-12">
                 {newDocFiles.map((item, idx) => (
-                  <label className="form-field-box form-label w-100 mb-0" key={`${item.file.name}-${idx}`}>
+                  <label className="form-field-box form-label w-100 mb-0" data-field-key="documentCategory" key={`${item.file.name}-${idx}`}>
                     {item.file.name}
                     <select className="form-select mt-1"
                       value={item.category}

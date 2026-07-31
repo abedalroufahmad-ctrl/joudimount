@@ -24,6 +24,7 @@ class _EmployeesTabState extends State<EmployeesTab> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   String _role = 'employee';
+  Set<String> _invalidFieldKeys = {};
 
   String _employeeErrorMessage(Object error, AppLocalizations l10n) {
     final raw = error.toString();
@@ -101,7 +102,25 @@ class _EmployeesTabState extends State<EmployeesTab> {
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
-    setState(() => _error = '');
+    final invalid = <String>{};
+    if (_name.text.trim().isEmpty) invalid.add('name');
+    if (_email.text.trim().isEmpty) invalid.add('email');
+    if (_editingId == null && _password.text.length < 4) invalid.add('password');
+    if (invalid.isNotEmpty) {
+      setState(() {
+        _invalidFieldKeys = invalid;
+        _error = l10n.formMissingRequiredFields([
+          if (invalid.contains('name')) l10n.employeeName,
+          if (invalid.contains('email')) l10n.employeeEmail,
+          if (invalid.contains('password')) l10n.employeePassword,
+        ].join(', '));
+      });
+      return;
+    }
+    setState(() {
+      _error = '';
+      _invalidFieldKeys = {};
+    });
     try {
       final body = <String, dynamic>{
         'name': _name.text.trim(),
@@ -109,10 +128,6 @@ class _EmployeesTabState extends State<EmployeesTab> {
         'role': _role,
       };
       if (_editingId == null) {
-        if (_password.text.length < 4) {
-          setState(() => _error = l10n.employeePassword);
-          return;
-        }
         body['password'] = _password.text;
         await Api.post('/api/employees', body);
       } else {
@@ -235,25 +250,51 @@ class _EmployeesTabState extends State<EmployeesTab> {
                             padding: const EdgeInsets.only(bottom: 16),
                             child: TextField(
                                 controller: _name,
-                                decoration:
-                                    InputDecoration(labelText: l10n.employeeName))),
+                                onChanged: (_) {
+                                  if (_invalidFieldKeys.remove('name')) {
+                                    setState(() {});
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  labelText: l10n.employeeName,
+                                  errorText: _invalidFieldKeys.contains('name')
+                                      ? ' '
+                                      : null,
+                                ))),
                         const SizedBox(height: 8),
                         Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: TextField(
                                 controller: _email,
-                                decoration:
-                                    InputDecoration(labelText: l10n.employeeEmail))),
+                                onChanged: (_) {
+                                  if (_invalidFieldKeys.remove('email')) {
+                                    setState(() {});
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  labelText: l10n.employeeEmail,
+                                  errorText: _invalidFieldKeys.contains('email')
+                                      ? ' '
+                                      : null,
+                                ))),
                         const SizedBox(height: 8),
                         Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: TextField(
                               controller: _password,
                               obscureText: true,
+                              onChanged: (_) {
+                                if (_invalidFieldKeys.remove('password')) {
+                                  setState(() {});
+                                }
+                              },
                               decoration: InputDecoration(
                                 labelText: l10n.employeePassword,
                                 hintText:
                                     _editingId != null ? l10n.passwordHintEdit : null,
+                                errorText: _invalidFieldKeys.contains('password')
+                                    ? ' '
+                                    : null,
                               ),
                             )),
                         const SizedBox(height: 8),
