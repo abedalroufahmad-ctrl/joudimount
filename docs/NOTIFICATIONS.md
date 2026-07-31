@@ -9,7 +9,7 @@ The project supports real-time notifications across three layers:
 ## Who gets notified
 
 - **Manager (admin)** — any project action by another user (create/update/delete transactions, clients, employees, etc.)
-- **Employees / accountant** — when another user edits project data (not their own actions)
+- **Employees (`employee`, `employee2`, `warehouse`) / accountant** — when another user edits project data (not their own actions)
 
 ## API environment (optional FCM)
 
@@ -25,7 +25,7 @@ Restart the API after setting these variables.
 
 ## Web
 
-No extra setup. The web app connects to Socket.IO on the same host as `API_BASE` (`http://localhost:4000` by default).
+No extra setup. The web app connects to Socket.IO on the same host as `API_BASE` (`http://localhost:4000` by default). Route modules are lazy-loaded in production builds; notification delivery is unchanged.
 
 ## Flutter — Firebase Cloud Messaging
 

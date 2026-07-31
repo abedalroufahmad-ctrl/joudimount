@@ -74,13 +74,14 @@ Fields:
 - `name`
 - `email` (unique)
 - `password` (bcrypt hash)
-- `role`: `manager` | `employee` | `employee2` | `accountant`
+- `role`: `manager` | `employee` | `employee2` | `warehouse` | `accountant`
 
 Seeded defaults on API startup (upsert), password `123456`:
 
 - `manager@tracker.local`
 - `employee@tracker.local`
 - `employee2@tracker.local`
+- `warehouse@tracker.local`
 - `accountant@tracker.local`
 
 ### 4.2 Operational records (`transactions`, `transfers`, `exports`)
@@ -91,7 +92,7 @@ Core fields:
 
 - Client/shipping identity: `clientName`, optional `clientId`, `shippingCompanyName`, optional `shippingCompanyId`
 - Declaration fields: `declarationNumber` (unique), `declarationNumber2`, `declarationDate`, `orderDate`, declaration metadata
-- Shipment fields: `airwayBill`, `hsCode`, `goodsDescription`, `invoiceValue`, `invoiceCurrency`, `originCountry`
+- Shipment fields: `airwayBill`, `hsCode`, `goodsDescription`, `invoiceValue`, `invoiceCurrency`, `originCountry` (required string, 1–4 characters; trimmed and uppercased via Zod `originCountrySchema`)
 - Workflow fields: `documentStatus`, `clearanceStatus`, `riskLevel`, `channel`, `paymentStatus`, `xrayResult`, `releaseCode`
 - Stage: `transactionStage` (`PREPARATION`, `CUSTOMS_CLEARANCE`, `TRANSPORTATION`, `STORAGE`)
 - Attachments: `documentAttachments[]` with `path`, `originalName`, optional category
@@ -153,10 +154,18 @@ Channel mapping: low => green, medium => yellow, high => red.
 ### 5.4 Validation and attachments
 
 - Create/update payloads are validated with Zod (`transactionSchemas.ts`).
+- `originCountry` uses `originCountrySchema`: non-empty, max 4 characters, uppercased on parse.
 - `isStopped` is required on create and update schemas.
 - Multipart upload requires a category entry per uploaded file.
 - Attachments support merge/retain/remove flows on edit; orphan files are cleaned up.
 - Employee2 may upload new attachments on `PUT` only while the record is at **Transportation** stage.
+
+**Client-side required-field UX (web + mobile):**
+
+- Card forms call validation on save; empty required inputs are marked red (`.is-invalid` / `form-field-box--invalid` on web; `errorText` borders on Flutter).
+- Shared web helper: `apps/web/src/formValidation.ts` (`markInvalidFields`, `markInvalidFieldsByKeys`, `markInvalidDocCategories`).
+- Applies to login, clients, shipping companies, employees, transaction forms, and matching Flutter screens (transaction form, employees, login, profile).
+- Web transaction form maps API `missing_fields` responses (e.g. blocked stage advance) to `data-field-key` targets for red highlighting.
 
 ### 5.5 Storage card
 
@@ -201,9 +210,10 @@ Dedicated UI (web `TransactionStoragePage`, Flutter `transaction_storage_page.da
 | `manager` | Full CRUD and management across modules, staff, clients, shipping companies, pay/release, storage |
 | `employee` | Create/read/update/delete (per module rules); original BL on imports; edit only during **Preparation** and **Customs clearance** with stage-1 field set; no pay/release/`paymentStatus` |
 | `employee2` | Read; stage changes; edit during **Transportation** and **Storage** with stage-2 or warehouse field sets; attachment upload on `PUT` at Transportation only; no create/delete/`paymentStatus` |
+| `warehouse` | Read modules; **Storage** stage only; edit warehouse/storage field set; storage card; no create/delete, pay/release, or `paymentStatus` |
 | `accountant` | Read; pay/release; `PUT` limited to `paymentStatus`; storage read-only |
 
-Stage-scoped edit windows are enforced in `server.ts` (`validateRoleFieldUpdates`) and mirrored on the web client (`stageRolePermissions.ts`, `transactionFieldPermissions.ts`).
+Stage-scoped edit windows are enforced in `server.ts` (`validateRoleFieldUpdates`) and mirrored on the web client (`stageRolePermissions.ts`, `transactionFieldPermissions.ts`) and Flutter (`transaction_field_permissions.dart`).
 
 ---
 
@@ -253,6 +263,9 @@ Authenticated React SPA with:
 - Arabic/English i18n
 - Attachment upload/category support in forms
 - Padded field-card layout on details and edit forms (`DetailField`, `form-field-box`)
+- Required-field red highlighting on save (`formValidation.ts`, `noValidate` + HTML5 `required` on card forms)
+- Origin country: free-text input, max 4 characters, auto-uppercase
+- Lazy-loaded route chunks and vendor splitting in production build (`vite.config.ts`)
 
 Default API base in `apps/web/src/types.ts`: `http://localhost:4000`.
 
@@ -264,15 +277,19 @@ Default API base in `apps/web/src/types.ts`: `http://localhost:4000`.
 
 Flutter app includes:
 
-- Auth with remember-me (`SharedPreferences`)
-- **Dashboard** tab with shortcuts, search, recent imports, notifications entry
-- Tabs: home, imports, transfers, exports, clients, shipping, employees, profile
+- Auth with remember-me (`SharedPreferences`); required-field validation on login card
+- **Dashboard** tab with shortcuts, search, recent imports, notifications entry (warehouse role: storage-focused nav)
+- Tabs: home, imports, transfers, exports, clients, shipping, employees, profile (warehouse: imports/transfers/exports only)
 - Transaction list/detail/form per module; **storage card** at Storage stage
+- Stage/field permissions aligned with web (`transaction_field_permissions.dart`, `stageRolePermissions` parity)
+- **Origin country** — writable text field, max 4 characters, uppercase formatter
+- Required-field red borders on save (transaction form, employees, login, profile)
 - **Profile** tab — update name, email, password via `/api/auth/me`
 - **Notifications** — polling service + in-app sheet
-- Arabic/English localization
+- Arabic/English localization; employee role description cards on staff screen
 - API host via `API_BASE` dart define with runtime fallback in `api.dart`
 - Map picker for shipping coordinates
+- JOUDI splash logo (Android native splash + web loading screen)
 
 Package: `judi_mount`. Android ID: `com.example.judi_mount`.
 
@@ -312,4 +329,4 @@ flutter run --dart-define=API_BASE=http://localhost:4000
 
 ## 12. Summary
 
-The repository implements a role-based customs operations tracker across web and mobile clients, backed by a shared Express/Mongo API. It covers imports, transfers, and exports with staged workflows, warehouse storage tracking, accounting cards, document attachments, real-time notifications, and payment/release controls.
+The repository implements a role-based customs operations tracker across web and mobile clients, backed by a shared Express/Mongo API. It covers imports, transfers, and exports with staged workflows, warehouse storage tracking, accounting cards, document attachments, real-time notifications, payment/release controls, and client-side required-field validation with red field highlighting on save.

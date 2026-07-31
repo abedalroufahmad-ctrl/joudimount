@@ -27,6 +27,7 @@ Internal transaction tracking platform for customs operations with role-based ac
 | `manager` | Full access: all modules, clients, shipping companies, employees, pay/release, storage |
 | `employee` | Create/update/delete records on all modules; **Preparation** and **Customs clearance** stages; preparation-stage fields on `PUT`; original BL action (imports); cannot pay, release, or change `paymentStatus` |
 | `employee2` | Read all modules; change stage (`POST .../stage`); **Transportation** and **Storage** stages; transportation fields on `PUT`, warehouse fields at **Storage**; attachment upload on `PUT` only at **Transportation**; cannot create/delete or change `paymentStatus` |
+| `warehouse` | Read imports/transfers/exports; **Storage** stage only; edit warehouse/storage fields via storage card and stage-scoped `PUT`; no create/delete, pay/release, or `paymentStatus` |
 | `accountant` | Read all modules; pay and release; `PUT` may **only** set `paymentStatus`; storage card is read-only |
 
 Default accounts (auto-seeded on API startup, password `123456`):
@@ -34,6 +35,7 @@ Default accounts (auto-seeded on API startup, password `123456`):
 - `manager@tracker.local`
 - `employee@tracker.local`
 - `employee2@tracker.local`
+- `warehouse@tracker.local`
 - `accountant@tracker.local`
 
 ## Modules & Stages
@@ -55,10 +57,11 @@ Other behavior:
 
 - Preparation completeness is validated before moving from `PREPARATION` to `CUSTOMS_CLEARANCE`
 - Setting `documentArrivalDate` can auto-advance toward customs clearance
-- Risk level and channel are derived from invoice value, HS code, and origin country
+- Risk level and channel are derived from invoice value, HS code, and origin country (1–4 character code, normalized to uppercase on save)
 - Pay/release endpoints enforce payment and document-status rules
 - **Storage card** — dedicated UI for warehouse entry/exit/seal fields at Storage stage (imports & transfers)
 - Create/update payloads require **`isStopped`**; if stopped, **`stopReason`** is required before advancing to customs clearance
+- **Form validation UX** — on web and mobile, required fields left blank on save are highlighted in red; stage-change `missing_fields` API errors highlight the corresponding inputs on web
 
 ## Core Features
 
@@ -70,6 +73,8 @@ Other behavior:
 - Real-time notifications (Socket.IO on web; REST polling on mobile) — see `docs/NOTIFICATIONS.md`
 - Arabic/English localization (web and app)
 - Padded field-card layout on transaction details and edit forms (web)
+- Web production bundle uses lazy routes and vendor chunk splitting (`vite.config.ts`)
+- JOUDI branding on Flutter splash (Android) and web loading screen
 
 **Accounting card:** Dedicated page per record for manager and accountant (`GET/PUT /api/{module}/:id/accounting`) with payment-related fixed fields plus custom titled amount rows.
 
